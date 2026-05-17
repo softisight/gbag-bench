@@ -78,6 +78,24 @@ def call_openai(system: str, user: str, model: str = "gpt-5") -> str:
     return resp.choices[0].message.content
 
 
+def call_deepseek(system: str, user: str, model: str = "deepseek-chat") -> str:
+    """DeepSeek API is OpenAI-compatible. Set DEEPSEEK_API_KEY."""
+    from openai import OpenAI
+    client = OpenAI(
+        api_key=os.environ["DEEPSEEK_API_KEY"],
+        base_url="https://api.deepseek.com",
+    )
+    resp = client.chat.completions.create(
+        model=model,
+        temperature=0,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    )
+    return resp.choices[0].message.content
+
+
 def parse_judge_response(raw: str) -> dict:
     """Extract JSON object from the judge's response (tolerant of fences)."""
     s = raw.strip()
@@ -105,7 +123,7 @@ def main() -> int:
     ap.add_argument("--dataset", required=True, help="Path to questions.jsonl")
     ap.add_argument("--answers", required=True, help="Path to model_answers.jsonl")
     ap.add_argument("--output", required=True, help="Where to write scores.jsonl")
-    ap.add_argument("--judge", choices=["anthropic", "openai"], default="anthropic")
+    ap.add_argument("--judge", choices=["anthropic", "openai", "deepseek"], default="anthropic")
     ap.add_argument("--model", default=None, help="Override judge model id")
     ap.add_argument("--limit", type=int, default=0, help="Score only first N (debug)")
     args = ap.parse_args()
@@ -116,7 +134,7 @@ def main() -> int:
         answers = answers[: args.limit]
 
     system = load_judge_system_prompt()
-    caller = call_anthropic if args.judge == "anthropic" else call_openai
+    caller = {"anthropic": call_anthropic, "openai": call_openai, "deepseek": call_deepseek}[args.judge]
     kwargs = {"model": args.model} if args.model else {}
 
     out = Path(args.output).open("w", encoding="utf-8")

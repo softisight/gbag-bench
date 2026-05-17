@@ -105,7 +105,7 @@ def call_openai(system: str, user: str, model: str) -> str:
     return resp.choices[0].message.content
 
 
-def call_ollama(system: str, user: str, model: str) -> str:
+def call_ollama(system: str, user: str, model: str, host: str = "http://localhost:11434") -> str:
     import urllib.request
     body = json.dumps({
         "model": model,
@@ -115,7 +115,7 @@ def call_ollama(system: str, user: str, model: str) -> str:
         "options": {"temperature": 0, "think": False},
     }).encode("utf-8")
     req = urllib.request.Request(
-        "http://localhost:11434/api/generate",
+        f"{host.rstrip('/')}/api/generate",
         data=body,
         headers={"Content-Type": "application/json"},
     )
@@ -139,6 +139,8 @@ def main() -> int:
     ap.add_argument("--provider", choices=list(CALLERS), required=True)
     ap.add_argument("--model", required=True)
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--ollama-host", default="http://localhost:11434",
+                    help="Ollama server URL (default: http://localhost:11434)")
     args = ap.parse_args()
 
     dataset = [json.loads(l) for l in Path(args.dataset).open(encoding="utf-8") if l.strip()]
@@ -162,7 +164,10 @@ def main() -> int:
             cols, rows = execute_sql(db_path, q["gold_sql"])
             user = build_user_prompt(q["question"], q["gold_sql"], cols, rows)
             t0 = time.time()
-            answer = caller(SYSTEM_PROMPT, user, args.model)
+            if args.provider == "ollama":
+                answer = caller(SYSTEM_PROMPT, user, args.model, host=args.ollama_host)
+            else:
+                answer = caller(SYSTEM_PROMPT, user, args.model)
             dt = round(time.time() - t0, 2)
             out.write(json.dumps({
                 "id": qid,
