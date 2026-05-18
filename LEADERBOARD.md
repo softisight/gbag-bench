@@ -8,29 +8,48 @@ All runs use **gold-SQL mode**: the reference SQL is executed and only the natur
 
 ## v0.1 results — 35 questions, 3 databases (Sakila / Chinook / Northwind), L1-L10
 
-| Model | Hardware | Judge | Coverage | GBAG | Faithfulness | Completeness | Insight |
+| Model | Hardware / Provider | Judge | Coverage | **GBAG** | F | C | I |
 |---|---|---|---|---|---|---|---|
-| `qwen3.5:9b` | RTX 3060 (local Ollama) | DeepSeek V3 | 32 / 35 (91%) | **72.7** | 75.6 | 73.9 | 63.8 |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM (cloud) | qwen3.6 | 35 / 35 | **77.9** | 80.0 | 72.1 | 81.1 |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM (cloud) | gemini-2.5 | 34 / 35 | **76.4** | 77.4 | 69.4 | 84.4 |
+| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM (cloud) | deepseek-chat | 35 / 35 | **73.5** | 79.7 | 63.7 | 72.6 |
+| `qwen3.5:9b` | RTX 3060 (local Ollama) | deepseek-chat | 32 / 35 | **72.7** | 75.6 | 73.9 | 63.8 |
+| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM (cloud) | deepseek-v3.2 | 35 / 35 | **69.6** | 72.3 | 67.2 | 66.6 |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM (cloud) | deepseek-v3.2 | 35 / 35 | **66.6** | 64.8 | 68.3 | 68.5 |
+| `qwen/qwen3-next-80b-a3b-thinking` | NVIDIA NIM (cloud) | deepseek-v3.2 | 35 / 35 | **56.2** | 63.4 | 52.6 | 43.7 |
 
-*Coverage shows scored questions / dataset size. Three timeouts on the longest queries (large result sets that exceeded the 10-min runner timeout).*
+*Coverage = questions answered without timeout / dataset size. Judge column reports the LLM that scored the run; identical models judged by different judges produce different GBAG scores — see "Inter-judge variance" below.*
+
+## Inter-judge variance — `nvidia/llama-3.3-nemotron-super-49b-v1` scored by 3 judges
+
+| Judge | GBAG | F | C | I |
+|---|---|---|---|---|
+| qwen3.6 | 77.9 | 80.0 | 72.1 | 81.1 |
+| gemini-2.5 | 76.4 | 77.4 | 69.4 | 84.4 |
+| deepseek-v3.2 | 66.6 | 64.8 | 68.3 | 68.5 |
+| **Spread** | **11.3 pts** | **15.2** | **3.8** | **15.9** |
+
+A single model can score 67 to 78 depending on the LLM used as judge. **This is why the GBAG protocol recommends dual-judge runs (two judges from different vendors) and reporting inter-rater agreement (Cohen's kappa).** Faithfulness and Insight axes show the largest sensitivity; Completeness is more stable.
 
 ## Observations from v0.1
 
-**1. The metric discriminates.** GBAG scores span 11–100 across the 32 answered questions. No saturation, no flat scoring.
+**1. The metric discriminates.** GBAG scores span 11–100 across answered questions. No saturation, no flat scoring.
 
-**2. PSAD pattern empirically confirmed.** Faithfulness collapses (F=10) on questions requiring synthesis of derived facts beyond the SQL result:
-- **L8-01** *(calendar with gaps)* — model fabricates missing dates
-- **L10-02** *(running cumulative total)* — model cannot perform running sums on the row stream
-- **L9-01** *(store × category combinations)* — model invents cross-group aggregates
+**2. Bigger is not better.** A 9B local model (`qwen3.5:9b`, 6.6 GB on consumer GPU) scores within 1 point of a 480B cloud MoE (`qwen3-coder-480b`) when judged by the same judge. **The interpretation phase does not benefit linearly from scale.** This is a finding with direct commercial implications: local BI assistants can match cloud frontier models on the answer-quality axis.
 
-**3. Synthesis beats arithmetic.** L9-02 and L9-03 (multi-row synthesis without numeric reasoning) score 100. Pattern matches the "synthesis vs arithmetic" gap reported in prior work.
+**3. Thinking modes can hurt.** `qwen3-next-80b-a3b-thinking` scores 56.2 — well below `qwen3-coder-480b` (69.6) under the same judge. Hidden reasoning tokens introduce errors during result interpretation. Consistent with practitioner reports that thinking is best disabled for grounded tasks.
 
-**4. Insight axis adds signal.** Models that recite correct numbers without commentary cap at I=30. Models that surface a trend ("revenue peaked in July, then declined") reach I=100.
+**4. PSAD pattern empirically confirmed.** Across multiple models, Faithfulness collapses (F ≤ 10) on questions requiring:
+- Synthesis of derived facts beyond the SQL result rows (calendar gaps, running cumulative totals, cross-group aggregates)
 
-## How to submit
+**5. Synthesis beats arithmetic.** Multi-row synthesis questions (`L9-02`, `L9-03`) score 100 across most models, while running-arithmetic questions (`L10-02`) collapse. Matches the "synthesis vs arithmetic" gap reported in prior work.
 
-1. Run `examples/baseline_runner.py` against your model on `data/questions.jsonl`
-2. Score with `judge/run_judge.py` using a frontier-class judge (Claude / GPT / DeepSeek V3 class)
-3. Open a PR adding your row above with a link to your `runs/*.jsonl` and `runs/*.scored.jsonl`
+## Submitting your model
 
-For inter-judge comparability, dual-judge runs (e.g. Anthropic + DeepSeek) are encouraged.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full PR flow. TL;DR:
+
+1. Run `examples/baseline_runner.py` on your model
+2. Score with `judge/run_judge.py` using a frontier judge (Claude / GPT / DeepSeek / Gemini / Qwen 3.6 class)
+3. Open a PR adding your row + your `runs/*.jsonl` + `runs/*.scored.jsonl`
+
+**Dual-judge submissions strongly preferred.** Single-judge entries are accepted but flagged.
