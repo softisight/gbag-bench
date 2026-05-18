@@ -1,0 +1,22 @@
+# GBAG-Bench Code Owners
+#
+# These owners will be auto-requested for review on PRs touching matched paths.
+# Combined with the "Require review from Code Owners" branch rule, the listed
+# reviewers MUST approve before a PR can be merged.
+#
+# Syntax: <path-pattern> <space> @owner1 @owner2 ...
+# Patterns later in the file take precedence over earlier ones.
+
+# Default — every PR needs at least one of these owners
+*                       @Fouad-Zerga @r-zakarya
+
+# Dataset — Zaki must co-approve any change to questions or schema
+/data/                  @r-zakarya
+/SCHEMA.md              @r-zakarya
+
+# Metric & judge — high-impact, both owners required
+/METRIC.md              @Fouad-Zerga @r-zakarya
+/judge/                 @Fouad-Zerga @r-zakarya
+
+# Leaderboard — both owners review (avoids self-merging your own model entry)
+/LEADERBOARD.md         @Fouad-Zerga @r-zakarya
