@@ -8,15 +8,20 @@ All runs use **gold-SQL mode**: the reference SQL is executed and only the natur
 
 ## v0.1 results — 35 questions, 3 databases (Sakila / Chinook / Northwind), L1-L10
 
-| Model | Hardware / Provider | Judge | Coverage | **GBAG** | F | C | I |
+> The table below is **auto-generated** by `scripts/update_leaderboard.py`. Do not edit by hand.
+
+<!-- LEADERBOARD-AUTO-START -->
+| Model | Provider | Judge | Coverage | **GBAG** | F | C | I |
 |---|---|---|---|---|---|---|---|
-| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM (cloud) | qwen3.6 | 35 / 35 | **77.9** | 80.0 | 72.1 | 81.1 |
-| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM (cloud) | gemini-2.5 | 34 / 35 | **76.4** | 77.4 | 69.4 | 84.4 |
-| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM (cloud) | deepseek-chat | 35 / 35 | **73.5** | 79.7 | 63.7 | 72.6 |
-| `qwen3.5:9b` | RTX 3060 (local Ollama) | deepseek-chat | 32 / 35 | **72.7** | 75.6 | 73.9 | 63.8 |
-| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM (cloud) | deepseek-v3.2 | 35 / 35 | **69.6** | 72.3 | 67.2 | 66.6 |
-| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM (cloud) | deepseek-v3.2 | 35 / 35 | **66.6** | 64.8 | 68.3 | 68.5 |
-| `qwen/qwen3-next-80b-a3b-thinking` | NVIDIA NIM (cloud) | deepseek-v3.2 | 35 / 35 | **56.2** | 63.4 | 52.6 | 43.7 |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | nvidia | qwen3.6 | 35 / 35 | **77.9** | 80.0 | 72.1 | 81.1 |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | nvidia | gemini-2.5 | 34 / 35 | **76.4** | 77.4 | 69.4 | 84.4 |
+| `qwen/qwen3-coder-480b-a35b-instruct` | nvidia | deepseek-chat | 35 / 35 | **73.5** | 79.7 | 63.7 | 72.6 |
+| `qwen3.5:9b` | ollama | deepseek-chat | 32 / 35 | **72.7** | 75.6 | 73.9 | 63.8 |
+| `qwen/qwen3-next-80b-a3b-instruct` | nvidia | deepseek-v3.2 | 5 / 35 | **71.6** | 79.8 | 79.8 | 37.8 |
+| `qwen/qwen3-coder-480b-a35b-instruct` | nvidia | deepseek-v3.2 | 35 / 35 | **69.6** | 72.3 | 67.2 | 66.6 |
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | nvidia | deepseek-v3.2 | 35 / 35 | **66.6** | 64.8 | 68.3 | 68.5 |
+| `qwen/qwen3-next-80b-a3b-thinking` | nvidia | deepseek-v3.2 | 35 / 35 | **56.2** | 63.4 | 52.6 | 43.7 |
+<!-- LEADERBOARD-AUTO-END -->
 
 *Coverage = questions answered without timeout / dataset size. Judge column reports the LLM that scored the run; identical models judged by different judges produce different GBAG scores — see "Inter-judge variance" below.*
 
