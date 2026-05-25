@@ -225,3 +225,10 @@ __marimo__/
 scripts/raw_*.json
 !scripts/raw_*_v3.json
 
+# Local archives (occasionally created to ship a folder snapshot manually
+# to a reviewer — never meant to live in the repo)
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
