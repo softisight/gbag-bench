@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# DeskInsight Runner raw dumps (large, local-only, not for public reproduction)
+scripts/raw_*.json
+
