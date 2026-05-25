@@ -1,0 +1,41 @@
+﻿{
+  "config_name": "GoldSQL + qwen3.5:9b",
+  "hardware": {
+    "cpu": "AMD Ryzen 5 5500H with Radeon Graphics",
+    "gpu": "NVIDIA GeForce RTX 2050",
+    "gpu_vram_mb": 4096,
+    "ram_total_mb": 15724,
+    "os": "Windows 11 (26200)"
+  },
+  "started_at": "2026-05-25T10:29:33",
+  "finished_at": "2026-05-25T10:30:28",
+  "success_rate": 1.0,
+  "avg_duration_ms": 54167,
+  "avg_sql_score": -1.0,
+  "execution_accuracy_pct": -1.0,
+  "avg_response_score": -1.0,
+  "avg_global_score": -1.0,
+  "results": [
+    {
+      "question_id": "northwind-l5-01",
+      "config_name": "GoldSQL + qwen3.5:9b",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "WITH totals AS (SELECT o.CustomerID, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS total_spent FROM Orders o JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY o.CustomerID) SELECT c.CompanyName, t.total_spent FROM totals t JOIN Customers c ON t.CustomerID = c.CustomerID ORDER BY t.total_spent DESC LIMIT 3;",
+      "ai_response": "Based on the provided results, the three customers with the highest total order revenue are:\n\n| Company Name | Total Spent (EUR) |\n| :--- | :--- |\n| B's Beverages | 6,154,115.34 |\n| Hungry Coyote Import Store | 5,698,023.67 |\n| Rancho grande | 5,559,110.08 |\n\nThese figures represent the top 3 records retrieved from the `orders`, `totals`, and `customers` entities.",
+      "sql_row_count": 3,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l5_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"CompanyName\":\"B's Beverages\",\"total_spent\":6154115.3399999974},{\"CompanyName\":\"Hungry Coyote Import Store\",\"total_spent\":5698023.6699999981},{\"CompanyName\":\"Rancho grande\",\"total_spent\":5559110.0799999994}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l5_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"CompanyName\":\"B's Beverages\",\"total_spent\":6154115.3399999974},{\"CompanyName\":\"Hungry Coyote Import Store\",\"total_spent\":5698023.6699999981},{\"CompanyName\":\"Rancho grande\",\"total_spent\":5559110.0799999994}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 1356,
+      "phase3_response_generation_ms": 52811,
+      "total_duration_ms": 54167,
+      "sql_model_used": "Local (qwen3.5:9b → qwen3.5:9b)",
+      "response_model_used": "Local (qwen3.5:9b → qwen3.5:9b)",
+      "provider_used": "Ollama",
+      "judged": false,
+      "used_gold_sql": true,
+      "run_at": "2026-05-25T10:30:28"
+    }
+  ]
+}

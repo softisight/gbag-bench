@@ -219,5 +219,9 @@ __marimo__/
 
 
 # DeskInsight Runner raw dumps (large, local-only, not for public reproduction)
+# Exception: keep the v3 dumps (final patched state from 2026-05-25),
+# small enough (~12 KB total) and traceable for reviewers who want to verify
+# the answer→judge pipeline end-to-end.
 scripts/raw_*.json
+!scripts/raw_*_v3.json
 
