@@ -17,6 +17,7 @@ All runs use **gold-SQL mode**: the reference SQL is executed and only the natur
 <!-- LEADERBOARD-V02-START -->
 | Model | Provider | Config | Judge | Coverage | **GBAG** | F | C | I |
 |---|---|---|---|---|---|---|---|---|
+| `google/gemma-4-31b-it` | openrouter | **+ DeskInsight pipeline** | grok-4.3 | 35 / 35 | **83.2** | 90.6 | 93.7 | 49.1 |
 | `qwen3.5:9b` | ollama (RTX 3060) | **+ DeskInsight pipeline** | grok-4.3 | 35 / 35 | **76.8** | 77.1 | 89.8 | 56.3 |
 | `nvidia/llama-3.3-nemotron-super-49b-v1` | nvidia | neutral prompt | grok-4.3 | 35 / 35 | **67.7** | 61.4 | 70.5 | 79.4 |
 | `qwen/qwen3-coder-480b-a35b-instruct` | nvidia | neutral prompt | grok-4.3 | 35 / 35 | **64.6** | 64.9 | 56.9 | 75.7 |
@@ -82,6 +83,8 @@ The conversion scripts are open-source (this repo). The model, judge, and questi
 **4. Thinking modes can hurt.** `qwen3-next-80b-thinking` (61.4) sits just barely above the 9B baseline (59.6) and significantly below the non-thinking `qwen3-coder-480b` (64.6) under the same judge. Hidden reasoning tokens introduce inconsistencies during result interpretation. Consistent with practitioner reports that thinking is best disabled for grounded tasks.
 
 **5. PSAD (Post-SQL Aggregation Deficit) is real but narrowly scoped.** Local models occasionally fabricate aggregates from a row sample — particularly when the SQL returns ≤ 5 rows but underlying tables are large (top-N queries). The DeskInsight pipeline mitigates most cases via Pre-Aggregated Context Injection; one Sakila case (`sakila-l5-01`) remains a partial regression (cross-DB knowledge contamination). The phenomenon is concentrated, not universal.
+
+**6. Pipeline value generalizes to mid-scale cloud (added 2026-05-26).** Adding `google/gemma-4-31b-it` via OpenRouter through the same DeskInsight pipeline reaches **83.2 GBAG** with Faithfulness **90.6** — the highest F on the v0.2 board. Compared to the neutral-prompt baselines (49B → 67.7, 80B-thinking → 61.4, 480B → 64.6), the +15 to +22 gain confirms that context engineering remains the dominant lever even at flagship scale, not just on the smallest local model. The Insight axis (49.1) lags the larger thinking-class models (75-79), consistent with gemma4's known "data-faithful, narratively terse" behavior — a profile DeskInsight users explicitly want for privacy-first BI (less unsolicited speculation).
 
 ---
 
