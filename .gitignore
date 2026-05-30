@@ -232,3 +232,11 @@ scripts/raw_*.json
 *.7z
 *.tar.gz
 
+
+# Failed-fix experiment dumps (May 2026 — GROUP BY-aware PACI / postfix / fix2
+# attempts, all reverted; see CLAUDE.md "PACI dual-role"). Kept locally for
+# traceability but never published: they are noise in a neutral benchmark repo.
+runs/*groupbypaci*
+runs/*postfix*
+runs/*-fix2*
+runs/debug_*/
