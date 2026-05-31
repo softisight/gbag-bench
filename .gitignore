@@ -219,5 +219,24 @@ __marimo__/
 
 
 # DeskInsight Runner raw dumps (large, local-only, not for public reproduction)
+# Exception: keep the v3 dumps (final patched state from 2026-05-25),
+# small enough (~12 KB total) and traceable for reviewers who want to verify
+# the answer→judge pipeline end-to-end.
 scripts/raw_*.json
+!scripts/raw_*_v3.json
 
+# Local archives (occasionally created to ship a folder snapshot manually
+# to a reviewer — never meant to live in the repo)
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
+
+# Failed-fix experiment dumps (May 2026 — GROUP BY-aware PACI / postfix / fix2
+# attempts, all reverted; see CLAUDE.md "PACI dual-role"). Kept locally for
+# traceability but never published: they are noise in a neutral benchmark repo.
+runs/*groupbypaci*
+runs/*postfix*
+runs/*-fix2*
+runs/debug_*/

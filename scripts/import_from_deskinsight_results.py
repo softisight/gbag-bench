@@ -2,11 +2,18 @@
 Convert DeskInsight Runner benchmark_raw.json output(s) back to GBAG
 model_answers.jsonl format, ready for judge/run_judge.py.
 
+Convention (post-cleanup):
+- DeskInsight suites live in Z:\\SampleDB\\<db>_gbag.json (loaded via "Load JSON")
+- Raw benchmark outputs are saved into Z:\\gbag-bench\\runs\\raw_<db>_<model>.json
+- This script converts those into runs/<model>_gbag.jsonl for the judge
+
 Usage:
-    python scripts/import_from_deskinsight_results.py \
-        --raw scripts/raw_sakila.json scripts/raw_chinook.json scripts/raw_northwind.json \
-        --model "qwen3.5:9b+deskinsight" \
-        --output runs/qwen35-9b_deskinsight_pipeline.jsonl
+    python scripts/import_from_deskinsight_results.py \\
+        --raw runs/raw_sakila_gemma4-e4b.json \\
+              runs/raw_chinook_gemma4-e4b.json \\
+              runs/raw_northwind_gemma4-e4b.json \\
+        --model "gemma4:e4b+deskinsight" \\
+        --output runs/gemma4-e4b_deskinsight_goldsql.jsonl
 """
 import argparse
 import json
