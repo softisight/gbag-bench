@@ -139,6 +139,10 @@ If you use GBAG-Bench in your work, please cite:
 }
 ```
 
+## AI assistance disclosure
+
+Portions of the harness code, documentation, and tooling in this repository were drafted with the assistance of an AI coding assistant (Claude, by Anthropic). All experimental design, benchmark question authoring, gold-SQL curation, result validation, and scientific conclusions are the work of the human authors, who take full responsibility for the contents of this repository and any associated publication. The AI was used as a productivity tool, not as a contributor or author — consistent with the authorship policies of major venues (Nature, Science, ACL, NeurIPS), which hold that an AI system cannot assume accountability for research.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). The bundled sample databases retain their original licenses; see [`databases/NOTICE.md`](databases/NOTICE.md).
