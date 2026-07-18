@@ -36,10 +36,10 @@ A BI user acts on the answer. A hallucinated number causes real-world damage (wr
 
 ## Judging protocol
 
-- LLM-as-judge using a frontier model (Claude or GPT class)
+- LLM-as-judge using a frontier model; the v0.2 leaderboard uses a single uniform reference judge (Grok-4.3 via OpenRouter)
 - Dual-judge for inter-rater agreement (Cohen's kappa reported)
 - Temperature = 0
-- Prompt and rubric published in `judge/` (coming soon)
+- Prompt and rubric published in [`judge/prompt.md`](judge/prompt.md)
 
 ## Versioning
 

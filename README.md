@@ -36,6 +36,22 @@ Faithfulness dominates because in BI, a hallucinated number causes a wrong real-
 
 See [METRIC.md](METRIC.md) for the full rubric and [SCHEMA.md](SCHEMA.md) for the question format.
 
+## Dataset composition
+
+35 questions across 3 public SQLite databases:
+
+| Database | Domain | Questions | Difficulty range |
+|---|---|---|---|
+| Sakila | DVD rental | 15 | 1–10 |
+| Chinook | Digital music store | 10 | 1–8 |
+| Northwind | Trading / order management | 10 | 1–8 |
+
+Each database contributes the same 10-question core ladder: one question per level 1–5, two at level 6, one at level 7, two at level 8. Sakila adds 5 extreme questions (three at level 9, two at level 10) whose result sets reach 16,049 rows.
+
+By category: `aggregation` (11), `trend` (11), `derived` (7), `join` (3), `ranking` (3).
+
+Question ids encode the database and level (`sakila-l6-02` = Sakila, difficulty 6, second question at that level). See [SCHEMA.md](SCHEMA.md) for the per-question format.
+
 ## v0.2 leaderboard — uniform Grok-4.3 judge
 
 > All models re-judged with the same judge to enable apples-to-apples comparison. See [LEADERBOARD.md](LEADERBOARD.md) for the full table, the archived v0.1 mixed-judge results, and inter-judge variance analysis.
@@ -60,6 +76,17 @@ See [METRIC.md](METRIC.md) for the full rubric and [SCHEMA.md](SCHEMA.md) for th
 **4. Thinking modes can hurt grounded tasks.** `qwen3-next-80b-thinking` (61.4) barely exceeds the 9B neutral baseline (59.6) and trails the non-thinking `qwen3-coder-480b` (64.6) under the same judge. Hidden reasoning tokens introduce inconsistencies during result interpretation — confirming practitioner reports.
 
 **5. Specific failure modes are concentrated, not universal.** Local models occasionally fabricate aggregates from row samples on top-N queries with large underlying tables (a pattern we call the Post-SQL Aggregation Deficit). Pre-Aggregated Context Injection mitigates most cases. The failures are concentrated on a narrow question type, not spread across the benchmark.
+
+## Why can an LLM judge another LLM?
+
+The benchmark's scoring rests on LLM-as-judge, so the question deserves a direct answer.
+
+1. **Verifying is easier than producing.** The judge never answers the BI question itself. It checks the candidate answer against material it is handed: the executed SQL, a human-written gold answer, and a checklist of expected insights. Reading-and-matching is a strictly easier task than the open-ended generation being graded.
+2. **The judge grades with an answer key, not from its own knowledge.** Every question ships a `gold_answer` and atomic `expected_insights`, both human-curated. Completeness is near-mechanical (insights matched / insights expected). The judge acts as a grader with a rubric, not as an oracle.
+3. **The rubric leaves little room for taste.** Anchored score bands per axis, a ±2% numeric tolerance, temperature 0, strict JSON output, and explicit rules against rewarding style or verbosity. The full prompt is published in [judge/prompt.md](judge/prompt.md); challenge it there if you disagree with a band.
+4. **Judge error is measured, not assumed away.** Finding #3 above quantifies it: re-judging identical answers moved the score by 13 points between two judges. That is exactly why v0.2 scores the whole leaderboard with one uniform reference judge (Grok-4.3) and why dual-judge submissions with Cohen's kappa are strongly preferred. Judge disagreement is published as data, not hidden.
+
+The honest residual: even a uniform strong judge carries ~11 points of judge-induced variance (see [Limitations](#limitations)). LLM-as-judge remains the only scalable way to grade free-form BI prose today; GBAG's stance is to treat the judge as part of the measured system, with its error bars published.
 
 ## Quick start
 
