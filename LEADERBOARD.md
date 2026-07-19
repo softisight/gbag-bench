@@ -28,6 +28,18 @@ All runs use **gold-SQL mode**: the reference SQL is executed and only the natur
 
 *`deepseek-v4-flash` excluded — only 3/35 questions answered, sample too small to rank.*
 
+### Reading the table (important caveats)
+
+Before reading a rank difference as real, keep three things in mind:
+
+- **Coverage is not uniform, and the GBAG score is averaged over *answered* questions only** (unanswered questions are excluded, not scored 0). A model at `28 / 35` is averaged over a different, smaller subset than one at `32 / 35` or `35 / 35` — and a model that skipped questions may have skipped the *hard* ones, which flatters its average. **Rows at different coverage are not directly comparable.** Example: `qwen3.5:9b` neutral (59.6, 32/35) vs `qwen/qwen3-next-80b-a3b-instruct` (58.9, 28/35) are averaged over different question sets.
+
+- **Parameter counts in model names mislead — mind the MoE `-aXb` suffix.** `qwen/qwen3-next-80b-a3b` is a Mixture-of-Experts: `80b` is the *total* parameter count, but `a3b` means only ~3B are *activated* per token. Its per-token compute is closer to a 3B model than to an 80B one. So the apparent "9B beats 80B" upset (`qwen3.5:9b` 59.6 vs `qwen3-next-80b-a3b-instruct` 58.9) is really **dense-9B-active vs ~3B-active** — the 9B is not the underdog its name suggests. Likewise `qwen3-coder-480b-a35b` activates ~35B of its 480B.
+
+- **Small gaps are noise.** Inter-judge variance on GBAG is ~11 points (see Finding #3 in the README). Differences below ~10 points are not meaningful rankings — treat clustered scores as ties.
+
+The one gap that **is** large and meaningful is **DeskInsight pipeline vs neutral prompt on the same model** (`qwen3.5:9b` 76.8 vs 59.6, +17.2): identical weights, hardware, questions, and judge — only the context engineering differs (data dictionary, domain detection, PACI, profile adaptation). That is the benchmark's central finding, and it is not confounded by any of the caveats above.
+
 ### Methodology — how the "DeskInsight pipeline" line was obtained
 
 The `qwen3.5:9b + DeskInsight pipeline` entry is a **submission that uses the same model and the same 35 questions as the neutral baseline**, but feeds the model through a context engineering layer instead of the bare Spider/BIRD-style prompt used by `examples/baseline_runner.py`. The two rows are designed to **isolate the contribution of context engineering** with everything else held constant.
