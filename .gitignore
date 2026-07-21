@@ -234,9 +234,14 @@ scripts/raw_*.json
 
 
 # Failed-fix experiment dumps (May 2026 — GROUP BY-aware PACI / postfix / fix2
-# attempts, all reverted; see CLAUDE.md "PACI dual-role"). Kept locally for
-# traceability but never published: they are noise in a neutral benchmark repo.
-runs/*groupbypaci*
-runs/*postfix*
+# attempts, all reverted).
+#
+# 2026-07: the groupbypaci / postfix runs are now PUBLISHED as the evidence
+# behind the "Negative results" section of the README — a reverted change is
+# only credible if its artifacts can be recomputed. Do not re-ignore them
+# without also removing that section.
+#
+# Still local-only: intermediate fix2 probes and debug dumps (superseded,
+# no published claim depends on them).
 runs/*-fix2*
 runs/debug_*/
