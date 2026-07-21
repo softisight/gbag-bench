@@ -169,6 +169,8 @@ We publish the changes that did **not** work, with their run artifacts, because 
 | `qwen35-9b_deskinsight_goldsql` (baseline) | 74.4 | 72.9 |
 | `qwen35-9b_deskinsight_goldsql_postfix` | **75.7** | **80.3** |
 
+*Baseline note.* The 9B baseline here is `qwen35-9b_deskinsight_goldsql` (74.4), **not** the `qwen3.5:9b + DeskInsight pipeline` row on the [leaderboard](LEADERBOARD.md) (76.8, run `qwen35-9b_deskinsight_final`). Our three full 35-question 9B pipeline runs sit at 74.0, 74.4 and 76.8. Every delta below compares a run against the baseline it was derived from, never across runs.
+
 Both models improved on average. On that evidence alone, the change ships.
 
 **What the per-question data said.** On the 9B, the +1.3 average is the net of **14 questions gaining a cumulative +417 and 13 questions losing a cumulative −373**. Three of those regressions are near-total collapses:
@@ -183,7 +185,7 @@ All three are *average-per-group* questions — exactly the shape the change was
 
 **Interpretation.** The suppressed aggregates serve two roles at once: a *recitation source* the model copies from (what we wanted to remove) and a *magnitude anchor* the model calibrates against (what we did not). They are the same bytes in the prompt, so no surgical fix separates them. Larger models compose without the anchor; smaller ones fabricate plausibly-shaped numbers instead.
 
-**What we did.** Reverted, and kept the legacy PACI as the production default. A +1.3 average that conceals three near-total failures on a whole question class is not a safe basis for shipping — the mean was hiding the regression, not summarizing it.
+**What we did.** Reverted, and kept the legacy PACI as the production default. A +1.3 average that conceals three near-total failures on a whole question class is not a safe basis for shipping — the mean was hiding the regression, not summarizing it. Note also that +1.3 is smaller than the spread between our own full 9B pipeline runs (74.0 / 74.4 / 76.8), so the gain never clearly cleared run-to-run variation to begin with.
 
 **Reproduce it.** All runs above are in [`runs/`](runs/) with their `.scored-grok43.jsonl` judgments; per-question deltas are recomputable from those files alone. Two partial `qwen35-9b_deskinsight_patched*` runs (3 questions each) are exploratory probes, not a full ablation — do not read averages from them.
 
