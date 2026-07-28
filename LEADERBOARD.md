@@ -38,7 +38,38 @@ Before reading a rank difference as real, keep three things in mind:
 
 - **Small gaps are noise.** Inter-judge variance on GBAG is ~11 points (see Finding #3 in the README). Differences below ~10 points are not meaningful rankings — treat clustered scores as ties.
 
-The one gap that **is** large and meaningful is **DeskInsight pipeline vs neutral prompt on the same model** (`qwen3.5:9b` 76.8 vs 59.6, +17.2): identical weights, hardware, questions, and judge — only the context engineering differs (data dictionary, domain detection, PACI, profile adaptation). That is the benchmark's central finding, and it is not confounded by any of the caveats above.
+The one gap that **is** large is **DeskInsight pipeline vs neutral prompt on the same model** (`qwen3.5:9b` 76.8 vs 59.6): identical weights, hardware, questions, and judge, only the context engineering differs (data dictionary, domain detection, PACI, profile adaptation). It is the benchmark's central finding and it is free of the coverage and MoE caveats above. It is **not** free of the judge caveat, which we measured directly. See below.
+
+### Robustness check: second judge on the headline comparison
+
+Both `qwen3.5:9b` runs were re-scored by a second judge from a different vendor, `google/gemini-2.5-pro`, on the **32 questions both runs answered** (paired design, same judge scores both sides of each pair).
+
+| | Grok-4.3 | Gemini-2.5-Pro |
+|---|---|---|
+| Pipeline / neutral | 76.9 / 59.6 | 78.4 / 71.3 |
+| **Paired gap** | **+17.2** | **+7.1** |
+| Paired sign test | 20 W / 6 L / 6 T, **p = 0.009** | 16 W / 7 L / 9 T, **p = 0.093** |
+| 95% CI | [+6.2, +28.3] | [-2.7, +16.9] |
+| Faithfulness | +17.5 | +1.2 |
+| Completeness | +33.1 | +30.7 |
+| Insight | -7.2 | -13.8 |
+
+**What survives both judges:** the direction (both judges give the pipeline more wins than losses) and the **completeness gain** (+33.1 and +30.7, the most robust single result in this benchmark). The **insight drop** is consistent too (-7.2 and -13.8).
+
+**What does not survive:** the **faithfulness gain** (+17.5 under Grok, +1.2 under Gemini) and conventional statistical significance (p = 0.009 under one judge, p = 0.093 under the other).
+
+**Why the gap halves.** The two judges agree closely on the *pipeline* answers (76.8 vs 78.1, bias +1.4) but diverge sharply on the *bare* answers (59.6 vs 71.3, bias **+11.7**). Grok penalises weak, ungrounded answers much harder than Gemini does. Part of the measured "gain" is therefore a function of how severely the judge treats the starting point, not only of how much the pipeline improves it.
+
+**Inter-judge agreement** (same answers, two judges):
+
+| Run | Spearman | Pearson | ICC(A,1) | Mean abs. diff | Disagreements >= 15 pts |
+|---|---|---|---|---|---|
+| neutral (32q) | 0.860 | 0.831 | 0.766 | 12.7 | 11/32 (34%) |
+| pipeline (35q) | 0.667 | 0.787 | 0.784 | 8.7 | 9/35 (26%) |
+
+ICC around 0.77 is moderate-to-good: the judges largely agree on **which** answer is better, and disagree on **how many points** a mediocre answer deserves. Note on the statistic: GBAG scores are continuous (0-100), so **ICC(A,1)** and **Spearman** are the appropriate agreement measures. Cohen's kappa, which earlier versions of this protocol referenced, applies to categorical ratings and does not fit here; the protocol docs have been corrected.
+
+**How to read the headline going forward:** the context engineering effect on `qwen3.5:9b` is a **range of +7 to +17 GBAG points**, direction-consistent across judges, driven mainly by completeness, with no robust faithfulness gain and a consistent insight cost. Single-judge point estimates of this effect should not be quoted without naming the judge.
 
 ### Methodology — how the "DeskInsight pipeline" line was obtained
 
@@ -143,7 +174,7 @@ Single-judge benchmarks systematically over- or under-estimate. Two examples doc
 
 37.5 % of questions show ≥ 15-point disagreement between the two judges. **All disagreements are in the same direction: deepseek-chat scores higher than grok-4.3, suggesting it is the more lenient judge on this task.**
 
-A single model can score within an 11-point range purely based on judge choice. **The GBAG protocol therefore recommends dual-judge runs (two judges from different vendors) and reporting inter-rater agreement (Cohen's kappa).** Faithfulness and Insight axes show the largest sensitivity; Completeness is moderately stable.
+A single model can score within an 11-point range purely based on judge choice. **The GBAG protocol therefore recommends dual-judge runs (two judges from different vendors) and reporting inter-rater agreement with ICC(A,1) and Spearman.** Faithfulness and Insight axes show the largest sensitivity; Completeness is moderately stable.
 
 ---
 

@@ -8,7 +8,7 @@ This is the system prompt used by the LLM judge to score a model's answer agains
 - `gpt-5` class (OpenAI)
 - Run with `temperature=0`
 
-For inter-rater agreement, use **two** judges from different vendors and report Cohen's kappa.
+For inter-rater agreement, use **two** judges from different vendors and report **ICC(A,1)** plus **Spearman**. GBAG scores are continuous, so Cohen's kappa does not apply.
 
 ---
 
