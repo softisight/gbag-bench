@@ -171,6 +171,8 @@ We publish the changes that did **not** work, with their run artifacts, because 
 
 *Baseline note.* The 9B baseline here is `qwen35-9b_deskinsight_goldsql` (74.4), **not** the `qwen3.5:9b + DeskInsight pipeline` row on the [leaderboard](LEADERBOARD.md) (76.8, run `qwen35-9b_deskinsight_final`). Our three full 35-question 9B pipeline runs sit at 74.0, 74.4 and 76.8. Every delta below compares a run against the baseline it was derived from, never across runs.
 
+*File-naming note.* The 9B variant file is named `qwen35-9b_deskinsight_goldsql_postfix`; its embedded model tag is `qwen3.5:9b+deskinsight+goldsql+groupbypaci` — the same meta-aggregate suppression change as the gemma `_groupbypaci` run, only the filename differs. The separate `gemma4-31b-it_deskinsight_goldsql_postfix` run (tag `...+postfix`) is unrelated to this ablation and not part of the table above.
+
 Both models improved on average. On that evidence alone, the change ships.
 
 **What the per-question data said.** On the 9B, the +1.3 average is the net of **14 questions gaining a cumulative +417 and 13 questions losing a cumulative −373**. Three of those regressions are near-total collapses:
