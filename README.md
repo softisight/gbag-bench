@@ -52,7 +52,7 @@ By category: `aggregation` (11), `trend` (11), `derived` (7), `join` (3), `ranki
 
 Question ids encode the database and level (`sakila-l6-02` = Sakila, difficulty 6, second question at that level). See [SCHEMA.md](SCHEMA.md) for the per-question format.
 
-### Held-out suite (v0.3 preview, not yet judged)
+### Held-out suite (v0.3)
 
 | Database | Domain | Level 1 (core) | Level 2 (full) | Difficulty |
 |---|---|---|---|---|
@@ -70,7 +70,7 @@ Why a held-out suite:
 - **Contamination probe.** The public sample databases (and many of their aggregates) circulate in training corpora. A model whose score drops sharply from the public suite to the held-out suite is likely reciting memorized facts rather than reading the result set.
 - **Regenerable.** The generator is seed-deterministic: future benchmark versions can re-roll every number (new seed, same schema), so memorizing a published snapshot has a short shelf life.
 
-The held-out suite is scored separately and does not affect the main 35-question GBAG score (v0.2 comparability preserved). Held-out results will join the leaderboard as a separate column once baseline runs are published. Regenerate the DeskInsight Runner suite for this database with [`scripts/export_heldout_to_deskinsight.py`](scripts/export_heldout_to_deskinsight.py).
+The held-out suite is scored separately and does not affect the main 35-question GBAG score (v0.2 comparability preserved). **Status:** seven baseline runs (six full 15-question runs — claude-fable-5, gpt-5.6-sol, kimi-k3, qwen3-coder-480b, qwen3.6, gemma4-12b — plus one partial pipeline run) are published in [`runs/`](runs/) as `*-heldout.jsonl` with their `.scored-grok43.jsonl` judgments, scored under [judge prompt v0.2](judge/prompt.md) in a single session; per-question scores are recomputable from those files alone. The summary table and cliff chart land with the v0.3 leaderboard update. Regenerate the DeskInsight Runner suite for this database with [`scripts/export_heldout_to_deskinsight.py`](scripts/export_heldout_to_deskinsight.py).
 
 ## v0.2 leaderboard — uniform Grok-4.3 judge
 
@@ -168,7 +168,7 @@ Dataset improvements, metric discussions, and judge protocol experiments are als
 GBAG-Bench v0.2 has known limitations we document openly:
 
 - **Small dataset** — 35 questions. Statistically informative for spot-checks; not enough for definitive claims. v0.3 will expand.
-- **3 databases only** — Sakila / Chinook / Northwind are well-known public samples that may appear in some models' training data. We are evaluating whether to introduce held-out databases in v0.3.
+- **3 public databases** — Sakila / Chinook / Northwind are well-known public samples that may appear in some models' training data. v0.3 addresses this with a first-party synthetic held-out database (`ledger`); see the [held-out suite](#held-out-suite-v03) section.
 - **LLM-as-judge limitations** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain. The dual-judge protocol with Cohen's kappa is the recommended path.
 - **Single-language** — questions and gold answers are in English. Multilingual extension planned.
 - **Faithfulness over Insight** — the 50/30/20 metric weighting reflects our judgment that hallucinated numbers are worse than missing insights. Alternative weightings are documented in [METRIC.md](METRIC.md).
