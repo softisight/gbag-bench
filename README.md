@@ -54,28 +54,42 @@ Question ids encode the database and level (`sakila-l6-02` = Sakila, difficulty 
 
 ## v0.2 leaderboard — uniform Grok-4.3 judge
 
-> All models re-judged with the same judge to enable apples-to-apples comparison. See [LEADERBOARD.md](LEADERBOARD.md) for the full table, the archived v0.1 mixed-judge results, and inter-judge variance analysis.
+> Bare models, neutral Spider/BIRD-style prompt, one uniform judge. Every row reproduces for about a dollar (see [Quick start](#quick-start)). Full table, archived v0.1 results and inter-judge variance: [LEADERBOARD.md](LEADERBOARD.md).
 
-| Model | Provider | Config | Coverage | **GBAG** |
-|---|---|---|---|---|
-| `qwen3.5:9b` | Ollama (local, RTX 3060) | **+ DeskInsight pipeline** | 35/35 | **76.8** |
-| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM | neutral prompt | 35/35 | **67.7** |
-| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM | neutral prompt | 35/35 | **64.6** |
-| `qwen/qwen3-next-80b-a3b-thinking` | NVIDIA NIM | neutral prompt | 35/35 | **61.4** |
-| `qwen3.5:9b` | Ollama (local, RTX 3060) | neutral prompt | 32/35 | **59.6** |
-| `qwen/qwen3-next-80b-a3b-instruct` | NVIDIA NIM | neutral prompt | 28/35 | **58.9** |
+| Model | Provider | Coverage | **GBAG** |
+|---|---|---|---|
+| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM | 35/35 | **67.7** |
+| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM | 35/35 | **64.6** |
+| `qwen/qwen3-next-80b-a3b-thinking` | NVIDIA NIM | 35/35 | **61.4** |
+| `qwen3.5:9b` | Ollama (local, RTX 3060) | 32/35 | **59.6** |
+| `qwen/qwen3-next-80b-a3b-instruct` | NVIDIA NIM | 28/35 | **58.9** |
+
+### What context engineering changes (same model, same judge)
+
+The pipeline row is kept out of the ranking above on purpose: it measures a model wrapped in a commercial system, not a bare model.
+
+| Configuration | Coverage | **GBAG** |
+|---|---|---|
+| `qwen3.5:9b`, neutral prompt | 32/35 | 59.6 |
+| `qwen3.5:9b` + DeskInsight pipeline | 35/35 | **76.8** |
+
+Same weights, same GPU, same questions, same judge; only the context changes. Worth +17 points under Grok-4.3 and +7 under a second judge (a range, see finding 1). This pair is the one thing in this repository that needs a commercial tool to reproduce; everything else runs without it.
 
 ## Five findings
 
-**1. Context engineering > model scale.** The same `qwen3.5:9b` on a consumer RTX 3060 scores **59.6** with a neutral Spider/BIRD-style prompt, but **76.8** wrapped in DeskInsight's context engineering pipeline (data dictionary, domain detection, Pre-Aggregated Context Injection, profile adaptation). Both rows use identical model weights, hardware, questions, gold SQL, and judge; only the prompt scaffolding differs. **The size of the effect is judge-dependent, so read it as a range, not a point estimate.** On the **32 questions both runs answered**: **+17.2** under Grok-4.3 (paired sign test p = 0.009, 95% CI [+6.2, +28.3]) but **+7.1** under a second judge, Gemini-2.5-Pro (p = 0.093, 95% CI [-2.7, +16.9]). What survives both judges: the direction (20-6 and 16-7 in wins) and the **completeness gain** (+33.1 and +30.7). What does not: the faithfulness gain (+17.5 vs +1.2) and conventional significance. Insight drops under both (-7.2 and -13.8). The two judges agree on pipeline answers (bias +1.4) but diverge on bare answers (bias +11.7), so part of the measured gain reflects how harshly a judge treats the starting point. **Context engineering is still the dominant lever, worth +7 to +17 points on the same weights, but the honest claim is a range.** Full analysis: [Robustness check](LEADERBOARD.md#robustness-check-second-judge-on-the-headline-comparison). See [Methodology — how the DeskInsight pipeline line was obtained](LEADERBOARD.md#methodology--how-the-deskinsight-pipeline-line-was-obtained) for the full reproduction recipe.
+Each finding below survived our own verification process, including two corrections we publish rather than hide. The paragraphs give you the shape; the links hold the full numbers.
 
-**2. Bigger is not (much) better.** Under a uniform strong judge (Grok-4.3), `qwen3.5:9b` (59.6) sits about 3 points below `qwen3-coder-480b-a35b` (62.8 on the 32 common questions). The earlier v0.1 leaderboard suggested near-parity but was inflated by a lenient judge. The gap reopens, but only to **single digits**. Mind the MoE caveat: `qwen3-coder-480b-a35b` activates roughly 35B parameters per token, not 480B, so the honest framing is a dense 9B sitting within single digits of a **35B-active** model, about 4× its active size. A 3-point gap is also well inside the 11-point inter-judge variance, so read it as a tie, not a ranking.
+1. **Context beats scale.** The same 9B model, on the same consumer GPU and the same questions, scores 59.6 with a bare prompt and 76.8 wrapped in a context-engineering pipeline. A second judge shrinks the gain from +17 to +7 but keeps its direction, so the honest claim is a range: +7 to +17 points on identical weights. Full dual-judge tables: [Robustness check](LEADERBOARD.md#robustness-check-second-judge-on-the-headline-comparison). Reproduction recipe: [Methodology](LEADERBOARD.md#methodology--how-the-deskinsight-pipeline-line-was-obtained).
 
-**3. Judge selection matters as much as model selection.** Re-judging the same `qwen3.5:9b` answers with Grok-4.3 dropped the score from **72.7** (deepseek-chat) to **59.6** — 13-point gap on identical model answers. 37.5 % of questions show ≥ 15-point disagreement between the two judges, always in the same direction (deepseek-chat is the more lenient). **Single-judge benchmarks are unreliable.** GBAG ships a dual-judge protocol with ICC(A,1) and Spearman correlation.
+2. **Bigger is barely better.** Judged uniformly, the 9B sits about 3 points below a 480B MoE that activates 35B parameters per token. Three points is well inside the judge's own noise, so read it as a tie, not a ranking.
 
-**4. Thinking mode: no measurable effect (non-result).** The only clean ablation available is `qwen3-next-80b-a3b-thinking` against its non-thinking sibling `qwen3-next-80b-a3b-instruct`: same family, same size, same judge. Restricted to the **28 questions both models answered**, thinking scores **60.6** against **58.9**, a **+1.7** gap in thinking's favour. Faithfulness alone is **+5.4**, also in thinking's favour. Both sit far inside the 11-point inter-judge variance, so **no conclusion can be drawn either way**. An earlier version of this section claimed thinking "can hurt grounded tasks", based on comparisons against *different* models (`qwen3-coder-480b`, `qwen3.5:9b` neutral). Those comparisons are confounded and the claim is **withdrawn**. Settling this needs a matched-coverage re-run of the instruct variant (currently 28/35) plus repeated runs to clear the noise floor.
+3. **The judge moves scores as much as the model does.** Identical answers scored 72.7 under a lenient judge and 59.6 under a strict one: 13 points apart on the same text. Single-judge benchmarks are unreliable, which is why the board uses one uniform reference judge and publishes judge disagreement as data: [Inter-judge variance](LEADERBOARD.md#inter-judge-variance).
 
-**5. Specific failure modes are concentrated, not universal.** Local models occasionally fabricate aggregates from row samples on top-N queries with large underlying tables (a pattern we call the Post-SQL Aggregation Deficit). Pre-Aggregated Context Injection mitigates most cases. The failures are concentrated on a narrow question type, not spread across the benchmark.
+4. **Thinking: no measurable effect (a corrected claim).** We first wrote that thinking modes hurt grounded tasks; that compared different models, which is confounded, and the claim is withdrawn. The clean same-family ablation reads 60.6 vs 58.9 on the 28 questions both variants answered — inside the noise floor. Non-result, either way, until matched re-runs settle it.
+
+5. **Fabrication is concentrated, not universal.** When a query returns a few rows drawn from a large table, small local models sometimes invent the aggregates (we call it the Post-SQL Aggregation Deficit). Injecting pre-computed aggregates removes most of it; the rest of the benchmark barely shows the pattern.
+
+What we would not claim from this table: any ranking inside 3 points, any effect only one judge saw, and any number you cannot recompute yourself — the pipeline row is the single exception, and it is labeled as such.
 
 ## Why can an LLM judge another LLM?
 
