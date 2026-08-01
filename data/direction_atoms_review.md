@@ -175,10 +175,59 @@ Notes recorded for later versions:
 
 **11 enforceable direction atoms.** Status of every atom: `reviewed`.
 
+## Adversarial check (2026-08-01) — the rule tested the day it was written
+
+As promised in issue #1: for each of the 11 enforceable atoms, two
+hand-written answers that differ **only in the overall-direction claim**,
+same real numbers on both sides. The inverted answers reuse the real traps:
+the 8 → 182 endpoints, the partial-first-month +41 %, decelerating growth
+read as decline, the opening-balance month. Each answer is scored by the
+reference judge (Grok-4.3, prompt v0.2) **bare** and **with the atom
+injected** as a must-preserve fact.
+
+Harness: [`scripts/adversarial_check.py`](../scripts/adversarial_check.py).
+Results: [`data/adversarial_check_results.jsonl`](adversarial_check_results.jsonl)
+(round 2, reported) and
+[`adversarial_check_results_round1.jsonl`](adversarial_check_results_round1.jsonl)
+(kept for transparency).
+
+| Condition | Inverted rejected (F ≤ 40) | Correct preserved (F ≥ 70) |
+|---|---|---|
+| bare judge | 10/11 (one slips at F = 70) | **2/11** |
+| atom judge | **11/11** (all F ≤ 10) | **11/11** (all F = 100) |
+
+Reading. The bare judge is **direction-blind in both directions**: it cannot
+verify any full-period claim from first-rows gold, so it rejects true and
+false global claims alike (9 of 11 true answers rejected) — and the one
+inversion the visible window happens to flatter (sakila-l10-02: the running
+total rising through the first 200 rows makes "keeps accelerating" look
+plausible) scores F = 70. With the atom, the separation is total: every
+inversion rejected, every correct answer preserved.
+
+Round 1 lessons — three harness bugs, all documented, none in the rule:
+
+1. The flux injection wording said "direction of the question's series:
+   DOWN" while the cumulative level visibly rises — the judge rightly
+   rejected the correct answer. Fixed: the block now names its subject
+   ("the per-period accumulation rate, NOT the level, which rises by
+   construction").
+2. Two "correct" answers contained true facts verifiable neither in the
+   window, nor in the gold, nor in the atom (the February 2006 burst sits
+   beyond the 200-row cap) — judge v0.2 rightly scored them unverifiable.
+   Fixed: correct answers restrict themselves to atom-grounded plus
+   properly scoped claims.
+3. The atom-armed judge caught a wrong number **in this very review file**:
+   "~1 invoice per 2–3 days" (v1.1 hand-check note above) contradicts the
+   atom's own evidence of ~0.23/day (one every 4–5 days). The harness
+   answer is fixed; the v1.1 note above is left as written, as part of the
+   record.
+
 ## What this pilot did NOT do yet
 
-- No adversarial check (generate the opposite conclusion, verify the judge
-  rejects it) — next step before judge integration.
+- Judge-prompt integration. The adversarial harness injects the atom per
+  question as a prototype; integrating atoms into the shipped judge is a
+  scoring change and requires a full re-judge before any comparison with
+  existing leaderboard numbers.
 - No judge-prompt integration; current scores are unaffected. Integrating
   atoms is a scoring change and requires a full re-judge before any
   comparison with existing leaderboard numbers.
