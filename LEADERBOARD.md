@@ -131,6 +131,28 @@ The conversion scripts are open-source (this repo). The model, judge, and questi
 
 ---
 
+## Held-out suite (ledger) — v0.3
+
+Seven full 15-question runs on the synthetic `ledger` database, all scored by Grok-4.3 under [judge prompt v0.2](judge/prompt.md). Level 1 = 10 questions whose results fit the 200-row window the harness shows the model; Level 2 = 5 questions whose results exceed it (443 to 3,616 rows). Cloud models served via OpenRouter; `qwen3.6` and `gemma4:12b` run locally via Ollama.
+
+| Model | Level 1 (10Q) | Level 2 (5Q) | Drop | Overall (15Q) |
+|---|---|---|---|---|
+| `moonshotai/kimi-k3` | 97.2 | 78.5 | -18.7 | **91.0** |
+| `anthropic/claude-fable-5` | 97.2 | 67.8 | -29.4 | 87.4 |
+| `nvidia/nemotron-3-nano-30b-a3b` | 95.0 | 67.3 | -27.7 | 85.8 |
+| `openai/gpt-5.6-sol` | 93.6 | 62.2 | -31.4 | 83.1 |
+| `qwen3.6` (36B, local) | 92.8 | 41.2 | -51.6 | 75.6 |
+| `gemma4:12b` (local) | 85.8 | 51.2 | -34.5 | 74.2 |
+| `qwen/qwen3-coder-480b-a35b` | 74.8 | 54.6 | -20.2 | 68.1 |
+
+Reading caveats — they matter more here than on the main board:
+
+- **The drop is the finding, not the ranking.** Five level-2 questions cannot rank models. These same answers were re-scored under three judging configurations while two judging defects were being fixed (see the [judge prompt changelog](judge/prompt.md)): the ordering changed every time; the level-1-to-level-2 drop pattern held every time.
+- **Level 2 measures window honesty as much as computation.** The harness shows the first 200 rows of the result. Under judge v0.2, a claim explicitly scoped to the shown rows is faithful; an unscoped global claim that contradicts the gold's full-population facts is not. The most drop-resistant models are the ones that scope their claims — including `nemotron-3-nano-30b-a3b`, a 3B-active MoE whose level-2 faithfulness (85-100) is the highest on this table.
+- One partial run (`gemma4-12b_deskinsight_heldout`, level 1 only, pipeline variant) is published in [`runs/`](runs/) but is not comparable to full runs and is not listed above.
+
+---
+
 ## v0.1 archive — mixed judges (preserved for transparency)
 
 > Original v0.1 table. Each model judged by whichever judge was available at the time of the run. Now superseded by v0.2 above. Kept here so the published leaderboard history remains intact and to illustrate the inter-judge variance pattern.

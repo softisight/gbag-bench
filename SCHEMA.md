@@ -1,21 +1,22 @@
 # Dataset Schema v0.1
 
-Each question is one line in `data/questions.jsonl`.
+Each question is one line in `data/questions.jsonl` (main suite) or `data/questions-heldout.jsonl` (held-out suite, same schema).
 
 ## Fields
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | string | Stable unique ID encoding database and level: `<db>-l<difficulty>-<nn>`, e.g. `sakila-l6-02` |
-| `database` | string | Database name: `sakila`, `chinook`, `northwind` |
+| `database` | string | Database name: `sakila`, `chinook`, `northwind`, or `ledger` (held-out) |
 | `question` | string | The natural-language question (English) |
 | `gold_sql` | string | A reference SQL that correctly answers the question |
 | `gold_answer` | string | A reference natural-language answer (faithful, complete, insightful) |
 | `difficulty` | int | 1 (trivial) to 10 (extreme: large result sets, multi-step analytical reasoning) |
+| `level` | int | Held-out suite only: `1` = core tier (difficulty 1-8), `2` = extreme tier (difficulty 9-10). Absent from the main 35-question suite. |
 | `category` | string | One of: `aggregation`, `trend`, `ranking`, `join`, `derived`. (`comparison` and `filter` are reserved in the taxonomy but unused in the current 35-question set.) |
 | `expected_insights` | list[string] | Atomic facts the answer MUST contain. Used by the judge for Completeness. |
 
-Current v0.2 dataset: 35 questions (Sakila 15, Chinook 10, Northwind 10). See the "Dataset composition" section of the README for the full breakdown by category and difficulty.
+Current v0.2 dataset: 35 questions (Sakila 15, Chinook 10, Northwind 10), plus a 15-question held-out suite (Ledger, difficulty 1-10). See the "Dataset composition" section of the README for the full breakdown by category and difficulty.
 
 ## Example
 
