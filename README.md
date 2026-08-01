@@ -1,6 +1,6 @@
 # GBAG-Bench
 
-**Grounded BI Answer Generation** — the first public benchmark for measuring how faithfully an LLM interprets a SQL result into a natural-language answer.
+**Grounded BI Answer Generation** — a public benchmark for the step nobody was scoring: how faithfully an LLM interprets a SQL result into a natural-language answer.
 
 > NL2SQL measures half the problem. GBAG measures the other half.
 
