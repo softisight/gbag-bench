@@ -121,10 +121,62 @@ database:
 - Re-runs now preserve reviewed records byte-for-byte when bucket and
   derivation are unchanged, and carry historical `changed from` notes.
 
+## Hand-check of the 16 pending proposals (2026-08-01, second session)
+
+Reviewed step by step against independently recomputed data (period rollups
+straight from the databases, not the extractor's own evidence summaries).
+
+| Group | Atoms | Verdict |
+|---|---|---|
+| not-applicable | ledger l1-01, l2-01, l3-01, l4-01, l5-01, l6-02, l7-01 | agree (7/7) |
+| the v1.2 correction | sakila-l10-02 → down | agree |
+| guards and refusals | ledger l6-01, l9-02, l9-03, l10-01, l10-02 | agree (5/5) |
+| bank account | ledger l8-02, l9-01 (proposed `mixed`) | **disagree → up** |
+| revenue | ledger l8-01 (proposed `mixed`) | **disagree → up** |
+
+The three disagreements share one cause: **secondary columns outvoting the
+question's subject**. l8-02's raw `net_movement` bucketed `down` only because
+the opening-balance month (+34,751) sits inside its head window; l9-01's
+per-line debit/credit means are not what the question asks; l8-01's
+`change_pct` going down means "growth decelerates", not "revenue declines".
+
+Per protocol (disagreement → rule → re-run, as in v1.1), two voting rules,
+extractor **v1.3**:
+
+1. When a cumulative column is present, its flux is the atom: other value
+   columns are recorded in evidence (`votes: false`) but do not vote.
+2. Derived delta columns (`change|delta|pct|percent|growth|variation`) never
+   vote, unless every value column is a delta (then they are the subject).
+
+Re-run: exactly 3 buckets changed (the three `mixed` → `up`), 47 unchanged.
+All 50 atoms now carry `status: reviewed`.
+
+Notes recorded for later versions:
+
+- `ledger-l4-01`: a real 12-month rising series stays not-applicable because
+  bare month labels `01`-`12` are not recognized as temporal. Conservative
+  silence, accepted; label-format extension is a v1.4 candidate.
+- `ledger-l9-03`: the detected "segment" (`document_number`, 357 distinct
+  over 443 rows) is spurious; stricter segment detection would make this
+  question flux-treatable (v1.4 candidate).
+- `ledger-l10-02`: `not-applicable` would be semantically more precise than
+  `too-small-to-claim` (a ranking by amount, not a series); no enforcement
+  difference.
+
+## Final state (extractor v1.3, 50 questions)
+
+| Bucket | Count |
+|---|---|
+| flat | 4 |
+| down | 3 |
+| up | 4 |
+| too-small-to-claim | 6 |
+| not-applicable | 33 |
+
+**11 enforceable direction atoms.** Status of every atom: `reviewed`.
+
 ## What this pilot did NOT do yet
 
-- Human review of the 16 pending proposals (1 changed by the v1.2 rule +
-  15 held-out) — every `status: proposed` atom above.
 - No adversarial check (generate the opposite conclusion, verify the judge
   rejects it) — next step before judge integration.
 - No judge-prompt integration; current scores are unaffected. Integrating

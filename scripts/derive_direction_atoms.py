@@ -24,6 +24,13 @@ Deliberately boring, by design:
      Found by a second review: sakila-l10-02 was proposed "up" and
      ratified, while the activity it accumulates is "down". Full record
      in data/direction_atoms_review.md.
+  6. v1.3: voting rules from the hand-check of the v1.2 proposals.
+     Secondary columns had been outvoting the question's subject (an
+     opening-month artifact, per-line means, decelerating growth read as
+     decline). When a cumulative column is present, its flux is the atom
+     and other value columns do not vote. Derived delta columns
+     (change/delta/pct/percent/growth/variation) never vote, unless every
+     value column is a delta. Excluded columns stay in the evidence.
 
 Output: data/direction_atoms_proposed.jsonl  (status: "proposed",
 human_verdict: null). These are PROPOSED atoms, not ground truth,
@@ -61,6 +68,10 @@ BOUNDED_FRAME = re.compile(r"(?i)\b\d+\s+preceding\b")
 CUMULATIVE_NAME_HINT = re.compile(r"(?i)running|cumul|balance")
 MIN_MONO_POINTS = 8         # a monotone series shorter than this is not
                             # treated as a cumul (too little evidence)
+
+# v1.3 -- derived delta columns describe the primary metric; they never vote
+# (a declining growth rate is not a declining metric).
+DERIVED_DELTA = re.compile(r"(?i)change|delta|pct|percent|growth|variation")
 
 DATE_PATTERNS = [
     re.compile(r"^\d{4}$"),                    # 2005
@@ -267,7 +278,8 @@ def derive_for_question(q, db_dir):
                 f"window means (first/last {int(WINDOW_FRACTION*100)}% of points), "
                 f"flat if |rel change| < {FLAT_REL_THRESHOLD:.0%}, "
                 f"opposite segment signs => mixed; v1.2: cumulative columns "
-                f"bucketed on per-period flux, never on level"
+                f"bucketed on per-period flux, never on level; v1.3: "
+                f"cumulative flux votes alone, derived delta columns do not vote"
             ),
             "row_count": len(rows),
             "columns": columns,
@@ -360,6 +372,20 @@ def derive_for_question(q, db_dir):
         }
         return atom
 
+    # --- v1.3 voting rules (hand-check session, see the review record) ------
+    derived = [vi for vi in value_cols if DERIVED_DELTA.search(columns[vi])]
+    if cumul_cols:
+        voters = set(cumul_cols)        # the cumul's flux IS the subject
+    elif derived and len(derived) < len(value_cols):
+        voters = set(value_cols) - set(derived)
+    else:
+        voters = set(value_cols)
+    if len(voters) < len(value_cols):
+        skipped = [columns[vi] for vi in value_cols if vi not in voters]
+        atom["provenance"]["notes"].append(
+            "v1.3 voting: " + ", ".join(f"'{c}'" for c in skipped)
+            + " recorded in evidence but not voting")
+
     series_out, buckets = {}, []
     for vi in value_cols:
         vals = [r[vi] for r in rows if r[vi] is not None]
@@ -387,8 +413,10 @@ def derive_for_question(q, db_dir):
                     "window_points": k,
                     "first_value": vals[0], "last_value": vals[-1],
                 })
+        entry["votes"] = vi in voters
         series_out[columns[vi]] = entry
-        buckets.append(b)
+        if vi in voters:
+            buckets.append(b)
     atom["bucket"] = combine(buckets)
     atom["confidence"] = ("high" if len(value_cols) == 1
                           and len(rows) >= 2 * MIN_POINTS_FOR_TREND
@@ -467,18 +495,17 @@ def main():
     final, kept, reproposed = [], 0, 0
     for atom in atoms:
         old = prev.get(atom["id"])
-        uses_flux = any(
-            s.get("treatment") == "cumulative-flux"
-            for s in atom.get("evidence", {}).get("series", {}).values())
         if (old and old.get("status") == "reviewed"
-                and old.get("bucket") == atom["bucket"] and not uses_flux):
+                and old.get("bucket") == atom["bucket"]):
             final.append(old)
             kept += 1
         else:
             if old and old.get("bucket") != atom["bucket"]:
+                prev_state = ("hand-checked" if old.get("status") == "reviewed"
+                              else "proposed")
                 atom["provenance"]["notes"].append(
-                    f"changed from '{old['bucket']}' (hand-checked under "
-                    f"v1.1) by the v1.2 cumulative rule")
+                    f"changed from '{old['bucket']}' ({prev_state} under the "
+                    f"previous rule version)")
                 reproposed += 1
             elif old:
                 # Same bucket, regenerated record: keep historical change
