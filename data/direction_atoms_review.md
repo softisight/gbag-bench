@@ -61,8 +61,70 @@ Consequences on re-run (v1.1):
 
 7 enforceable direction atoms. Status of every atom: `reviewed`.
 
+## Second review (2026-08-01) — the cumulative-column trap
+
+A parallel design review (product side, DeskInsight Class-A study) found a
+rule the pilot lacked: **a cumulative column must never be bucketed on its
+level**. A running total of positive amounts rises by construction — its
+level direction is information-free at best, and points the wrong way
+relative to the question at worst.
+
+The trap had fired here and passed the hand-check: `sakila-l10-02` was
+proposed `up` and ratified ("running total rises by construction"), while
+the question asks about the *rate of accumulation over time* — the flux.
+Verification, run with this extractor's own `series_bucket` on the real
+database:
+
+| Check | Result |
+|---|---|
+| `running_total` level | `up` (window means 8,332 → 59,188) — the ratified trap |
+| monotonicity | true on all 16,049 points — the form index sees this cumul |
+| daily flux, zero-filled calendar (267 d) | **`down`** (521 → 7.8) — the opposite of the ratified atom; consistent with `sakila-l10-01` (`down`, ratified, same underlying activity) |
+| monthly flux (5 present months) | too-small-to-claim — the window guard refuses, correctly |
+| diff of last-cumul-per-period vs `GROUP BY` sums | identical — the flux treatment is exact |
+| synthetic credit notes (flat business, ~10 % negative lines) | cumul **not** monotone (form index misses it) yet its level still buckets `up` — only the SQL proof catches this case |
+
+### Rule added in v1.2
+
+1. **Detection — two signals of different rank.** `SUM(...) OVER (... ORDER
+   BY ...)` with an unbounded frame in the gold SQL is a *proof of
+   construction* (bounded frames such as `3 PRECEDING` are moving windows
+   and do not match). Full monotonicity of a series is a *form index* for
+   cumuls the SQL does not reveal (pre-computed columns). When the proof
+   fires and the form index sees nothing (signed cumul, e.g. a running
+   balance), the carrier column is chosen by an explicit rule: single value
+   column, else single name-hint match (`running|cumul|balance`), else
+   refuse to bucket anything.
+2. **Treatment.** Bucket the **per-period first differences**: last cumul of
+   each period, differenced — identical to `SUM(value) GROUP BY period`,
+   verified. Zero-filled calendar (a cumul does not move when nothing
+   happens), first period dropped (its diff-against-zero is the opening
+   value — the partial-first-period trap in another form). Level start/end
+   recorded in the evidence.
+3. **Segmented cumul**: per-segment flux not implemented; refuse to bucket.
+
+### Consequences on re-run (v1.2, both datasets: 35 original + 15 held-out)
+
+- **34 reviewed records preserved byte-for-byte; 1 re-proposed**:
+  `sakila-l10-02` `up` → **`down`** (day grain, flux windows 521 → 7.8) —
+  pending re-review.
+- **15 held-out (ledger) proposals**, all pending review. Notable:
+  - `ledger-l8-02` / `ledger-l9-01`: `running_balance` flux-treated (monthly
+    flux 196.8 → 718.8 ⇒ `up` component; combined `mixed`). Reviewer note:
+    in l8-02 the raw `net_movement` column buckets `down` only because the
+    opening-balance month sits inside its head window; the flux treatment of
+    the same series (first period dropped) says `up`. The evidence makes the
+    disagreement and its cause visible.
+  - `ledger-l10-01` and `ledger-l9-03`: segmented + cumulative → refusal by
+    rule 3. Honest silence, not a level bucket.
+  - `ledger-l6-01`: yearly grain, 3 points → too-small-to-claim.
+- Re-runs now preserve reviewed records byte-for-byte when bucket and
+  derivation are unchanged, and carry historical `changed from` notes.
+
 ## What this pilot did NOT do yet
 
+- Human review of the 16 pending proposals (1 changed by the v1.2 rule +
+  15 held-out) — every `status: proposed` atom above.
 - No adversarial check (generate the opposite conclusion, verify the judge
   rejects it) — next step before judge integration.
 - No judge-prompt integration; current scores are unaffected. Integrating
