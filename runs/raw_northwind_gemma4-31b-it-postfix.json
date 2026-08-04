@@ -1,0 +1,690 @@
+﻿{
+  "config_name": "GoldSQL + google\/gemma-4-31b-it",
+  "hardware": {
+    "cpu": "",
+    "gpu": "",
+    "gpu_vram_mb": 0,
+    "ram_total_mb": 0,
+    "os": ""
+  },
+  "started_at": "2026-05-26T21:35:40",
+  "finished_at": "2026-05-26T21:41:35",
+  "success_rate": 1.0,
+  "avg_duration_ms": 35196,
+  "avg_sql_score": -1.0,
+  "execution_accuracy_pct": -1.0,
+  "avg_response_score": 95.0,
+  "avg_global_score": 95.0,
+  "results": [
+    {
+      "question_id": "northwind-l1-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "SELECT COUNT(*) FROM Products;",
+      "ai_response": "There are 77 products listed in the catalog.",
+      "sql_row_count": 1,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l1_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"COUNT(*)\":77}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l1_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"COUNT(*)\":77}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 1,
+      "phase3_response_generation_ms": 1901,
+      "total_duration_ms": 1902,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:35:42",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Directly and fully answers the question with the exact count requested."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "The cited value 77 matches the single-row COUNT(*) result returned by the executed query."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, concise English sentence with no grammatical issues or extraneous content."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "Response contains only the aggregate count produced by the query; no invented values or details."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL executed correctly and the response accurately reports the resulting count with perfect clarity.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 5238
+      }
+    },
+    {
+      "question_id": "northwind-l2-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "SELECT c.CategoryName, COUNT(p.ProductID) AS nb_products FROM Categories c JOIN Products p ON c.CategoryID = p.CategoryID GROUP BY c.CategoryName ORDER BY nb_products DESC;",
+      "ai_response": "There are a total of 77 products across 8 categories. The distribution from most to least is as follows:\n\n| Category Name | Number of Products |\n| --- | --- |\n| Confections | 13 |\n| Seafood | 12 |\n| Condiments | 12 |\n| Beverages | 12 |\n| Dairy Products | 10 |\n| Grains\/Cereals | 7 |\n| Meat\/Poultry | 6 |\n| Produce | 5 |",
+      "sql_row_count": 8,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l2_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"CategoryName\":\"Confections\",\"nb_products\":13},{\"CategoryName\":\"Seafood\",\"nb_products\":12},{\"CategoryName\":\"Condiments\",\"nb_products\":12},{\"CategoryName\":\"Beverages\",\"nb_products\":12},{\"CategoryName\":\"Dairy Products\",\"nb_products\":10},{\"CategoryName\":\"Grains\\\/Cereals\",\"nb_products\":7},{\"CategoryName\":\"Meat\\\/Poultry\",\"nb_products\":6},{\"CategoryName\":\"Produce\",\"nb_products\":5}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l2_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"CategoryName\":\"Confections\",\"nb_products\":13},{\"CategoryName\":\"Seafood\",\"nb_products\":12},{\"CategoryName\":\"Condiments\",\"nb_products\":12},{\"CategoryName\":\"Beverages\",\"nb_products\":12},{\"CategoryName\":\"Dairy Products\",\"nb_products\":10},{\"CategoryName\":\"Grains\\\/Cereals\",\"nb_products\":7},{\"CategoryName\":\"Meat\\\/Poultry\",\"nb_products\":6},{\"CategoryName\":\"Produce\",\"nb_products\":5}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 1,
+      "phase3_response_generation_ms": 5682,
+      "total_duration_ms": 5683,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:35:48",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Fully answers the question with per-category counts sorted from most to least products."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All category names and product counts exactly match the 8 rows returned by the query."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, professional English with a concise summary sentence and well-formatted table."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "Total product count (77) is a valid aggregate over the full result set; no fabricated values or entities."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL injected; response is fully accurate, complete, and free of hallucinations.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 4949
+      }
+    },
+    {
+      "question_id": "northwind-l3-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "SELECT p.ProductName, s.CompanyName FROM Products p JOIN Suppliers s ON p.SupplierID = s.SupplierID WHERE s.Country = 'Germany';",
+      "ai_response": "Based on the provided data from the products and suppliers tables, there are a total of 9 products listed. \n\nRepresentative products include:\n* NuNuCa Nuß-Nougat-Creme\n* Gumbär Gummibärchen\n* Schoggi Schokolade\n* Rössle Sauerkraut\n* Thüringer Rostbratwurst\n* Nord-Ost Matjeshering\n* Wimmers gute Semmelknödel\n* Rhönbräu Klosterbier\n* Original Frankfurter grüne Soße",
+      "sql_row_count": 9,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l3_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"ProductName\":\"NuNuCa Nu\\u00DF-Nougat-Creme\",\"CompanyName\":\"Heli S\\u00FC\\u00DFwaren GmbH & Co. KG\"},{\"ProductName\":\"Gumb\\u00E4r Gummib\\u00E4rchen\",\"CompanyName\":\"Heli S\\u00FC\\u00DFwaren GmbH & Co. KG\"},{\"ProductName\":\"Schoggi Schokolade\",\"CompanyName\":\"Heli S\\u00FC\\u00DFwaren GmbH & Co. KG\"},{\"ProductName\":\"R\\u00F6ssle Sauerkraut\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Th\\u00FCringer Rostbratwurst\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Nord-Ost Matjeshering\",\"CompanyName\":\"Nord-Ost-Fisch Handelsgesellschaft mbH\"},{\"ProductName\":\"Wimmers gute Semmelkn\\u00F6del\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Rh\\u00F6nbr\\u00E4u Klosterbier\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Original Frankfurter gr\\u00FCne So\\u00DFe\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l3_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"ProductName\":\"NuNuCa Nu\\u00DF-Nougat-Creme\",\"CompanyName\":\"Heli S\\u00FC\\u00DFwaren GmbH & Co. KG\"},{\"ProductName\":\"Gumb\\u00E4r Gummib\\u00E4rchen\",\"CompanyName\":\"Heli S\\u00FC\\u00DFwaren GmbH & Co. KG\"},{\"ProductName\":\"Schoggi Schokolade\",\"CompanyName\":\"Heli S\\u00FC\\u00DFwaren GmbH & Co. KG\"},{\"ProductName\":\"R\\u00F6ssle Sauerkraut\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Th\\u00FCringer Rostbratwurst\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Nord-Ost Matjeshering\",\"CompanyName\":\"Nord-Ost-Fisch Handelsgesellschaft mbH\"},{\"ProductName\":\"Wimmers gute Semmelkn\\u00F6del\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Rh\\u00F6nbr\\u00E4u Klosterbier\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"},{\"ProductName\":\"Original Frankfurter gr\\u00FCne So\\u00DFe\",\"CompanyName\":\"Plutzer Lebensmittelgro\\u00DFm\\u00E4rkte AG\"}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 0,
+      "phase3_response_generation_ms": 4471,
+      "total_duration_ms": 4471,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:35:53",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 70,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 0,
+              "justification": "Response addresses German-supplier products instead of the Beverages category requested by the question."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All nine product names exactly match the rows returned by the executed query."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, well-structured English with bullet list."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "No fabricated values; only reports the exact row count and names present in the result set."
+            }
+          ]
+        },
+        "global_score": 70,
+        "comment": "SQL axis not evaluated per injection rule; response faithfully describes the wrong result set and therefore fails to answer the actual question.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 6871
+      }
+    },
+    {
+      "question_id": "northwind-l4-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "SELECT strftime('%Y-%m', o.OrderDate) AS month, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS revenue FROM Orders o JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY month ORDER BY month;",
+      "ai_response": "The total order revenue across all recorded months is **448,386,633.17 EUR**, with an average monthly revenue of **3,296,960.54 EUR**.\n\nBased on the data from the **orders** table, the revenue per month is as follows:\n\n| Month | Revenue (EUR) |\n| :--- | :--- |\n| 2012-07 | 2,066,219.40 |\n| 2012-08 | 3,556,875.79 |\n| 2012-09 | 3,440,144.98 |\n| 2012-10 | 3,201,529.96 |\n| 2012-11 | 2,980,494.74 |\n| 2012-12 | 3,577,936.85 |\n| 2013-01 | 3,075,418.29 |\n| 2013-02 | 2,964,192.86 |\n| 2013-03 | 3,471,361.21 |\n| 2013-04 | 3,262,893.52 |\n| 2013-05 | 3,593,528.01 |\n| 2013-06 | 2,976,184.24 |\n| 2013-07 | 4,275,068.43 |\n| 2013-08 | 2,987,993.36 |\n| 2013-09 | 2,671,413.23 |\n| 2013-10 | 3,112,262.10 |\n| 2013-11 | 3,042,197.05 |\n| 2013-12 | 3,200,607.71 |\n| 2014-01 | 2,710,443.83 |\n| 2014-02 | 2,602,658.47 |\n| 2014-03 | 3,854,314.06 |\n| 2014-04 | 3,340,038.66 |\n| 2014-05 | 3,267,340.26 |\n| 2014-06 | 3,680,115.42 |\n| 2014-07 | 3,178,414.39 |\n| 2014-08 | 3,416,670.63 |\n| 2014-09 | 2,694,898.33 |\n| 2014-10 | 3,125,850.74 |\n| 2014-11 | 3,156,916.60 |\n| 2014-12 | 3,842,486.74 |\n\n... and 106 more rows in the full result.\n\n**Summary Statistics:**\n- **Total Months Recorded:** 136\n- **Minimum Monthly Revenue:** 2,066,219.40 EUR\n- **Maximum Monthly Revenue:** 4,377,795.40 EUR",
+      "sql_row_count": 136,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l4_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"month\":\"2012-07\",\"revenue\":2066219.3999999994},{\"month\":\"2012-08\",\"revenue\":3556875.7899999949},{\"month\":\"2012-09\",\"revenue\":3440144.9800000013},{\"month\":\"2012-10\",\"revenue\":3201529.9600000026},{\"month\":\"2012-11\",\"revenue\":2980494.7400000013},{\"month\":\"2012-12\",\"revenue\":3577936.8499999994},{\"month\":\"2013-01\",\"revenue\":3075418.2900000051},{\"month\":\"2013-02\",\"revenue\":2964192.8600000013},{\"month\":\"2013-03\",\"revenue\":3471361.2099999955},{\"month\":\"2013-04\",\"revenue\":3262893.5200000006},{\"month\":\"2013-05\",\"revenue\":3593528.0099999968},{\"month\":\"2013-06\",\"revenue\":2976184.2399999994},{\"month\":\"2013-07\",\"revenue\":4275068.4300000064},{\"month\":\"2013-08\",\"revenue\":2987993.3600000013},{\"month\":\"2013-09\",\"revenue\":2671413.2299999981},{\"month\":\"2013-10\",\"revenue\":3112262.0999999987},{\"month\":\"2013-11\",\"revenue\":3042197.05},{\"month\":\"2013-12\",\"revenue\":3200607.7100000038},{\"month\":\"2014-01\",\"revenue\":2710443.8299999987},{\"month\":\"2014-02\",\"revenue\":2602658.4699999968},{\"month\":\"2014-03\",\"revenue\":3854314.0599999987},{\"month\":\"2014-04\",\"revenue\":3340038.6599999962},{\"month\":\"2014-05\",\"revenue\":3267340.2599999968},{\"month\":\"2014-06\",\"revenue\":3680115.4200000006},{\"month\":\"2014-07\",\"revenue\":3178414.3900000013},{\"month\":\"2014-08\",\"revenue\":3416670.6300000006},{\"month\":\"2014-09\",\"revenue\":2694898.3299999978},{\"month\":\"2014-10\",\"revenue\":3125850.7399999917},{\"month\":\"2014-11\",\"revenue\":3156916.5999999994},{\"month\":\"2014-12\",\"revenue\":3842486.7400000038},{\"month\":\"2015-01\",\"revenue\":3421656.38},{\"month\":\"2015-02\",\"revenue\":2956201.1400000032},{\"month\":\"2015-03\",\"revenue\":3353227.79},{\"month\":\"2015-04\",\"revenue\":3207293.1299999962},{\"month\":\"2015-05\",\"revenue\":3425430.6900000019},{\"month\":\"2015-06\",\"revenue\":2975668.3199999987},{\"month\":\"2015-07\",\"revenue\":3636472.82},{\"month\":\"2015-08\",\"revenue\":4372619.0099999968},{\"month\":\"2015-09\",\"revenue\":3390593.8899999962},{\"month\":\"2015-10\",\"revenue\":3456874.6100000019},{\"month\":\"2015-11\",\"revenue\":3249120.8899999955},{\"month\":\"2015-12\",\"revenue\":3978298.0499999955},{\"month\":\"2016-01\",\"revenue\":3658051.7500000006},{\"month\":\"2016-02\",\"revenue\":3186904.4899999987},{\"month\":\"2016-03\",\"revenue\":3662692.0700000026},{\"month\":\"2016-04\",\"revenue\":2975703.2699999949},{\"month\":\"2016-05\",\"revenue\":3437922.4700000019},{\"month\":\"2016-06\",\"revenue\":3292493.5399999994},{\"month\":\"2016-07\",\"revenue\":3669700.1650000013},{\"month\":\"2016-08\",\"revenue\":3284795.9949999974},{\"month\":\"2016-09\",\"revenue\":3331124.4999999974},{\"month\":\"2016-10\",\"revenue\":3262160.3749999974},{\"month\":\"2016-11\",\"revenue\":3152849.9050000038},{\"month\":\"2016-12\",\"revenue\":3654273.8299999987},{\"month\":\"2017-01\",\"revenue\":3446154.5099999981},{\"month\":\"2017-02\",\"revenue\":2596633.8850000035},{\"month\":\"2017-03\",\"revenue\":3823316.560000007},{\"month\":\"2017-04\",\"revenue\":3018989.7424999994},{\"month\":\"2017-05\",\"revenue\":4364953.0100000026},{\"month\":\"2017-06\",\"revenue\":2995440.2424999981},{\"month\":\"2017-07\",\"revenue\":2885691.8075000045},{\"month\":\"2017-08\",\"revenue\":3341024.1699999974},{\"month\":\"2017-09\",\"revenue\":2807367.752499999},{\"month\":\"2017-10\",\"revenue\":3969991.4760000006},{\"month\":\"2017-11\",\"revenue\":3618368.4190000051},{\"month\":\"2017-12\",\"revenue\":3341972.6584999987},{\"month\":\"2018-01\",\"revenue\":4051026.5705000006},{\"month\":\"2018-02\",\"revenue\":3004052.9275000019},{\"month\":\"2018-03\",\"revenue\":2691888.0049999962},{\"month\":\"2018-04\",\"revenue\":3087145.3624999987},{\"month\":\"2018-05\",\"revenue\":3248964.5605000038},{\"month\":\"2018-06\",\"revenue\":3242359.68},{\"month\":\"2018-07\",\"revenue\":2901454.4600000038},{\"month\":\"2018-08\",\"revenue\":3286136.4399999981},{\"month\":\"2018-09\",\"revenue\":3424899.4500000013},{\"month\":\"2018-10\",\"revenue\":2789791.9600000029},{\"month\":\"2018-11\",\"revenue\":3113044.9000000019},{\"month\":\"2018-12\",\"revenue\":3485859.1099999949},{\"month\":\"2019-01\",\"revenue\":3151757.3199999968},{\"month\":\"2019-02\",\"revenue\":2895952.3099999968},{\"month\":\"2019-03\",\"revenue\":3190906.8499999994},{\"month\":\"2019-04\",\"revenue\":3578994.9499999974},{\"month\":\"2019-05\",\"revenue\":3562283.9799999974},{\"month\":\"2019-06\",\"revenue\":3241453.1599999981},{\"month\":\"2019-07\",\"revenue\":3163267.4000000013},{\"month\":\"2019-08\",\"revenue\":3078770.8200000006},{\"month\":\"2019-09\",\"revenue\":3093903.1900000006},{\"month\":\"2019-10\",\"revenue\":3346327.8199999923},{\"month\":\"2019-11\",\"revenue\":2817565.9899999965},{\"month\":\"2019-12\",\"revenue\":3395780.0699999987},{\"month\":\"2020-01\",\"revenue\":3423774.2899999987},{\"month\":\"2020-02\",\"revenue\":3467644.2600000019},{\"month\":\"2020-03\",\"revenue\":3018709.8500000032},{\"month\":\"2020-04\",\"revenue\":2655472.5699999981},{\"month\":\"2020-05\",\"revenue\":3122293.7100000013},{\"month\":\"2020-06\",\"revenue\":2871344.1699999994},{\"month\":\"2020-07\",\"revenue\":3643366.5900000006},{\"month\":\"2020-08\",\"revenue\":3794089.5499999968},{\"month\":\"2020-09\",\"revenue\":3783178.3399999987},{\"month\":\"2020-10\",\"revenue\":3060490.6399999968},{\"month\":\"2020-11\",\"revenue\":2968195.3499999968},{\"month\":\"2020-12\",\"revenue\":3053877.4700000019},{\"month\":\"2021-01\",\"revenue\":3474864.0599999994},{\"month\":\"2021-02\",\"revenue\":2953519.5000000026},{\"month\":\"2021-03\",\"revenue\":3434464.4800000019},{\"month\":\"2021-04\",\"revenue\":3255793.0099999949},{\"month\":\"2021-05\",\"revenue\":3319860.7100000006},{\"month\":\"2021-06\",\"revenue\":3510713.0799999994},{\"month\":\"2021-07\",\"revenue\":3917400.0799999968},{\"month\":\"2021-08\",\"revenue\":3443530.0900000013},{\"month\":\"2021-09\",\"revenue\":3186946.18},{\"month\":\"2021-10\",\"revenue\":3071772.8600000019},{\"month\":\"2021-11\",\"revenue\":3408890.2899999974},{\"month\":\"2021-12\",\"revenue\":4377795.3999999866},{\"month\":\"2022-01\",\"revenue\":3591353.7200000006},{\"month\":\"2022-02\",\"revenue\":2832321.1600000029},{\"month\":\"2022-03\",\"revenue\":3222005.6899999994},{\"month\":\"2022-04\",\"revenue\":2628034.8299999955},{\"month\":\"2022-05\",\"revenue\":3719270.1100000013},{\"month\":\"2022-06\",\"revenue\":3378131.1700000058},{\"month\":\"2022-07\",\"revenue\":3358177.3000000045},{\"month\":\"2022-08\",\"revenue\":3660257.8300000006},{\"month\":\"2022-09\",\"revenue\":2606755.130000001},{\"month\":\"2022-10\",\"revenue\":3717586.6100000026},{\"month\":\"2022-11\",\"revenue\":3542815.2700000026},{\"month\":\"2022-12\",\"revenue\":3485357.3600000058},{\"month\":\"2023-01\",\"revenue\":3171802.1599999994},{\"month\":\"2023-02\",\"revenue\":2611606.1599999974},{\"month\":\"2023-03\",\"revenue\":3716250.4100000013},{\"month\":\"2023-04\",\"revenue\":3474940.3000000038},{\"month\":\"2023-05\",\"revenue\":3896544.3500000013},{\"month\":\"2023-06\",\"revenue\":3071787.7300000013},{\"month\":\"2023-07\",\"revenue\":3350337.3599999962},{\"month\":\"2023-08\",\"revenue\":3293158.6700000026},{\"month\":\"2023-09\",\"revenue\":3544698.5100000006},{\"month\":\"2023-10\",\"revenue\":2923364.3499999987}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l4_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"month\":\"2012-07\",\"revenue\":2066219.3999999994},{\"month\":\"2012-08\",\"revenue\":3556875.7899999949},{\"month\":\"2012-09\",\"revenue\":3440144.9800000013},{\"month\":\"2012-10\",\"revenue\":3201529.9600000026},{\"month\":\"2012-11\",\"revenue\":2980494.7400000013},{\"month\":\"2012-12\",\"revenue\":3577936.8499999994},{\"month\":\"2013-01\",\"revenue\":3075418.2900000051},{\"month\":\"2013-02\",\"revenue\":2964192.8600000013},{\"month\":\"2013-03\",\"revenue\":3471361.2099999955},{\"month\":\"2013-04\",\"revenue\":3262893.5200000006},{\"month\":\"2013-05\",\"revenue\":3593528.0099999968},{\"month\":\"2013-06\",\"revenue\":2976184.2399999994},{\"month\":\"2013-07\",\"revenue\":4275068.4300000064},{\"month\":\"2013-08\",\"revenue\":2987993.3600000013},{\"month\":\"2013-09\",\"revenue\":2671413.2299999981},{\"month\":\"2013-10\",\"revenue\":3112262.0999999987},{\"month\":\"2013-11\",\"revenue\":3042197.05},{\"month\":\"2013-12\",\"revenue\":3200607.7100000038},{\"month\":\"2014-01\",\"revenue\":2710443.8299999987},{\"month\":\"2014-02\",\"revenue\":2602658.4699999968},{\"month\":\"2014-03\",\"revenue\":3854314.0599999987},{\"month\":\"2014-04\",\"revenue\":3340038.6599999962},{\"month\":\"2014-05\",\"revenue\":3267340.2599999968},{\"month\":\"2014-06\",\"revenue\":3680115.4200000006},{\"month\":\"2014-07\",\"revenue\":3178414.3900000013},{\"month\":\"2014-08\",\"revenue\":3416670.6300000006},{\"month\":\"2014-09\",\"revenue\":2694898.3299999978},{\"month\":\"2014-10\",\"revenue\":3125850.7399999917},{\"month\":\"2014-11\",\"revenue\":3156916.5999999994},{\"month\":\"2014-12\",\"revenue\":3842486.7400000038},{\"month\":\"2015-01\",\"revenue\":3421656.38},{\"month\":\"2015-02\",\"revenue\":2956201.1400000032},{\"month\":\"2015-03\",\"revenue\":3353227.79},{\"month\":\"2015-04\",\"revenue\":3207293.1299999962},{\"month\":\"2015-05\",\"revenue\":3425430.6900000019},{\"month\":\"2015-06\",\"revenue\":2975668.3199999987},{\"month\":\"2015-07\",\"revenue\":3636472.82},{\"month\":\"2015-08\",\"revenue\":4372619.0099999968},{\"month\":\"2015-09\",\"revenue\":3390593.8899999962},{\"month\":\"2015-10\",\"revenue\":3456874.6100000019},{\"month\":\"2015-11\",\"revenue\":3249120.8899999955},{\"month\":\"2015-12\",\"revenue\":3978298.0499999955},{\"month\":\"2016-01\",\"revenue\":3658051.7500000006},{\"month\":\"2016-02\",\"revenue\":3186904.4899999987},{\"month\":\"2016-03\",\"revenue\":3662692.0700000026},{\"month\":\"2016-04\",\"revenue\":2975703.2699999949},{\"month\":\"2016-05\",\"revenue\":3437922.4700000019},{\"month\":\"2016-06\",\"revenue\":3292493.5399999994},{\"month\":\"2016-07\",\"revenue\":3669700.1650000013},{\"month\":\"2016-08\",\"revenue\":3284795.9949999974},{\"month\":\"2016-09\",\"revenue\":3331124.4999999974},{\"month\":\"2016-10\",\"revenue\":3262160.3749999974},{\"month\":\"2016-11\",\"revenue\":3152849.9050000038},{\"month\":\"2016-12\",\"revenue\":3654273.8299999987},{\"month\":\"2017-01\",\"revenue\":3446154.5099999981},{\"month\":\"2017-02\",\"revenue\":2596633.8850000035},{\"month\":\"2017-03\",\"revenue\":3823316.560000007},{\"month\":\"2017-04\",\"revenue\":3018989.7424999994},{\"month\":\"2017-05\",\"revenue\":4364953.0100000026},{\"month\":\"2017-06\",\"revenue\":2995440.2424999981},{\"month\":\"2017-07\",\"revenue\":2885691.8075000045},{\"month\":\"2017-08\",\"revenue\":3341024.1699999974},{\"month\":\"2017-09\",\"revenue\":2807367.752499999},{\"month\":\"2017-10\",\"revenue\":3969991.4760000006},{\"month\":\"2017-11\",\"revenue\":3618368.4190000051},{\"month\":\"2017-12\",\"revenue\":3341972.6584999987},{\"month\":\"2018-01\",\"revenue\":4051026.5705000006},{\"month\":\"2018-02\",\"revenue\":3004052.9275000019},{\"month\":\"2018-03\",\"revenue\":2691888.0049999962},{\"month\":\"2018-04\",\"revenue\":3087145.3624999987},{\"month\":\"2018-05\",\"revenue\":3248964.5605000038},{\"month\":\"2018-06\",\"revenue\":3242359.68},{\"month\":\"2018-07\",\"revenue\":2901454.4600000038},{\"month\":\"2018-08\",\"revenue\":3286136.4399999981},{\"month\":\"2018-09\",\"revenue\":3424899.4500000013},{\"month\":\"2018-10\",\"revenue\":2789791.9600000029},{\"month\":\"2018-11\",\"revenue\":3113044.9000000019},{\"month\":\"2018-12\",\"revenue\":3485859.1099999949},{\"month\":\"2019-01\",\"revenue\":3151757.3199999968},{\"month\":\"2019-02\",\"revenue\":2895952.3099999968},{\"month\":\"2019-03\",\"revenue\":3190906.8499999994},{\"month\":\"2019-04\",\"revenue\":3578994.9499999974},{\"month\":\"2019-05\",\"revenue\":3562283.9799999974},{\"month\":\"2019-06\",\"revenue\":3241453.1599999981},{\"month\":\"2019-07\",\"revenue\":3163267.4000000013},{\"month\":\"2019-08\",\"revenue\":3078770.8200000006},{\"month\":\"2019-09\",\"revenue\":3093903.1900000006},{\"month\":\"2019-10\",\"revenue\":3346327.8199999923},{\"month\":\"2019-11\",\"revenue\":2817565.9899999965},{\"month\":\"2019-12\",\"revenue\":3395780.0699999987},{\"month\":\"2020-01\",\"revenue\":3423774.2899999987},{\"month\":\"2020-02\",\"revenue\":3467644.2600000019},{\"month\":\"2020-03\",\"revenue\":3018709.8500000032},{\"month\":\"2020-04\",\"revenue\":2655472.5699999981},{\"month\":\"2020-05\",\"revenue\":3122293.7100000013},{\"month\":\"2020-06\",\"revenue\":2871344.1699999994},{\"month\":\"2020-07\",\"revenue\":3643366.5900000006},{\"month\":\"2020-08\",\"revenue\":3794089.5499999968},{\"month\":\"2020-09\",\"revenue\":3783178.3399999987},{\"month\":\"2020-10\",\"revenue\":3060490.6399999968},{\"month\":\"2020-11\",\"revenue\":2968195.3499999968},{\"month\":\"2020-12\",\"revenue\":3053877.4700000019},{\"month\":\"2021-01\",\"revenue\":3474864.0599999994},{\"month\":\"2021-02\",\"revenue\":2953519.5000000026},{\"month\":\"2021-03\",\"revenue\":3434464.4800000019},{\"month\":\"2021-04\",\"revenue\":3255793.0099999949},{\"month\":\"2021-05\",\"revenue\":3319860.7100000006},{\"month\":\"2021-06\",\"revenue\":3510713.0799999994},{\"month\":\"2021-07\",\"revenue\":3917400.0799999968},{\"month\":\"2021-08\",\"revenue\":3443530.0900000013},{\"month\":\"2021-09\",\"revenue\":3186946.18},{\"month\":\"2021-10\",\"revenue\":3071772.8600000019},{\"month\":\"2021-11\",\"revenue\":3408890.2899999974},{\"month\":\"2021-12\",\"revenue\":4377795.3999999866},{\"month\":\"2022-01\",\"revenue\":3591353.7200000006},{\"month\":\"2022-02\",\"revenue\":2832321.1600000029},{\"month\":\"2022-03\",\"revenue\":3222005.6899999994},{\"month\":\"2022-04\",\"revenue\":2628034.8299999955},{\"month\":\"2022-05\",\"revenue\":3719270.1100000013},{\"month\":\"2022-06\",\"revenue\":3378131.1700000058},{\"month\":\"2022-07\",\"revenue\":3358177.3000000045},{\"month\":\"2022-08\",\"revenue\":3660257.8300000006},{\"month\":\"2022-09\",\"revenue\":2606755.130000001},{\"month\":\"2022-10\",\"revenue\":3717586.6100000026},{\"month\":\"2022-11\",\"revenue\":3542815.2700000026},{\"month\":\"2022-12\",\"revenue\":3485357.3600000058},{\"month\":\"2023-01\",\"revenue\":3171802.1599999994},{\"month\":\"2023-02\",\"revenue\":2611606.1599999974},{\"month\":\"2023-03\",\"revenue\":3716250.4100000013},{\"month\":\"2023-04\",\"revenue\":3474940.3000000038},{\"month\":\"2023-05\",\"revenue\":3896544.3500000013},{\"month\":\"2023-06\",\"revenue\":3071787.7300000013},{\"month\":\"2023-07\",\"revenue\":3350337.3599999962},{\"month\":\"2023-08\",\"revenue\":3293158.6700000026},{\"month\":\"2023-09\",\"revenue\":3544698.5100000006},{\"month\":\"2023-10\",\"revenue\":2923364.3499999987}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 1168,
+      "phase3_response_generation_ms": 31776,
+      "total_duration_ms": 32944,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:36:26",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Fully addresses the question with monthly breakdown plus aggregate statistics over all 136 months."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All cited monthly values, total, average, min and max are consistent with the 136-row result set."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, well-structured English with table and summary sections."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "Uses only data from the executed result and standard population aggregates; no invented values."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL executed correctly; response provides accurate, complete interpretation of the full result set.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 7378
+      }
+    },
+    {
+      "question_id": "northwind-l5-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "WITH totals AS (SELECT o.CustomerID, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS total_spent FROM Orders o JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY o.CustomerID) SELECT c.CompanyName, t.total_spent FROM totals t JOIN Customers c ON t.CustomerID = c.CustomerID ORDER BY t.total_spent DESC LIMIT 3;",
+      "ai_response": "The three customers with the highest total order revenue, based on records from the customers, orders, and totals tables, are:\n\n*   **B's Beverages**: 6,154,115.34 EUR\n*   **Hungry Coyote Import Store**: 5,698,023.67 EUR\n*   **Rancho grande**: 5,559,110.08 EUR",
+      "sql_row_count": 3,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l5_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"CompanyName\":\"B's Beverages\",\"total_spent\":6154115.3399999974},{\"CompanyName\":\"Hungry Coyote Import Store\",\"total_spent\":5698023.6699999981},{\"CompanyName\":\"Rancho grande\",\"total_spent\":5559110.0799999994}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l5_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"CompanyName\":\"B's Beverages\",\"total_spent\":6154115.3399999974},{\"CompanyName\":\"Hungry Coyote Import Store\",\"total_spent\":5698023.6699999981},{\"CompanyName\":\"Rancho grande\",\"total_spent\":5559110.0799999994}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 618,
+      "phase3_response_generation_ms": 22752,
+      "total_duration_ms": 23370,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:36:50",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Fully answers the question with the top three customers, company names, and totals."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All cited names and monetary values match the three rows returned by the gold SQL."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, professional English with bullet-point formatting."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "No invented data; EUR annotation follows the runtime currency setting for monetary values."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL executed correctly and the response faithfully presents the exact three result rows with proper currency annotation.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 5850
+      }
+    },
+    {
+      "question_id": "northwind-l6-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "SELECT c.Country, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS revenue, ROUND(100.0 * SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) \/ SUM(SUM(od.UnitPrice * od.Quantity * (1 - od.Discount))) OVER (), 2) AS pct_total FROM Orders o JOIN Customers c ON o.CustomerID = c.CustomerID JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY c.Country ORDER BY revenue DESC;",
+      "ai_response": "Based on the data from the customers and orders records, the total global revenue is EUR 448,386,633.17 across 22 rows of data.\n\nThe top 10 ship countries by revenue are as follows:\n\n| Country | Revenue (EUR) | Percentage of Total |\n| :--- | :--- | :--- |\n| USA | 62,601,564.84 | 13.96% |\n| France | 53,323,305.76 | 11.89% |\n| Germany | 51,195,766.82 | 11.42% |\n| Brazil | 45,801,779.28 | 10.21% |\n| UK | 33,959,254.80 | 7.57% |\n| Mexico | 24,802,282.44 | 5.53% |\n| Spain | 24,023,498.25 | 5.36% |\n| Venezuela | 19,424,911.97 | 4.33% |\n| Argentina | 14,233,566.76 | 3.17% |\n| Canada | 14,201,667.46 | 3.17% |\n\nThe USA is the highest contributor, accounting for 13.96% of global revenue, while Norway represents the lowest share at 1.05% (EUR 4,691,250.64).",
+      "sql_row_count": 22,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l6_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"Country\":\"USA\",\"revenue\":62601564.840499853,\"pct_total\":13.96},{\"Country\":\"France\",\"revenue\":53323305.762499718,\"pct_total\":11.89},{\"Country\":\"Germany\",\"revenue\":51195766.823500019,\"pct_total\":11.42},{\"Country\":\"Brazil\",\"revenue\":45801779.276500128,\"pct_total\":10.210000000000002},{\"Country\":\"UK\",\"revenue\":33959254.800000006,\"pct_total\":7.57},{\"Country\":\"Mexico\",\"revenue\":24802282.437500051,\"pct_total\":5.53},{\"Country\":\"Spain\",\"revenue\":24023498.249999907,\"pct_total\":5.36},{\"Country\":\"Venezuela\",\"revenue\":19424911.968999981,\"pct_total\":4.33},{\"Country\":\"Argentina\",\"revenue\":14233566.760000051,\"pct_total\":3.17},{\"Country\":\"Canada\",\"revenue\":14201667.46,\"pct_total\":3.17},{\"Country\":\"Italy\",\"revenue\":14000733.234999995,\"pct_total\":3.12},{\"Country\":\"Austria\",\"revenue\":9908284.138500009,\"pct_total\":2.21},{\"Country\":\"Switzerland\",\"revenue\":9823388.5389999936,\"pct_total\":2.19},{\"Country\":null,\"revenue\":9745371.2899999974,\"pct_total\":2.17},{\"Country\":\"Denmark\",\"revenue\":9708374.722500009,\"pct_total\":2.17},{\"Country\":\"Portugal\",\"revenue\":9535418.3424999974,\"pct_total\":2.13},{\"Country\":\"Belgium\",\"revenue\":9425760.4350000102,\"pct_total\":2.1},{\"Country\":\"Sweden\",\"revenue\":9299699.1500000115,\"pct_total\":2.07},{\"Country\":\"Finland\",\"revenue\":9210006.7925000166,\"pct_total\":2.0499999999999997},{\"Country\":\"Poland\",\"revenue\":4738465.2200000102,\"pct_total\":1.06},{\"Country\":\"Ireland\",\"revenue\":4732282.2849999974,\"pct_total\":1.06},{\"Country\":\"Norway\",\"revenue\":4691250.6399999981,\"pct_total\":1.05}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l6_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"Country\":\"USA\",\"revenue\":62601564.840499853,\"pct_total\":13.96},{\"Country\":\"France\",\"revenue\":53323305.762499718,\"pct_total\":11.89},{\"Country\":\"Germany\",\"revenue\":51195766.823500019,\"pct_total\":11.42},{\"Country\":\"Brazil\",\"revenue\":45801779.276500128,\"pct_total\":10.210000000000002},{\"Country\":\"UK\",\"revenue\":33959254.800000006,\"pct_total\":7.57},{\"Country\":\"Mexico\",\"revenue\":24802282.437500051,\"pct_total\":5.53},{\"Country\":\"Spain\",\"revenue\":24023498.249999907,\"pct_total\":5.36},{\"Country\":\"Venezuela\",\"revenue\":19424911.968999981,\"pct_total\":4.33},{\"Country\":\"Argentina\",\"revenue\":14233566.760000051,\"pct_total\":3.17},{\"Country\":\"Canada\",\"revenue\":14201667.46,\"pct_total\":3.17},{\"Country\":\"Italy\",\"revenue\":14000733.234999995,\"pct_total\":3.12},{\"Country\":\"Austria\",\"revenue\":9908284.138500009,\"pct_total\":2.21},{\"Country\":\"Switzerland\",\"revenue\":9823388.5389999936,\"pct_total\":2.19},{\"Country\":null,\"revenue\":9745371.2899999974,\"pct_total\":2.17},{\"Country\":\"Denmark\",\"revenue\":9708374.722500009,\"pct_total\":2.17},{\"Country\":\"Portugal\",\"revenue\":9535418.3424999974,\"pct_total\":2.13},{\"Country\":\"Belgium\",\"revenue\":9425760.4350000102,\"pct_total\":2.1},{\"Country\":\"Sweden\",\"revenue\":9299699.1500000115,\"pct_total\":2.07},{\"Country\":\"Finland\",\"revenue\":9210006.7925000166,\"pct_total\":2.0499999999999997},{\"Country\":\"Poland\",\"revenue\":4738465.2200000102,\"pct_total\":1.06},{\"Country\":\"Ireland\",\"revenue\":4732282.2849999974,\"pct_total\":1.06},{\"Country\":\"Norway\",\"revenue\":4691250.6399999981,\"pct_total\":1.05}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 971,
+      "phase3_response_generation_ms": 21536,
+      "total_duration_ms": 22507,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:37:13",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 95,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 25,
+              "justification": "Addresses total revenue, percentages, top-10 countries and the minimum contributor; omits the full list of all 22 countries."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All cited figures (global total, top-10 revenues\/percentages, Norway minimum) are consistent with the executed result set and its aggregates."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, professional English with well-structured table and concise summary."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "Uses only values from the query result or standard population aggregates; EUR annotation follows the configured currency."
+            }
+          ]
+        },
+        "global_score": 95,
+        "comment": "Gold SQL produces correct results; response faithfully summarizes them with only minor omission of the complete 22-row listing.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 51274
+      }
+    },
+    {
+      "question_id": "northwind-l6-02",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "WITH order_vals AS (SELECT o.EmployeeID, o.OrderID, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS order_value FROM Orders o JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY o.EmployeeID, o.OrderID) SELECT e.FirstName || ' ' || e.LastName AS employee, AVG(ov.order_value) AS avg_order_value FROM order_vals ov JOIN Employees e ON ov.EmployeeID = e.EmployeeID GROUP BY ov.EmployeeID;",
+      "ai_response": "The provided data does not contain information regarding shipper company names or freight costs. Instead, the results show the average order value by employee for 9 records.\n\n| Employee | Average Order Value |\n| --- | --- |\n| Nancy Davolio | 26,901.10 EUR |\n| Andrew Fuller | 27,280.69 EUR |\n| Janet Leverling | 27,326.96 EUR |\n| Margaret Peacock | 26,985.53 EUR |\n| Steven Buchanan | 28,484.73 EUR |\n| Michael Suyama | 28,015.94 EUR |\n| Robert King | 27,754.00 EUR |\n| Laura Callahan | 27,408.86 EUR |\n| Anne Dodsworth | 27,757.46 EUR |\n\n**Summary Statistics:**\n- **Total Employees analyzed:** 9\n- **Average Order Value (Overall):** 27,546.14 EUR\n- **Minimum Average:** 26,901.10 EUR\n- **Maximum Average:** 28,484.73 EUR",
+      "sql_row_count": 9,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l6_02\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"employee\":\"Nancy Davolio\",\"avg_order_value\":26901.096010021664},{\"employee\":\"Andrew Fuller\",\"avg_order_value\":27280.689308300403},{\"employee\":\"Janet Leverling\",\"avg_order_value\":27326.963035211274},{\"employee\":\"Margaret Peacock\",\"avg_order_value\":26985.532073375286},{\"employee\":\"Steven Buchanan\",\"avg_order_value\":28484.733427106448},{\"employee\":\"Michael Suyama\",\"avg_order_value\":28015.94444669328},{\"employee\":\"Robert King\",\"avg_order_value\":27753.99625768584},{\"employee\":\"Laura Callahan\",\"avg_order_value\":27408.863630422694},{\"employee\":\"Anne Dodsworth\",\"avg_order_value\":27757.462308323875}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l6_02\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"employee\":\"Nancy Davolio\",\"avg_order_value\":26901.096010021664},{\"employee\":\"Andrew Fuller\",\"avg_order_value\":27280.689308300403},{\"employee\":\"Janet Leverling\",\"avg_order_value\":27326.963035211274},{\"employee\":\"Margaret Peacock\",\"avg_order_value\":26985.532073375286},{\"employee\":\"Steven Buchanan\",\"avg_order_value\":28484.733427106448},{\"employee\":\"Michael Suyama\",\"avg_order_value\":28015.94444669328},{\"employee\":\"Robert King\",\"avg_order_value\":27753.99625768584},{\"employee\":\"Laura Callahan\",\"avg_order_value\":27408.863630422694},{\"employee\":\"Anne Dodsworth\",\"avg_order_value\":27757.462308323875}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 438,
+      "phase3_response_generation_ms": 13683,
+      "total_duration_ms": 14121,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:37:27",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 85,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 15,
+              "justification": "Response correctly notes that the result set does not address the shipper\/freight question and instead reports the employee data that was actually returned."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All employee names and average-order-value figures exactly match the 9 rows returned by the query."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, well-structured English with a table and summary statistics."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "No fabricated values; EUR annotation is consistent with the configured currency for monetary amounts."
+            }
+          ]
+        },
+        "global_score": 85,
+        "comment": "SQL axis not evaluated (gold injected); response honestly reports the mismatched employee data without hallucination.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 4911
+      }
+    },
+    {
+      "question_id": "northwind-l7-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "WITH rfm AS (SELECT c.CustomerID, (julianday((SELECT MAX(OrderDate) FROM Orders)) - julianday(MAX(o.OrderDate))) AS recency, COUNT(o.OrderID) AS frequency, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS monetary FROM Customers c JOIN Orders o ON c.CustomerID = o.CustomerID JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY c.CustomerID) SELECT CustomerID, NTILE(5) OVER (ORDER BY recency DESC) AS R, NTILE(5) OVER (ORDER BY frequency) AS F, NTILE(5) OVER (ORDER BY monetary) AS M FROM rfm;",
+      "ai_response": "A total of 93 customers from the rfm records have been segmented into RFM quintiles (1-5).\n\n### RFM Distribution Summary\nThe customer base is evenly distributed across the quintiles for all three metrics:\n*   **Recency (R):** 20.43% in buckets 1 and 3; 19.35% in buckets 4 and 5.\n*   **Frequency (F):** 20.43% in buckets 1, 2, and 3; 19.35% in buckets 4 and 5.\n*   **Monetary (M):** 20.43% in buckets 1, 2, and 3; 19.35% in buckets 4 and 5.\n\n### Customer Segment Sample\nBelow is a representative sample of the segmented customers:\n\n| CustomerID | Recency (R) | Frequency (F) | Monetary (M) |\n| :--- | :---: | :---: | :---: |\n| FISSA | 1 | 2 | 2 |\n| QUICK | 1 | 4 | 4 |\n| MEREP | 1 | 4 | 3 |\n| THEBI | 1 | 3 | 3 |\n| PERIC | 1 | 4 | 4 |\n| DUMON | 1 | 1 | 1 |\n| SUPRD | 1 | 2 | 2 |\n| COMMI | 1 | 4 | 4 |\n| REGGC | 1 | 1 | 1 |\n| AROUT | 1 | 1 | 1 |\n| GALED | 1 | 2 | 2 |\n| SAVEA | 1 | 1 | 2 |\n| FAMIA | 1 | 3 | 4 |\n| BLAUS | 1 | 1 | 1 |\n| FRANS | 1 | 4 | 4 |\n| BOTTM | 1 | 4 | 4 |\n| RICSU | 1 | 3 | 3 |\n| OTTIK | 1 | 3 | 4 |\n| GODOS | 1 | 2 | 2 |\n| Val2 | 2 | 3 | 3 |\n| LEHMS | 2 | 1 | 1 |\n| RICAR | 2 | 5 | 5 |\n| RATTC | 2 | 2 | 2 |\n| TRAIH | 2 | 1 | 1 |\n| THECR | 2 | 4 | 4 |\n| DRACD | 2 | 3 | 3 |\n| ERNSH | 2 | 2 | 2 |\n| WELLI | 2 | 5 | 5 |\n| SANTG | 2 | 2 | 2 |\n| SPLIR | 2 | 2 | 1 |\n\n... and 63 more rows in the full result.",
+      "sql_row_count": 93,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l7_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"CustomerID\":\"FISSA\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"QUICK\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"MEREP\",\"R\":1,\"F\":4,\"M\":3},{\"CustomerID\":\"THEBI\",\"R\":1,\"F\":3,\"M\":3},{\"CustomerID\":\"PERIC\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"DUMON\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"SUPRD\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"COMMI\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"REGGC\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"AROUT\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"GALED\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"SAVEA\",\"R\":1,\"F\":1,\"M\":2},{\"CustomerID\":\"FAMIA\",\"R\":1,\"F\":3,\"M\":4},{\"CustomerID\":\"BLAUS\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"FRANS\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"BOTTM\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"RICSU\",\"R\":1,\"F\":3,\"M\":3},{\"CustomerID\":\"OTTIK\",\"R\":1,\"F\":3,\"M\":4},{\"CustomerID\":\"GODOS\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"Val2 \",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"LEHMS\",\"R\":2,\"F\":1,\"M\":1},{\"CustomerID\":\"RICAR\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"RATTC\",\"R\":2,\"F\":2,\"M\":2},{\"CustomerID\":\"TRAIH\",\"R\":2,\"F\":1,\"M\":1},{\"CustomerID\":\"THECR\",\"R\":2,\"F\":4,\"M\":4},{\"CustomerID\":\"DRACD\",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"ERNSH\",\"R\":2,\"F\":2,\"M\":2},{\"CustomerID\":\"WELLI\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"SANTG\",\"R\":2,\"F\":2,\"M\":2},{\"CustomerID\":\"SPLIR\",\"R\":2,\"F\":2,\"M\":1},{\"CustomerID\":\"LETSS\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"SIMOB\",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"SPECD\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"LAUGB\",\"R\":2,\"F\":1,\"M\":1},{\"CustomerID\":\"ISLAT\",\"R\":2,\"F\":3,\"M\":4},{\"CustomerID\":\"PARIS\",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"RANCH\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"PICCO\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"WOLZA\",\"R\":3,\"F\":3,\"M\":3},{\"CustomerID\":\"MAGAA\",\"R\":3,\"F\":3,\"M\":3},{\"CustomerID\":\"TOMSP\",\"R\":3,\"F\":4,\"M\":3},{\"CustomerID\":\"CACTU\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"TRADH\",\"R\":3,\"F\":4,\"M\":4},{\"CustomerID\":\"FURIB\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"EASTC\",\"R\":3,\"F\":1,\"M\":2},{\"CustomerID\":\"NORTS\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"KOENE\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"GROSR\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"GOURL\",\"R\":3,\"F\":5,\"M\":5},{\"CustomerID\":\"CENTC\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"QUEEN\",\"R\":3,\"F\":4,\"M\":4},{\"CustomerID\":\"LACOR\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"CHOPS\",\"R\":3,\"F\":4,\"M\":4},{\"CustomerID\":\"BONAP\",\"R\":3,\"F\":2,\"M\":3},{\"CustomerID\":\"WARTH\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"VINET\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"ALFKI\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"LINOD\",\"R\":4,\"F\":2,\"M\":1},{\"CustomerID\":\"FOLIG\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"VAFFE\",\"R\":4,\"F\":4,\"M\":4},{\"CustomerID\":\"LAZYK\",\"R\":4,\"F\":4,\"M\":4},{\"CustomerID\":\"BLONP\",\"R\":4,\"F\":3,\"M\":2},{\"CustomerID\":\"FOLKO\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"LAMAI\",\"R\":4,\"F\":3,\"M\":2},{\"CustomerID\":\"TORTU\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"QUEDE\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"HANAR\",\"R\":4,\"F\":4,\"M\":4},{\"CustomerID\":\"LONEP\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"BSBEV\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"OCEAN\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"FRANK\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"LILAS\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"HUNGO\",\"R\":4,\"F\":2,\"M\":3},{\"CustomerID\":\"SEVES\",\"R\":4,\"F\":3,\"M\":3},{\"CustomerID\":\"WANDK\",\"R\":4,\"F\":3,\"M\":3},{\"CustomerID\":\"HILAA\",\"R\":5,\"F\":4,\"M\":3},{\"CustomerID\":\"CONSH\",\"R\":5,\"F\":4,\"M\":4},{\"CustomerID\":\"VICTE\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"ANTON\",\"R\":5,\"F\":1,\"M\":1},{\"CustomerID\":\"GREAL\",\"R\":5,\"F\":4,\"M\":4},{\"CustomerID\":\"BERGS\",\"R\":5,\"F\":3,\"M\":3},{\"CustomerID\":\"FRANR\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"VALON\",\"R\":5,\"F\":4,\"M\":4},{\"CustomerID\":\"PRINI\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"ANATR\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"OLDWO\",\"R\":5,\"F\":3,\"M\":3},{\"CustomerID\":\"WILMK\",\"R\":5,\"F\":2,\"M\":2},{\"CustomerID\":\"HUNGC\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"WHITC\",\"R\":5,\"F\":3,\"M\":2},{\"CustomerID\":\"ROMEY\",\"R\":5,\"F\":3,\"M\":3},{\"CustomerID\":\"MORGK\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"BOLID\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"MAISD\",\"R\":5,\"F\":2,\"M\":3}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l7_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"CustomerID\":\"FISSA\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"QUICK\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"MEREP\",\"R\":1,\"F\":4,\"M\":3},{\"CustomerID\":\"THEBI\",\"R\":1,\"F\":3,\"M\":3},{\"CustomerID\":\"PERIC\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"DUMON\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"SUPRD\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"COMMI\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"REGGC\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"AROUT\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"GALED\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"SAVEA\",\"R\":1,\"F\":1,\"M\":2},{\"CustomerID\":\"FAMIA\",\"R\":1,\"F\":3,\"M\":4},{\"CustomerID\":\"BLAUS\",\"R\":1,\"F\":1,\"M\":1},{\"CustomerID\":\"FRANS\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"BOTTM\",\"R\":1,\"F\":4,\"M\":4},{\"CustomerID\":\"RICSU\",\"R\":1,\"F\":3,\"M\":3},{\"CustomerID\":\"OTTIK\",\"R\":1,\"F\":3,\"M\":4},{\"CustomerID\":\"GODOS\",\"R\":1,\"F\":2,\"M\":2},{\"CustomerID\":\"Val2 \",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"LEHMS\",\"R\":2,\"F\":1,\"M\":1},{\"CustomerID\":\"RICAR\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"RATTC\",\"R\":2,\"F\":2,\"M\":2},{\"CustomerID\":\"TRAIH\",\"R\":2,\"F\":1,\"M\":1},{\"CustomerID\":\"THECR\",\"R\":2,\"F\":4,\"M\":4},{\"CustomerID\":\"DRACD\",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"ERNSH\",\"R\":2,\"F\":2,\"M\":2},{\"CustomerID\":\"WELLI\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"SANTG\",\"R\":2,\"F\":2,\"M\":2},{\"CustomerID\":\"SPLIR\",\"R\":2,\"F\":2,\"M\":1},{\"CustomerID\":\"LETSS\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"SIMOB\",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"SPECD\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"LAUGB\",\"R\":2,\"F\":1,\"M\":1},{\"CustomerID\":\"ISLAT\",\"R\":2,\"F\":3,\"M\":4},{\"CustomerID\":\"PARIS\",\"R\":2,\"F\":3,\"M\":3},{\"CustomerID\":\"RANCH\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"PICCO\",\"R\":2,\"F\":5,\"M\":5},{\"CustomerID\":\"WOLZA\",\"R\":3,\"F\":3,\"M\":3},{\"CustomerID\":\"MAGAA\",\"R\":3,\"F\":3,\"M\":3},{\"CustomerID\":\"TOMSP\",\"R\":3,\"F\":4,\"M\":3},{\"CustomerID\":\"CACTU\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"TRADH\",\"R\":3,\"F\":4,\"M\":4},{\"CustomerID\":\"FURIB\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"EASTC\",\"R\":3,\"F\":1,\"M\":2},{\"CustomerID\":\"NORTS\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"KOENE\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"GROSR\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"GOURL\",\"R\":3,\"F\":5,\"M\":5},{\"CustomerID\":\"CENTC\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"QUEEN\",\"R\":3,\"F\":4,\"M\":4},{\"CustomerID\":\"LACOR\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"CHOPS\",\"R\":3,\"F\":4,\"M\":4},{\"CustomerID\":\"BONAP\",\"R\":3,\"F\":2,\"M\":3},{\"CustomerID\":\"WARTH\",\"R\":3,\"F\":2,\"M\":2},{\"CustomerID\":\"VINET\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"ALFKI\",\"R\":3,\"F\":1,\"M\":1},{\"CustomerID\":\"LINOD\",\"R\":4,\"F\":2,\"M\":1},{\"CustomerID\":\"FOLIG\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"VAFFE\",\"R\":4,\"F\":4,\"M\":4},{\"CustomerID\":\"LAZYK\",\"R\":4,\"F\":4,\"M\":4},{\"CustomerID\":\"BLONP\",\"R\":4,\"F\":3,\"M\":2},{\"CustomerID\":\"FOLKO\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"LAMAI\",\"R\":4,\"F\":3,\"M\":2},{\"CustomerID\":\"TORTU\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"QUEDE\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"HANAR\",\"R\":4,\"F\":4,\"M\":4},{\"CustomerID\":\"LONEP\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"BSBEV\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"OCEAN\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"FRANK\",\"R\":4,\"F\":1,\"M\":1},{\"CustomerID\":\"LILAS\",\"R\":4,\"F\":5,\"M\":5},{\"CustomerID\":\"HUNGO\",\"R\":4,\"F\":2,\"M\":3},{\"CustomerID\":\"SEVES\",\"R\":4,\"F\":3,\"M\":3},{\"CustomerID\":\"WANDK\",\"R\":4,\"F\":3,\"M\":3},{\"CustomerID\":\"HILAA\",\"R\":5,\"F\":4,\"M\":3},{\"CustomerID\":\"CONSH\",\"R\":5,\"F\":4,\"M\":4},{\"CustomerID\":\"VICTE\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"ANTON\",\"R\":5,\"F\":1,\"M\":1},{\"CustomerID\":\"GREAL\",\"R\":5,\"F\":4,\"M\":4},{\"CustomerID\":\"BERGS\",\"R\":5,\"F\":3,\"M\":3},{\"CustomerID\":\"FRANR\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"VALON\",\"R\":5,\"F\":4,\"M\":4},{\"CustomerID\":\"PRINI\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"ANATR\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"OLDWO\",\"R\":5,\"F\":3,\"M\":3},{\"CustomerID\":\"WILMK\",\"R\":5,\"F\":2,\"M\":2},{\"CustomerID\":\"HUNGC\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"WHITC\",\"R\":5,\"F\":3,\"M\":2},{\"CustomerID\":\"ROMEY\",\"R\":5,\"F\":3,\"M\":3},{\"CustomerID\":\"MORGK\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"BOLID\",\"R\":5,\"F\":5,\"M\":5},{\"CustomerID\":\"MAISD\",\"R\":5,\"F\":2,\"M\":3}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 536,
+      "phase3_response_generation_ms": 37447,
+      "total_duration_ms": 37983,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:38:05",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Fully addresses RFM quintile segmentation with distribution summary and customer sample."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All cited row counts, percentages, and sample values are consistent with the 93-row execution result."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, professional English with well-structured sections and tables."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "No invented data; aggregates match standard NTILE(5) distributions over 93 rows."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL paired with an accurate, complete, and non-hallucinated response.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 12626
+      }
+    },
+    {
+      "question_id": "northwind-l8-01",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "WITH RECURSIVE calendar(day) AS (SELECT date((SELECT MIN(OrderDate) FROM Orders)) UNION ALL SELECT date(day, '+1 day') FROM calendar WHERE day < (SELECT date(MAX(OrderDate)) FROM Orders)) SELECT cal.day, COUNT(o.OrderID) AS nb_orders FROM calendar cal LEFT JOIN Orders o ON date(o.OrderDate) = cal.day GROUP BY cal.day ORDER BY cal.day;",
+      "ai_response": "A complete calendar has been generated from the first to the last order date, covering a total of 4,128 days. Across this period, a total of 16,282 orders were placed, with an average of 3.94 orders per day.\n\nThe distribution of daily order volume shows that 4 orders were placed on 821 days (19.89%), 3 orders on 817 days (19.79%), and 2 orders on 634 days (15.36%). The maximum number of orders recorded in a single day was 14, while some days recorded 0 orders.\n\nBelow is a representative sample of the daily order counts:\n\n| Day | Number of Orders |\n| :--- | :--- |\n| 2012-07-10 | 2 |\n| 2012-07-11 | 4 |\n| 2012-07-12 | 6 |\n| 2012-07-13 | 4 |\n| 2012-07-14 | 2 |\n| 2012-07-15 | 2 |\n| 2012-07-16 | 3 |\n| 2012-07-17 | 2 |\n| 2012-07-18 | 4 |\n| 2012-07-19 | 4 |\n| 2012-07-20 | 3 |\n| 2012-07-21 | 2 |\n| 2012-07-22 | 2 |\n| 2012-07-23 | 4 |\n| 2012-07-24 | 5 |\n| 2012-07-25 | 2 |\n| 2012-07-26 | 4 |\n| 2012-07-27 | 1 |\n| 2012-07-28 | 4 |\n| 2012-07-29 | 2 |\n| 2012-07-30 | 1 |\n| 2012-07-31 | 6 |\n| 2012-08-01 | 7 |\n| 2012-08-02 | 3 |\n| 2012-08-03 | 3 |\n| 2012-08-04 | 4 |\n| 2012-08-05 | 2 |\n| 2012-08-06 | 5 |\n| 2012-08-07 | 5 |\n| 2012-08-08 | 2 |\n\n... and 4,098 more rows in the full result.",
+      "sql_row_count": 4128,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l8_01\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"day\":\"2012-07-10\",\"nb_orders\":2},{\"day\":\"2012-07-11\",\"nb_orders\":4},{\"day\":\"2012-07-12\",\"nb_orders\":6},{\"day\":\"2012-07-13\",\"nb_orders\":4},{\"day\":\"2012-07-14\",\"nb_orders\":2},{\"day\":\"2012-07-15\",\"nb_orders\":2},{\"day\":\"2012-07-16\",\"nb_orders\":3},{\"day\":\"2012-07-17\",\"nb_orders\":2},{\"day\":\"2012-07-18\",\"nb_orders\":4},{\"day\":\"2012-07-19\",\"nb_orders\":4},{\"day\":\"2012-07-20\",\"nb_orders\":3},{\"day\":\"2012-07-21\",\"nb_orders\":2},{\"day\":\"2012-07-22\",\"nb_orders\":2},{\"day\":\"2012-07-23\",\"nb_orders\":4},{\"day\":\"2012-07-24\",\"nb_orders\":5},{\"day\":\"2012-07-25\",\"nb_orders\":2},{\"day\":\"2012-07-26\",\"nb_orders\":4},{\"day\":\"2012-07-27\",\"nb_orders\":1},{\"day\":\"2012-07-28\",\"nb_orders\":4},{\"day\":\"2012-07-29\",\"nb_orders\":2},{\"day\":\"2012-07-30\",\"nb_orders\":1},{\"day\":\"2012-07-31\",\"nb_orders\":6},{\"day\":\"2012-08-01\",\"nb_orders\":7},{\"day\":\"2012-08-02\",\"nb_orders\":3},{\"day\":\"2012-08-03\",\"nb_orders\":3},{\"day\":\"2012-08-04\",\"nb_orders\":4},{\"day\":\"2012-08-05\",\"nb_orders\":2},{\"day\":\"2012-08-06\",\"nb_orders\":5},{\"day\":\"2012-08-07\",\"nb_orders\":5},{\"day\":\"2012-08-08\",\"nb_orders\":2},{\"day\":\"2012-08-09\",\"nb_orders\":0},{\"day\":\"2012-08-10\",\"nb_orders\":3},{\"day\":\"2012-08-11\",\"nb_orders\":4},{\"day\":\"2012-08-12\",\"nb_orders\":4},{\"day\":\"2012-08-13\",\"nb_orders\":5},{\"day\":\"2012-08-14\",\"nb_orders\":3},{\"day\":\"2012-08-15\",\"nb_orders\":4},{\"day\":\"2012-08-16\",\"nb_orders\":4},{\"day\":\"2012-08-17\",\"nb_orders\":7},{\"day\":\"2012-08-18\",\"nb_orders\":5},{\"day\":\"2012-08-19\",\"nb_orders\":2},{\"day\":\"2012-08-20\",\"nb_orders\":4},{\"day\":\"2012-08-21\",\"nb_orders\":4},{\"day\":\"2012-08-22\",\"nb_orders\":5},{\"day\":\"2012-08-23\",\"nb_orders\":4},{\"day\":\"2012-08-24\",\"nb_orders\":2},{\"day\":\"2012-08-25\",\"nb_orders\":2},{\"day\":\"2012-08-26\",\"nb_orders\":2},{\"day\":\"2012-08-27\",\"nb_orders\":6},{\"day\":\"2012-08-28\",\"nb_orders\":10},{\"day\":\"2012-08-29\",\"nb_orders\":3},{\"day\":\"2012-08-30\",\"nb_orders\":3},{\"day\":\"2012-08-31\",\"nb_orders\":5},{\"day\":\"2012-09-01\",\"nb_orders\":4},{\"day\":\"2012-09-02\",\"nb_orders\":4},{\"day\":\"2012-09-03\",\"nb_orders\":2},{\"day\":\"2012-09-04\",\"nb_orders\":5},{\"day\":\"2012-09-05\",\"nb_orders\":2},{\"day\":\"2012-09-06\",\"nb_orders\":5},{\"day\":\"2012-09-07\",\"nb_orders\":9},{\"day\":\"2012-09-08\",\"nb_orders\":3},{\"day\":\"2012-09-09\",\"nb_orders\":1},{\"day\":\"2012-09-10\",\"nb_orders\":4},{\"day\":\"2012-09-11\",\"nb_orders\":5},{\"day\":\"2012-09-12\",\"nb_orders\":7},{\"day\":\"2012-09-13\",\"nb_orders\":3},{\"day\":\"2012-09-14\",\"nb_orders\":5},{\"day\":\"2012-09-15\",\"nb_orders\":4},{\"day\":\"2012-09-16\",\"nb_orders\":3},{\"day\":\"2012-09-17\",\"nb_orders\":1},{\"day\":\"2012-09-18\",\"nb_orders\":4},{\"day\":\"2012-09-19\",\"nb_orders\":4},{\"day\":\"2012-09-20\",\"nb_orders\":6},{\"day\":\"2012-09-21\",\"nb_orders\":6},{\"day\":\"2012-09-22\",\"nb_orders\":1},{\"day\":\"2012-09-23\",\"nb_orders\":3},{\"day\":\"2012-09-24\",\"nb_orders\":5},{\"day\":\"2012-09-25\",\"nb_orders\":4},{\"day\":\"2012-09-26\",\"nb_orders\":5},{\"day\":\"2012-09-27\",\"nb_orders\":4},{\"day\":\"2012-09-28\",\"nb_orders\":4},{\"day\":\"2012-09-29\",\"nb_orders\":3},{\"day\":\"2012-09-30\",\"nb_orders\":3},{\"day\":\"2012-10-01\",\"nb_orders\":3},{\"day\":\"2012-10-02\",\"nb_orders\":4},{\"day\":\"2012-10-03\",\"nb_orders\":4},{\"day\":\"2012-10-04\",\"nb_orders\":3},{\"day\":\"2012-10-05\",\"nb_orders\":3},{\"day\":\"2012-10-06\",\"nb_orders\":5},{\"day\":\"2012-10-07\",\"nb_orders\":4},{\"day\":\"2012-10-08\",\"nb_orders\":2},{\"day\":\"2012-10-09\",\"nb_orders\":7},{\"day\":\"2012-10-10\",\"nb_orders\":5},{\"day\":\"2012-10-11\",\"nb_orders\":6},{\"day\":\"2012-10-12\",\"nb_orders\":3},{\"day\":\"2012-10-13\",\"nb_orders\":5},{\"day\":\"2012-10-14\",\"nb_orders\":5},{\"day\":\"2012-10-15\",\"nb_orders\":2},{\"day\":\"2012-10-16\",\"nb_orders\":5},{\"day\":\"2012-10-17\",\"nb_orders\":6},{\"day\":\"2012-10-18\",\"nb_orders\":4},{\"day\":\"2012-10-19\",\"nb_orders\":1},{\"day\":\"2012-10-20\",\"nb_orders\":3},{\"day\":\"2012-10-21\",\"nb_orders\":5},{\"day\":\"2012-10-22\",\"nb_orders\":0},{\"day\":\"2012-10-23\",\"nb_orders\":6},{\"day\":\"2012-10-24\",\"nb_orders\":2},{\"day\":\"2012-10-25\",\"nb_orders\":3},{\"day\":\"2012-10-26\",\"nb_orders\":2},{\"day\":\"2012-10-27\",\"nb_orders\":4},{\"day\":\"2012-10-28\",\"nb_orders\":2},{\"day\":\"2012-10-29\",\"nb_orders\":3},{\"day\":\"2012-10-30\",\"nb_orders\":0},{\"day\":\"2012-10-31\",\"nb_orders\":4},{\"day\":\"2012-11-01\",\"nb_orders\":1},{\"day\":\"2012-11-02\",\"nb_orders\":3},{\"day\":\"2012-11-03\",\"nb_orders\":2},{\"day\":\"2012-11-04\",\"nb_orders\":6},{\"day\":\"2012-11-05\",\"nb_orders\":5},{\"day\":\"2012-11-06\",\"nb_orders\":1},{\"day\":\"2012-11-07\",\"nb_orders\":3},{\"day\":\"2012-11-08\",\"nb_orders\":2},{\"day\":\"2012-11-09\",\"nb_orders\":2},{\"day\":\"2012-11-10\",\"nb_orders\":2},{\"day\":\"2012-11-11\",\"nb_orders\":5},{\"day\":\"2012-11-12\",\"nb_orders\":4},{\"day\":\"2012-11-13\",\"nb_orders\":8},{\"day\":\"2012-11-14\",\"nb_orders\":2},{\"day\":\"2012-11-15\",\"nb_orders\":6},{\"day\":\"2012-11-16\",\"nb_orders\":4},{\"day\":\"2012-11-17\",\"nb_orders\":3},{\"day\":\"2012-11-18\",\"nb_orders\":4},{\"day\":\"2012-11-19\",\"nb_orders\":3},{\"day\":\"2012-11-20\",\"nb_orders\":5},{\"day\":\"2012-11-21\",\"nb_orders\":3},{\"day\":\"2012-11-22\",\"nb_orders\":5},{\"day\":\"2012-11-23\",\"nb_orders\":4},{\"day\":\"2012-11-24\",\"nb_orders\":3},{\"day\":\"2012-11-25\",\"nb_orders\":3},{\"day\":\"2012-11-26\",\"nb_orders\":7},{\"day\":\"2012-11-27\",\"nb_orders\":3},{\"day\":\"2012-11-28\",\"nb_orders\":0},{\"day\":\"2012-11-29\",\"nb_orders\":3},{\"day\":\"2012-11-30\",\"nb_orders\":3},{\"day\":\"2012-12-01\",\"nb_orders\":9},{\"day\":\"2012-12-02\",\"nb_orders\":6},{\"day\":\"2012-12-03\",\"nb_orders\":3},{\"day\":\"2012-12-04\",\"nb_orders\":3},{\"day\":\"2012-12-05\",\"nb_orders\":3},{\"day\":\"2012-12-06\",\"nb_orders\":4},{\"day\":\"2012-12-07\",\"nb_orders\":3},{\"day\":\"2012-12-08\",\"nb_orders\":1},{\"day\":\"2012-12-09\",\"nb_orders\":4},{\"day\":\"2012-12-10\",\"nb_orders\":7},{\"day\":\"2012-12-11\",\"nb_orders\":0},{\"day\":\"2012-12-12\",\"nb_orders\":9},{\"day\":\"2012-12-13\",\"nb_orders\":4},{\"day\":\"2012-12-14\",\"nb_orders\":3},{\"day\":\"2012-12-15\",\"nb_orders\":5},{\"day\":\"2012-12-16\",\"nb_orders\":2},{\"day\":\"2012-12-17\",\"nb_orders\":1},{\"day\":\"2012-12-18\",\"nb_orders\":9},{\"day\":\"2012-12-19\",\"nb_orders\":7},{\"day\":\"2012-12-20\",\"nb_orders\":2},{\"day\":\"2012-12-21\",\"nb_orders\":4},{\"day\":\"2012-12-22\",\"nb_orders\":3},{\"day\":\"2012-12-23\",\"nb_orders\":5},{\"day\":\"2012-12-24\",\"nb_orders\":5},{\"day\":\"2012-12-25\",\"nb_orders\":2},{\"day\":\"2012-12-26\",\"nb_orders\":2},{\"day\":\"2012-12-27\",\"nb_orders\":3},{\"day\":\"2012-12-28\",\"nb_orders\":6},{\"day\":\"2012-12-29\",\"nb_orders\":2},{\"day\":\"2012-12-30\",\"nb_orders\":1},{\"day\":\"2012-12-31\",\"nb_orders\":10},{\"day\":\"2013-01-01\",\"nb_orders\":3},{\"day\":\"2013-01-02\",\"nb_orders\":1},{\"day\":\"2013-01-03\",\"nb_orders\":7},{\"day\":\"2013-01-04\",\"nb_orders\":3},{\"day\":\"2013-01-05\",\"nb_orders\":6},{\"day\":\"2013-01-06\",\"nb_orders\":4},{\"day\":\"2013-01-07\",\"nb_orders\":4},{\"day\":\"2013-01-08\",\"nb_orders\":3},{\"day\":\"2013-01-09\",\"nb_orders\":3},{\"day\":\"2013-01-10\",\"nb_orders\":2},{\"day\":\"2013-01-11\",\"nb_orders\":6},{\"day\":\"2013-01-12\",\"nb_orders\":4},{\"day\":\"2013-01-13\",\"nb_orders\":2},{\"day\":\"2013-01-14\",\"nb_orders\":3},{\"day\":\"2013-01-15\",\"nb_orders\":3},{\"day\":\"2013-01-16\",\"nb_orders\":4},{\"day\":\"2013-01-17\",\"nb_orders\":3},{\"day\":\"2013-01-18\",\"nb_orders\":7},{\"day\":\"2013-01-19\",\"nb_orders\":2},{\"day\":\"2013-01-20\",\"nb_orders\":4},{\"day\":\"2013-01-21\",\"nb_orders\":2},{\"day\":\"2013-01-22\",\"nb_orders\":4},{\"day\":\"2013-01-23\",\"nb_orders\":3},{\"day\":\"2013-01-24\",\"nb_orders\":1},{\"day\":\"2013-01-25\",\"nb_orders\":6},{\"day\":\"2013-01-26\",\"nb_orders\":6},{\"day\":\"2013-01-27\",\"nb_orders\":0},{\"day\":\"2013-01-28\",\"nb_orders\":3},{\"day\":\"2013-01-29\",\"nb_orders\":6},{\"day\":\"2013-01-30\",\"nb_orders\":6},{\"day\":\"2013-01-31\",\"nb_orders\":2},{\"day\":\"2013-02-01\",\"nb_orders\":3},{\"day\":\"2013-02-02\",\"nb_orders\":4},{\"day\":\"2013-02-03\",\"nb_orders\":4},{\"day\":\"2013-02-04\",\"nb_orders\":2},{\"day\":\"2013-02-05\",\"nb_orders\":2},{\"day\":\"2013-02-06\",\"nb_orders\":6},{\"day\":\"2013-02-07\",\"nb_orders\":3},{\"day\":\"2013-02-08\",\"nb_orders\":3},{\"day\":\"2013-02-09\",\"nb_orders\":4},{\"day\":\"2013-02-10\",\"nb_orders\":2},{\"day\":\"2013-02-11\",\"nb_orders\":4},{\"day\":\"2013-02-12\",\"nb_orders\":6},{\"day\":\"2013-02-13\",\"nb_orders\":3},{\"day\":\"2013-02-14\",\"nb_orders\":5},{\"day\":\"2013-02-15\",\"nb_orders\":2},{\"day\":\"2013-02-16\",\"nb_orders\":1},{\"day\":\"2013-02-17\",\"nb_orders\":1},{\"day\":\"2013-02-18\",\"nb_orders\":6},{\"day\":\"2013-02-19\",\"nb_orders\":5},{\"day\":\"2013-02-20\",\"nb_orders\":6},{\"day\":\"2013-02-21\",\"nb_orders\":2},{\"day\":\"2013-02-22\",\"nb_orders\":5},{\"day\":\"2013-02-23\",\"nb_orders\":6},{\"day\":\"2013-02-24\",\"nb_orders\":1},{\"day\":\"2013-02-25\",\"nb_orders\":3},{\"day\":\"2013-02-26\",\"nb_orders\":2},{\"day\":\"2013-02-27\",\"nb_orders\":5},{\"day\":\"2013-02-28\",\"nb_orders\":4},{\"day\":\"2013-03-01\",\"nb_orders\":5},{\"day\":\"2013-03-02\",\"nb_orders\":4},{\"day\":\"2013-03-03\",\"nb_orders\":4},{\"day\":\"2013-03-04\",\"nb_orders\":4},{\"day\":\"2013-03-05\",\"nb_orders\":6},{\"day\":\"2013-03-06\",\"nb_orders\":8},{\"day\":\"2013-03-07\",\"nb_orders\":4},{\"day\":\"2013-03-08\",\"nb_orders\":3},{\"day\":\"2013-03-09\",\"nb_orders\":4},{\"day\":\"2013-03-10\",\"nb_orders\":3},{\"day\":\"2013-03-11\",\"nb_orders\":4},{\"day\":\"2013-03-12\",\"nb_orders\":2},{\"day\":\"2013-03-13\",\"nb_orders\":2},{\"day\":\"2013-03-14\",\"nb_orders\":3},{\"day\":\"2013-03-15\",\"nb_orders\":4},{\"day\":\"2013-03-16\",\"nb_orders\":3},{\"day\":\"2013-03-17\",\"nb_orders\":5},{\"day\":\"2013-03-18\",\"nb_orders\":3},{\"day\":\"2013-03-19\",\"nb_orders\":7},{\"day\":\"2013-03-20\",\"nb_orders\":5},{\"day\":\"2013-03-21\",\"nb_orders\":3},{\"day\":\"2013-03-22\",\"nb_orders\":2},{\"day\":\"2013-03-23\",\"nb_orders\":5},{\"day\":\"2013-03-24\",\"nb_orders\":6},{\"day\":\"2013-03-25\",\"nb_orders\":4},{\"day\":\"2013-03-26\",\"nb_orders\":3},{\"day\":\"2013-03-27\",\"nb_orders\":1},{\"day\":\"2013-03-28\",\"nb_orders\":4},{\"day\":\"2013-03-29\",\"nb_orders\":1},{\"day\":\"2013-03-30\",\"nb_orders\":4},{\"day\":\"2013-03-31\",\"nb_orders\":4},{\"day\":\"2013-04-01\",\"nb_orders\":7},{\"day\":\"2013-04-02\",\"nb_orders\":6},{\"day\":\"2013-04-03\",\"nb_orders\":6},{\"day\":\"2013-04-04\",\"nb_orders\":1},{\"day\":\"2013-04-05\",\"nb_orders\":4},{\"day\":\"2013-04-06\",\"nb_orders\":5},{\"day\":\"2013-04-07\",\"nb_orders\":0},{\"day\":\"2013-04-08\",\"nb_orders\":8},{\"day\":\"2013-04-09\",\"nb_orders\":4},{\"day\":\"2013-04-10\",\"nb_orders\":6},{\"day\":\"2013-04-11\",\"nb_orders\":3},{\"day\":\"2013-04-12\",\"nb_orders\":5},{\"day\":\"2013-04-13\",\"nb_orders\":4},{\"day\":\"2013-04-14\",\"nb_orders\":3},{\"day\":\"2013-04-15\",\"nb_orders\":2},{\"day\":\"2013-04-16\",\"nb_orders\":3},{\"day\":\"2013-04-17\",\"nb_orders\":2},{\"day\":\"2013-04-18\",\"nb_orders\":3},{\"day\":\"2013-04-19\",\"nb_orders\":2},{\"day\":\"2013-04-20\",\"nb_orders\":5},{\"day\":\"2013-04-21\",\"nb_orders\":5},{\"day\":\"2013-04-22\",\"nb_orders\":6},{\"day\":\"2013-04-23\",\"nb_orders\":4},{\"day\":\"2013-04-24\",\"nb_orders\":12},{\"day\":\"2013-04-25\",\"nb_orders\":4},{\"day\":\"2013-04-26\",\"nb_orders\":0},{\"day\":\"2013-04-27\",\"nb_orders\":3},{\"day\":\"2013-04-28\",\"nb_orders\":4},{\"day\":\"2013-04-29\",\"nb_orders\":2},{\"day\":\"2013-04-30\",\"nb_orders\":4},{\"day\":\"2013-05-01\",\"nb_orders\":9},{\"day\":\"2013-05-02\",\"nb_orders\":6},{\"day\":\"2013-05-03\",\"nb_orders\":4},{\"day\":\"2013-05-04\",\"nb_orders\":5},{\"day\":\"2013-05-05\",\"nb_orders\":4},{\"day\":\"2013-05-06\",\"nb_orders\":1},{\"day\":\"2013-05-07\",\"nb_orders\":2},{\"day\":\"2013-05-08\",\"nb_orders\":5},{\"day\":\"2013-05-09\",\"nb_orders\":4},{\"day\":\"2013-05-10\",\"nb_orders\":2},{\"day\":\"2013-05-11\",\"nb_orders\":1},{\"day\":\"2013-05-12\",\"nb_orders\":8},{\"day\":\"2013-05-13\",\"nb_orders\":4},{\"day\":\"2013-05-14\",\"nb_orders\":7},{\"day\":\"2013-05-15\",\"nb_orders\":1},{\"day\":\"2013-05-16\",\"nb_orders\":3},{\"day\":\"2013-05-17\",\"nb_orders\":4},{\"day\":\"2013-05-18\",\"nb_orders\":3},{\"day\":\"2013-05-19\",\"nb_orders\":3},{\"day\":\"2013-05-20\",\"nb_orders\":3},{\"day\":\"2013-05-21\",\"nb_orders\":4},{\"day\":\"2013-05-22\",\"nb_orders\":8},{\"day\":\"2013-05-23\",\"nb_orders\":7},{\"day\":\"2013-05-24\",\"nb_orders\":2},{\"day\":\"2013-05-25\",\"nb_orders\":6},{\"day\":\"2013-05-26\",\"nb_orders\":2},{\"day\":\"2013-05-27\",\"nb_orders\":6},{\"day\":\"2013-05-28\",\"nb_orders\":7},{\"day\":\"2013-05-29\",\"nb_orders\":1},{\"day\":\"2013-05-30\",\"nb_orders\":2},{\"day\":\"2013-05-31\",\"nb_orders\":3},{\"day\":\"2013-06-01\",\"nb_orders\":5},{\"day\":\"2013-06-02\",\"nb_orders\":6},{\"day\":\"2013-06-03\",\"nb_orders\":4},{\"day\":\"2013-06-04\",\"nb_orders\":3},{\"day\":\"2013-06-05\",\"nb_orders\":6},{\"day\":\"2013-06-06\",\"nb_orders\":3},{\"day\":\"2013-06-07\",\"nb_orders\":1},{\"day\":\"2013-06-08\",\"nb_orders\":5},{\"day\":\"2013-06-09\",\"nb_orders\":11},{\"day\":\"2013-06-10\",\"nb_orders\":1},{\"day\":\"2013-06-11\",\"nb_orders\":5},{\"day\":\"2013-06-12\",\"nb_orders\":6},{\"day\":\"2013-06-13\",\"nb_orders\":3},{\"day\":\"2013-06-14\",\"nb_orders\":2},{\"day\":\"2013-06-15\",\"nb_orders\":3},{\"day\":\"2013-06-16\",\"nb_orders\":3},{\"day\":\"2013-06-17\",\"nb_orders\":7},{\"day\":\"2013-06-18\",\"nb_orders\":1},{\"day\":\"2013-06-19\",\"nb_orders\":2},{\"day\":\"2013-06-20\",\"nb_orders\":3},{\"day\":\"2013-06-21\",\"nb_orders\":2},{\"day\":\"2013-06-22\",\"nb_orders\":2},{\"day\":\"2013-06-23\",\"nb_orders\":2},{\"day\":\"2013-06-24\",\"nb_orders\":4},{\"day\":\"2013-06-25\",\"nb_orders\":3},{\"day\":\"2013-06-26\",\"nb_orders\":3},{\"day\":\"2013-06-27\",\"nb_orders\":4},{\"day\":\"2013-06-28\",\"nb_orders\":1},{\"day\":\"2013-06-29\",\"nb_orders\":0},{\"day\":\"2013-06-30\",\"nb_orders\":2},{\"day\":\"2013-07-01\",\"nb_orders\":3},{\"day\":\"2013-07-02\",\"nb_orders\":2},{\"day\":\"2013-07-03\",\"nb_orders\":2},{\"day\":\"2013-07-04\",\"nb_orders\":3},{\"day\":\"2013-07-05\",\"nb_orders\":2},{\"day\":\"2013-07-06\",\"nb_orders\":4},{\"day\":\"2013-07-07\",\"nb_orders\":6},{\"day\":\"2013-07-08\",\"nb_orders\":4},{\"day\":\"2013-07-09\",\"nb_orders\":7},{\"day\":\"2013-07-10\",\"nb_orders\":4},{\"day\":\"2013-07-11\",\"nb_orders\":6},{\"day\":\"2013-07-12\",\"nb_orders\":1},{\"day\":\"2013-07-13\",\"nb_orders\":4},{\"day\":\"2013-07-14\",\"nb_orders\":9},{\"day\":\"2013-07-15\",\"nb_orders\":3},{\"day\":\"2013-07-16\",\"nb_orders\":6},{\"day\":\"2013-07-17\",\"nb_orders\":9},{\"day\":\"2013-07-18\",\"nb_orders\":5},{\"day\":\"2013-07-19\",\"nb_orders\":4},{\"day\":\"2013-07-20\",\"nb_orders\":5},{\"day\":\"2013-07-21\",\"nb_orders\":6},{\"day\":\"2013-07-22\",\"nb_orders\":3},{\"day\":\"2013-07-23\",\"nb_orders\":5},{\"day\":\"2013-07-24\",\"nb_orders\":6},{\"day\":\"2013-07-25\",\"nb_orders\":1},{\"day\":\"2013-07-26\",\"nb_orders\":4},{\"day\":\"2013-07-27\",\"nb_orders\":4},{\"day\":\"2013-07-28\",\"nb_orders\":5},{\"day\":\"2013-07-29\",\"nb_orders\":4},{\"day\":\"2013-07-30\",\"nb_orders\":5},{\"day\":\"2013-07-31\",\"nb_orders\":6},{\"day\":\"2013-08-01\",\"nb_orders\":3},{\"day\":\"2013-08-02\",\"nb_orders\":5},{\"day\":\"2013-08-03\",\"nb_orders\":2},{\"day\":\"2013-08-04\",\"nb_orders\":1},{\"day\":\"2013-08-05\",\"nb_orders\":7},{\"day\":\"2013-08-06\",\"nb_orders\":2},{\"day\":\"2013-08-07\",\"nb_orders\":4},{\"day\":\"2013-08-08\",\"nb_orders\":5},{\"day\":\"2013-08-09\",\"nb_orders\":6},{\"day\":\"2013-08-10\",\"nb_orders\":1},{\"day\":\"2013-08-11\",\"nb_orders\":2},{\"day\":\"2013-08-12\",\"nb_orders\":6},{\"day\":\"2013-08-13\",\"nb_orders\":4},{\"day\":\"2013-08-14\",\"nb_orders\":10},{\"day\":\"2013-08-15\",\"nb_orders\":1},{\"day\":\"2013-08-16\",\"nb_orders\":3},{\"day\":\"2013-08-17\",\"nb_orders\":1},{\"day\":\"2013-08-18\",\"nb_orders\":1},{\"day\":\"2013-08-19\",\"nb_orders\":3},{\"day\":\"2013-08-20\",\"nb_orders\":2},{\"day\":\"2013-08-21\",\"nb_orders\":3},{\"day\":\"2013-08-22\",\"nb_orders\":3},{\"day\":\"2013-08-23\",\"nb_orders\":6},{\"day\":\"2013-08-24\",\"nb_orders\":5},{\"day\":\"2013-08-25\",\"nb_orders\":3},{\"day\":\"2013-08-26\",\"nb_orders\":4},{\"day\":\"2013-08-27\",\"nb_orders\":1},{\"day\":\"2013-08-28\",\"nb_orders\":3},{\"day\":\"2013-08-29\",\"nb_orders\":3},{\"day\":\"2013-08-30\",\"nb_orders\":5},{\"day\":\"2013-08-31\",\"nb_orders\":3},{\"day\":\"2013-09-01\",\"nb_orders\":5},{\"day\":\"2013-09-02\",\"nb_orders\":5},{\"day\":\"2013-09-03\",\"nb_orders\":3},{\"day\":\"2013-09-04\",\"nb_orders\":1},{\"day\":\"2013-09-05\",\"nb_orders\":5},{\"day\":\"2013-09-06\",\"nb_orders\":2},{\"day\":\"2013-09-07\",\"nb_orders\":4},{\"day\":\"2013-09-08\",\"nb_orders\":3},{\"day\":\"2013-09-09\",\"nb_orders\":3},{\"day\":\"2013-09-10\",\"nb_orders\":3},{\"day\":\"2013-09-11\",\"nb_orders\":4},{\"day\":\"2013-09-12\",\"nb_orders\":3},{\"day\":\"2013-09-13\",\"nb_orders\":1},{\"day\":\"2013-09-14\",\"nb_orders\":1},{\"day\":\"2013-09-15\",\"nb_orders\":4},{\"day\":\"2013-09-16\",\"nb_orders\":3},{\"day\":\"2013-09-17\",\"nb_orders\":5},{\"day\":\"2013-09-18\",\"nb_orders\":2},{\"day\":\"2013-09-19\",\"nb_orders\":3},{\"day\":\"2013-09-20\",\"nb_orders\":3},{\"day\":\"2013-09-21\",\"nb_orders\":4},{\"day\":\"2013-09-22\",\"nb_orders\":5},{\"day\":\"2013-09-23\",\"nb_orders\":4},{\"day\":\"2013-09-24\",\"nb_orders\":6},{\"day\":\"2013-09-25\",\"nb_orders\":4},{\"day\":\"2013-09-26\",\"nb_orders\":4},{\"day\":\"2013-09-27\",\"nb_orders\":5},{\"day\":\"2013-09-28\",\"nb_orders\":2},{\"day\":\"2013-09-29\",\"nb_orders\":4},{\"day\":\"2013-09-30\",\"nb_orders\":3},{\"day\":\"2013-10-01\",\"nb_orders\":2},{\"day\":\"2013-10-02\",\"nb_orders\":3},{\"day\":\"2013-10-03\",\"nb_orders\":5},{\"day\":\"2013-10-04\",\"nb_orders\":4},{\"day\":\"2013-10-05\",\"nb_orders\":2},{\"day\":\"2013-10-06\",\"nb_orders\":4},{\"day\":\"2013-10-07\",\"nb_orders\":4},{\"day\":\"2013-10-08\",\"nb_orders\":1},{\"day\":\"2013-10-09\",\"nb_orders\":6},{\"day\":\"2013-10-10\",\"nb_orders\":5},{\"day\":\"2013-10-11\",\"nb_orders\":4},{\"day\":\"2013-10-12\",\"nb_orders\":4},{\"day\":\"2013-10-13\",\"nb_orders\":4},{\"day\":\"2013-10-14\",\"nb_orders\":4},{\"day\":\"2013-10-15\",\"nb_orders\":2},{\"day\":\"2013-10-16\",\"nb_orders\":2},{\"day\":\"2013-10-17\",\"nb_orders\":5},{\"day\":\"2013-10-18\",\"nb_orders\":3},{\"day\":\"2013-10-19\",\"nb_orders\":4},{\"day\":\"2013-10-20\",\"nb_orders\":6},{\"day\":\"2013-10-21\",\"nb_orders\":3},{\"day\":\"2013-10-22\",\"nb_orders\":2},{\"day\":\"2013-10-23\",\"nb_orders\":7},{\"day\":\"2013-10-24\",\"nb_orders\":6},{\"day\":\"2013-10-25\",\"nb_orders\":1},{\"day\":\"2013-10-26\",\"nb_orders\":3},{\"day\":\"2013-10-27\",\"nb_orders\":3},{\"day\":\"2013-10-28\",\"nb_orders\":4},{\"day\":\"2013-10-29\",\"nb_orders\":4},{\"day\":\"2013-10-30\",\"nb_orders\":2},{\"day\":\"2013-10-31\",\"nb_orders\":2},{\"day\":\"2013-11-01\",\"nb_orders\":4},{\"day\":\"2013-11-02\",\"nb_orders\":2},{\"day\":\"2013-11-03\",\"nb_orders\":4},{\"day\":\"2013-11-04\",\"nb_orders\":4},{\"day\":\"2013-11-05\",\"nb_orders\":6},{\"day\":\"2013-11-06\",\"nb_orders\":2},{\"day\":\"2013-11-07\",\"nb_orders\":2},{\"day\":\"2013-11-08\",\"nb_orders\":2},{\"day\":\"2013-11-09\",\"nb_orders\":4},{\"day\":\"2013-11-10\",\"nb_orders\":2},{\"day\":\"2013-11-11\",\"nb_orders\":6},{\"day\":\"2013-11-12\",\"nb_orders\":4},{\"day\":\"2013-11-13\",\"nb_orders\":3},{\"day\":\"2013-11-14\",\"nb_orders\":5},{\"day\":\"2013-11-15\",\"nb_orders\":3},{\"day\":\"2013-11-16\",\"nb_orders\":1},{\"day\":\"2013-11-17\",\"nb_orders\":4},{\"day\":\"2013-11-18\",\"nb_orders\":1},{\"day\":\"2013-11-19\",\"nb_orders\":1},{\"day\":\"2013-11-20\",\"nb_orders\":5},{\"day\":\"2013-11-21\",\"nb_orders\":2}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l8_01\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"day\":\"2012-07-10\",\"nb_orders\":2},{\"day\":\"2012-07-11\",\"nb_orders\":4},{\"day\":\"2012-07-12\",\"nb_orders\":6},{\"day\":\"2012-07-13\",\"nb_orders\":4},{\"day\":\"2012-07-14\",\"nb_orders\":2},{\"day\":\"2012-07-15\",\"nb_orders\":2},{\"day\":\"2012-07-16\",\"nb_orders\":3},{\"day\":\"2012-07-17\",\"nb_orders\":2},{\"day\":\"2012-07-18\",\"nb_orders\":4},{\"day\":\"2012-07-19\",\"nb_orders\":4},{\"day\":\"2012-07-20\",\"nb_orders\":3},{\"day\":\"2012-07-21\",\"nb_orders\":2},{\"day\":\"2012-07-22\",\"nb_orders\":2},{\"day\":\"2012-07-23\",\"nb_orders\":4},{\"day\":\"2012-07-24\",\"nb_orders\":5},{\"day\":\"2012-07-25\",\"nb_orders\":2},{\"day\":\"2012-07-26\",\"nb_orders\":4},{\"day\":\"2012-07-27\",\"nb_orders\":1},{\"day\":\"2012-07-28\",\"nb_orders\":4},{\"day\":\"2012-07-29\",\"nb_orders\":2},{\"day\":\"2012-07-30\",\"nb_orders\":1},{\"day\":\"2012-07-31\",\"nb_orders\":6},{\"day\":\"2012-08-01\",\"nb_orders\":7},{\"day\":\"2012-08-02\",\"nb_orders\":3},{\"day\":\"2012-08-03\",\"nb_orders\":3},{\"day\":\"2012-08-04\",\"nb_orders\":4},{\"day\":\"2012-08-05\",\"nb_orders\":2},{\"day\":\"2012-08-06\",\"nb_orders\":5},{\"day\":\"2012-08-07\",\"nb_orders\":5},{\"day\":\"2012-08-08\",\"nb_orders\":2},{\"day\":\"2012-08-09\",\"nb_orders\":0},{\"day\":\"2012-08-10\",\"nb_orders\":3},{\"day\":\"2012-08-11\",\"nb_orders\":4},{\"day\":\"2012-08-12\",\"nb_orders\":4},{\"day\":\"2012-08-13\",\"nb_orders\":5},{\"day\":\"2012-08-14\",\"nb_orders\":3},{\"day\":\"2012-08-15\",\"nb_orders\":4},{\"day\":\"2012-08-16\",\"nb_orders\":4},{\"day\":\"2012-08-17\",\"nb_orders\":7},{\"day\":\"2012-08-18\",\"nb_orders\":5},{\"day\":\"2012-08-19\",\"nb_orders\":2},{\"day\":\"2012-08-20\",\"nb_orders\":4},{\"day\":\"2012-08-21\",\"nb_orders\":4},{\"day\":\"2012-08-22\",\"nb_orders\":5},{\"day\":\"2012-08-23\",\"nb_orders\":4},{\"day\":\"2012-08-24\",\"nb_orders\":2},{\"day\":\"2012-08-25\",\"nb_orders\":2},{\"day\":\"2012-08-26\",\"nb_orders\":2},{\"day\":\"2012-08-27\",\"nb_orders\":6},{\"day\":\"2012-08-28\",\"nb_orders\":10},{\"day\":\"2012-08-29\",\"nb_orders\":3},{\"day\":\"2012-08-30\",\"nb_orders\":3},{\"day\":\"2012-08-31\",\"nb_orders\":5},{\"day\":\"2012-09-01\",\"nb_orders\":4},{\"day\":\"2012-09-02\",\"nb_orders\":4},{\"day\":\"2012-09-03\",\"nb_orders\":2},{\"day\":\"2012-09-04\",\"nb_orders\":5},{\"day\":\"2012-09-05\",\"nb_orders\":2},{\"day\":\"2012-09-06\",\"nb_orders\":5},{\"day\":\"2012-09-07\",\"nb_orders\":9},{\"day\":\"2012-09-08\",\"nb_orders\":3},{\"day\":\"2012-09-09\",\"nb_orders\":1},{\"day\":\"2012-09-10\",\"nb_orders\":4},{\"day\":\"2012-09-11\",\"nb_orders\":5},{\"day\":\"2012-09-12\",\"nb_orders\":7},{\"day\":\"2012-09-13\",\"nb_orders\":3},{\"day\":\"2012-09-14\",\"nb_orders\":5},{\"day\":\"2012-09-15\",\"nb_orders\":4},{\"day\":\"2012-09-16\",\"nb_orders\":3},{\"day\":\"2012-09-17\",\"nb_orders\":1},{\"day\":\"2012-09-18\",\"nb_orders\":4},{\"day\":\"2012-09-19\",\"nb_orders\":4},{\"day\":\"2012-09-20\",\"nb_orders\":6},{\"day\":\"2012-09-21\",\"nb_orders\":6},{\"day\":\"2012-09-22\",\"nb_orders\":1},{\"day\":\"2012-09-23\",\"nb_orders\":3},{\"day\":\"2012-09-24\",\"nb_orders\":5},{\"day\":\"2012-09-25\",\"nb_orders\":4},{\"day\":\"2012-09-26\",\"nb_orders\":5},{\"day\":\"2012-09-27\",\"nb_orders\":4},{\"day\":\"2012-09-28\",\"nb_orders\":4},{\"day\":\"2012-09-29\",\"nb_orders\":3},{\"day\":\"2012-09-30\",\"nb_orders\":3},{\"day\":\"2012-10-01\",\"nb_orders\":3},{\"day\":\"2012-10-02\",\"nb_orders\":4},{\"day\":\"2012-10-03\",\"nb_orders\":4},{\"day\":\"2012-10-04\",\"nb_orders\":3},{\"day\":\"2012-10-05\",\"nb_orders\":3},{\"day\":\"2012-10-06\",\"nb_orders\":5},{\"day\":\"2012-10-07\",\"nb_orders\":4},{\"day\":\"2012-10-08\",\"nb_orders\":2},{\"day\":\"2012-10-09\",\"nb_orders\":7},{\"day\":\"2012-10-10\",\"nb_orders\":5},{\"day\":\"2012-10-11\",\"nb_orders\":6},{\"day\":\"2012-10-12\",\"nb_orders\":3},{\"day\":\"2012-10-13\",\"nb_orders\":5},{\"day\":\"2012-10-14\",\"nb_orders\":5},{\"day\":\"2012-10-15\",\"nb_orders\":2},{\"day\":\"2012-10-16\",\"nb_orders\":5},{\"day\":\"2012-10-17\",\"nb_orders\":6},{\"day\":\"2012-10-18\",\"nb_orders\":4},{\"day\":\"2012-10-19\",\"nb_orders\":1},{\"day\":\"2012-10-20\",\"nb_orders\":3},{\"day\":\"2012-10-21\",\"nb_orders\":5},{\"day\":\"2012-10-22\",\"nb_orders\":0},{\"day\":\"2012-10-23\",\"nb_orders\":6},{\"day\":\"2012-10-24\",\"nb_orders\":2},{\"day\":\"2012-10-25\",\"nb_orders\":3},{\"day\":\"2012-10-26\",\"nb_orders\":2},{\"day\":\"2012-10-27\",\"nb_orders\":4},{\"day\":\"2012-10-28\",\"nb_orders\":2},{\"day\":\"2012-10-29\",\"nb_orders\":3},{\"day\":\"2012-10-30\",\"nb_orders\":0},{\"day\":\"2012-10-31\",\"nb_orders\":4},{\"day\":\"2012-11-01\",\"nb_orders\":1},{\"day\":\"2012-11-02\",\"nb_orders\":3},{\"day\":\"2012-11-03\",\"nb_orders\":2},{\"day\":\"2012-11-04\",\"nb_orders\":6},{\"day\":\"2012-11-05\",\"nb_orders\":5},{\"day\":\"2012-11-06\",\"nb_orders\":1},{\"day\":\"2012-11-07\",\"nb_orders\":3},{\"day\":\"2012-11-08\",\"nb_orders\":2},{\"day\":\"2012-11-09\",\"nb_orders\":2},{\"day\":\"2012-11-10\",\"nb_orders\":2},{\"day\":\"2012-11-11\",\"nb_orders\":5},{\"day\":\"2012-11-12\",\"nb_orders\":4},{\"day\":\"2012-11-13\",\"nb_orders\":8},{\"day\":\"2012-11-14\",\"nb_orders\":2},{\"day\":\"2012-11-15\",\"nb_orders\":6},{\"day\":\"2012-11-16\",\"nb_orders\":4},{\"day\":\"2012-11-17\",\"nb_orders\":3},{\"day\":\"2012-11-18\",\"nb_orders\":4},{\"day\":\"2012-11-19\",\"nb_orders\":3},{\"day\":\"2012-11-20\",\"nb_orders\":5},{\"day\":\"2012-11-21\",\"nb_orders\":3},{\"day\":\"2012-11-22\",\"nb_orders\":5},{\"day\":\"2012-11-23\",\"nb_orders\":4},{\"day\":\"2012-11-24\",\"nb_orders\":3},{\"day\":\"2012-11-25\",\"nb_orders\":3},{\"day\":\"2012-11-26\",\"nb_orders\":7},{\"day\":\"2012-11-27\",\"nb_orders\":3},{\"day\":\"2012-11-28\",\"nb_orders\":0},{\"day\":\"2012-11-29\",\"nb_orders\":3},{\"day\":\"2012-11-30\",\"nb_orders\":3},{\"day\":\"2012-12-01\",\"nb_orders\":9},{\"day\":\"2012-12-02\",\"nb_orders\":6},{\"day\":\"2012-12-03\",\"nb_orders\":3},{\"day\":\"2012-12-04\",\"nb_orders\":3},{\"day\":\"2012-12-05\",\"nb_orders\":3},{\"day\":\"2012-12-06\",\"nb_orders\":4},{\"day\":\"2012-12-07\",\"nb_orders\":3},{\"day\":\"2012-12-08\",\"nb_orders\":1},{\"day\":\"2012-12-09\",\"nb_orders\":4},{\"day\":\"2012-12-10\",\"nb_orders\":7},{\"day\":\"2012-12-11\",\"nb_orders\":0},{\"day\":\"2012-12-12\",\"nb_orders\":9},{\"day\":\"2012-12-13\",\"nb_orders\":4},{\"day\":\"2012-12-14\",\"nb_orders\":3},{\"day\":\"2012-12-15\",\"nb_orders\":5},{\"day\":\"2012-12-16\",\"nb_orders\":2},{\"day\":\"2012-12-17\",\"nb_orders\":1},{\"day\":\"2012-12-18\",\"nb_orders\":9},{\"day\":\"2012-12-19\",\"nb_orders\":7},{\"day\":\"2012-12-20\",\"nb_orders\":2},{\"day\":\"2012-12-21\",\"nb_orders\":4},{\"day\":\"2012-12-22\",\"nb_orders\":3},{\"day\":\"2012-12-23\",\"nb_orders\":5},{\"day\":\"2012-12-24\",\"nb_orders\":5},{\"day\":\"2012-12-25\",\"nb_orders\":2},{\"day\":\"2012-12-26\",\"nb_orders\":2},{\"day\":\"2012-12-27\",\"nb_orders\":3},{\"day\":\"2012-12-28\",\"nb_orders\":6},{\"day\":\"2012-12-29\",\"nb_orders\":2},{\"day\":\"2012-12-30\",\"nb_orders\":1},{\"day\":\"2012-12-31\",\"nb_orders\":10},{\"day\":\"2013-01-01\",\"nb_orders\":3},{\"day\":\"2013-01-02\",\"nb_orders\":1},{\"day\":\"2013-01-03\",\"nb_orders\":7},{\"day\":\"2013-01-04\",\"nb_orders\":3},{\"day\":\"2013-01-05\",\"nb_orders\":6},{\"day\":\"2013-01-06\",\"nb_orders\":4},{\"day\":\"2013-01-07\",\"nb_orders\":4},{\"day\":\"2013-01-08\",\"nb_orders\":3},{\"day\":\"2013-01-09\",\"nb_orders\":3},{\"day\":\"2013-01-10\",\"nb_orders\":2},{\"day\":\"2013-01-11\",\"nb_orders\":6},{\"day\":\"2013-01-12\",\"nb_orders\":4},{\"day\":\"2013-01-13\",\"nb_orders\":2},{\"day\":\"2013-01-14\",\"nb_orders\":3},{\"day\":\"2013-01-15\",\"nb_orders\":3},{\"day\":\"2013-01-16\",\"nb_orders\":4},{\"day\":\"2013-01-17\",\"nb_orders\":3},{\"day\":\"2013-01-18\",\"nb_orders\":7},{\"day\":\"2013-01-19\",\"nb_orders\":2},{\"day\":\"2013-01-20\",\"nb_orders\":4},{\"day\":\"2013-01-21\",\"nb_orders\":2},{\"day\":\"2013-01-22\",\"nb_orders\":4},{\"day\":\"2013-01-23\",\"nb_orders\":3},{\"day\":\"2013-01-24\",\"nb_orders\":1},{\"day\":\"2013-01-25\",\"nb_orders\":6},{\"day\":\"2013-01-26\",\"nb_orders\":6},{\"day\":\"2013-01-27\",\"nb_orders\":0},{\"day\":\"2013-01-28\",\"nb_orders\":3},{\"day\":\"2013-01-29\",\"nb_orders\":6},{\"day\":\"2013-01-30\",\"nb_orders\":6},{\"day\":\"2013-01-31\",\"nb_orders\":2},{\"day\":\"2013-02-01\",\"nb_orders\":3},{\"day\":\"2013-02-02\",\"nb_orders\":4},{\"day\":\"2013-02-03\",\"nb_orders\":4},{\"day\":\"2013-02-04\",\"nb_orders\":2},{\"day\":\"2013-02-05\",\"nb_orders\":2},{\"day\":\"2013-02-06\",\"nb_orders\":6},{\"day\":\"2013-02-07\",\"nb_orders\":3},{\"day\":\"2013-02-08\",\"nb_orders\":3},{\"day\":\"2013-02-09\",\"nb_orders\":4},{\"day\":\"2013-02-10\",\"nb_orders\":2},{\"day\":\"2013-02-11\",\"nb_orders\":4},{\"day\":\"2013-02-12\",\"nb_orders\":6},{\"day\":\"2013-02-13\",\"nb_orders\":3},{\"day\":\"2013-02-14\",\"nb_orders\":5},{\"day\":\"2013-02-15\",\"nb_orders\":2},{\"day\":\"2013-02-16\",\"nb_orders\":1},{\"day\":\"2013-02-17\",\"nb_orders\":1},{\"day\":\"2013-02-18\",\"nb_orders\":6},{\"day\":\"2013-02-19\",\"nb_orders\":5},{\"day\":\"2013-02-20\",\"nb_orders\":6},{\"day\":\"2013-02-21\",\"nb_orders\":2},{\"day\":\"2013-02-22\",\"nb_orders\":5},{\"day\":\"2013-02-23\",\"nb_orders\":6},{\"day\":\"2013-02-24\",\"nb_orders\":1},{\"day\":\"2013-02-25\",\"nb_orders\":3},{\"day\":\"2013-02-26\",\"nb_orders\":2},{\"day\":\"2013-02-27\",\"nb_orders\":5},{\"day\":\"2013-02-28\",\"nb_orders\":4},{\"day\":\"2013-03-01\",\"nb_orders\":5},{\"day\":\"2013-03-02\",\"nb_orders\":4},{\"day\":\"2013-03-03\",\"nb_orders\":4},{\"day\":\"2013-03-04\",\"nb_orders\":4},{\"day\":\"2013-03-05\",\"nb_orders\":6},{\"day\":\"2013-03-06\",\"nb_orders\":8},{\"day\":\"2013-03-07\",\"nb_orders\":4},{\"day\":\"2013-03-08\",\"nb_orders\":3},{\"day\":\"2013-03-09\",\"nb_orders\":4},{\"day\":\"2013-03-10\",\"nb_orders\":3},{\"day\":\"2013-03-11\",\"nb_orders\":4},{\"day\":\"2013-03-12\",\"nb_orders\":2},{\"day\":\"2013-03-13\",\"nb_orders\":2},{\"day\":\"2013-03-14\",\"nb_orders\":3},{\"day\":\"2013-03-15\",\"nb_orders\":4},{\"day\":\"2013-03-16\",\"nb_orders\":3},{\"day\":\"2013-03-17\",\"nb_orders\":5},{\"day\":\"2013-03-18\",\"nb_orders\":3},{\"day\":\"2013-03-19\",\"nb_orders\":7},{\"day\":\"2013-03-20\",\"nb_orders\":5},{\"day\":\"2013-03-21\",\"nb_orders\":3},{\"day\":\"2013-03-22\",\"nb_orders\":2},{\"day\":\"2013-03-23\",\"nb_orders\":5},{\"day\":\"2013-03-24\",\"nb_orders\":6},{\"day\":\"2013-03-25\",\"nb_orders\":4},{\"day\":\"2013-03-26\",\"nb_orders\":3},{\"day\":\"2013-03-27\",\"nb_orders\":1},{\"day\":\"2013-03-28\",\"nb_orders\":4},{\"day\":\"2013-03-29\",\"nb_orders\":1},{\"day\":\"2013-03-30\",\"nb_orders\":4},{\"day\":\"2013-03-31\",\"nb_orders\":4},{\"day\":\"2013-04-01\",\"nb_orders\":7},{\"day\":\"2013-04-02\",\"nb_orders\":6},{\"day\":\"2013-04-03\",\"nb_orders\":6},{\"day\":\"2013-04-04\",\"nb_orders\":1},{\"day\":\"2013-04-05\",\"nb_orders\":4},{\"day\":\"2013-04-06\",\"nb_orders\":5},{\"day\":\"2013-04-07\",\"nb_orders\":0},{\"day\":\"2013-04-08\",\"nb_orders\":8},{\"day\":\"2013-04-09\",\"nb_orders\":4},{\"day\":\"2013-04-10\",\"nb_orders\":6},{\"day\":\"2013-04-11\",\"nb_orders\":3},{\"day\":\"2013-04-12\",\"nb_orders\":5},{\"day\":\"2013-04-13\",\"nb_orders\":4},{\"day\":\"2013-04-14\",\"nb_orders\":3},{\"day\":\"2013-04-15\",\"nb_orders\":2},{\"day\":\"2013-04-16\",\"nb_orders\":3},{\"day\":\"2013-04-17\",\"nb_orders\":2},{\"day\":\"2013-04-18\",\"nb_orders\":3},{\"day\":\"2013-04-19\",\"nb_orders\":2},{\"day\":\"2013-04-20\",\"nb_orders\":5},{\"day\":\"2013-04-21\",\"nb_orders\":5},{\"day\":\"2013-04-22\",\"nb_orders\":6},{\"day\":\"2013-04-23\",\"nb_orders\":4},{\"day\":\"2013-04-24\",\"nb_orders\":12},{\"day\":\"2013-04-25\",\"nb_orders\":4},{\"day\":\"2013-04-26\",\"nb_orders\":0},{\"day\":\"2013-04-27\",\"nb_orders\":3},{\"day\":\"2013-04-28\",\"nb_orders\":4},{\"day\":\"2013-04-29\",\"nb_orders\":2},{\"day\":\"2013-04-30\",\"nb_orders\":4},{\"day\":\"2013-05-01\",\"nb_orders\":9},{\"day\":\"2013-05-02\",\"nb_orders\":6},{\"day\":\"2013-05-03\",\"nb_orders\":4},{\"day\":\"2013-05-04\",\"nb_orders\":5},{\"day\":\"2013-05-05\",\"nb_orders\":4},{\"day\":\"2013-05-06\",\"nb_orders\":1},{\"day\":\"2013-05-07\",\"nb_orders\":2},{\"day\":\"2013-05-08\",\"nb_orders\":5},{\"day\":\"2013-05-09\",\"nb_orders\":4},{\"day\":\"2013-05-10\",\"nb_orders\":2},{\"day\":\"2013-05-11\",\"nb_orders\":1},{\"day\":\"2013-05-12\",\"nb_orders\":8},{\"day\":\"2013-05-13\",\"nb_orders\":4},{\"day\":\"2013-05-14\",\"nb_orders\":7},{\"day\":\"2013-05-15\",\"nb_orders\":1},{\"day\":\"2013-05-16\",\"nb_orders\":3},{\"day\":\"2013-05-17\",\"nb_orders\":4},{\"day\":\"2013-05-18\",\"nb_orders\":3},{\"day\":\"2013-05-19\",\"nb_orders\":3},{\"day\":\"2013-05-20\",\"nb_orders\":3},{\"day\":\"2013-05-21\",\"nb_orders\":4},{\"day\":\"2013-05-22\",\"nb_orders\":8},{\"day\":\"2013-05-23\",\"nb_orders\":7},{\"day\":\"2013-05-24\",\"nb_orders\":2},{\"day\":\"2013-05-25\",\"nb_orders\":6},{\"day\":\"2013-05-26\",\"nb_orders\":2},{\"day\":\"2013-05-27\",\"nb_orders\":6},{\"day\":\"2013-05-28\",\"nb_orders\":7},{\"day\":\"2013-05-29\",\"nb_orders\":1},{\"day\":\"2013-05-30\",\"nb_orders\":2},{\"day\":\"2013-05-31\",\"nb_orders\":3},{\"day\":\"2013-06-01\",\"nb_orders\":5},{\"day\":\"2013-06-02\",\"nb_orders\":6},{\"day\":\"2013-06-03\",\"nb_orders\":4},{\"day\":\"2013-06-04\",\"nb_orders\":3},{\"day\":\"2013-06-05\",\"nb_orders\":6},{\"day\":\"2013-06-06\",\"nb_orders\":3},{\"day\":\"2013-06-07\",\"nb_orders\":1},{\"day\":\"2013-06-08\",\"nb_orders\":5},{\"day\":\"2013-06-09\",\"nb_orders\":11},{\"day\":\"2013-06-10\",\"nb_orders\":1},{\"day\":\"2013-06-11\",\"nb_orders\":5},{\"day\":\"2013-06-12\",\"nb_orders\":6},{\"day\":\"2013-06-13\",\"nb_orders\":3},{\"day\":\"2013-06-14\",\"nb_orders\":2},{\"day\":\"2013-06-15\",\"nb_orders\":3},{\"day\":\"2013-06-16\",\"nb_orders\":3},{\"day\":\"2013-06-17\",\"nb_orders\":7},{\"day\":\"2013-06-18\",\"nb_orders\":1},{\"day\":\"2013-06-19\",\"nb_orders\":2},{\"day\":\"2013-06-20\",\"nb_orders\":3},{\"day\":\"2013-06-21\",\"nb_orders\":2},{\"day\":\"2013-06-22\",\"nb_orders\":2},{\"day\":\"2013-06-23\",\"nb_orders\":2},{\"day\":\"2013-06-24\",\"nb_orders\":4},{\"day\":\"2013-06-25\",\"nb_orders\":3},{\"day\":\"2013-06-26\",\"nb_orders\":3},{\"day\":\"2013-06-27\",\"nb_orders\":4},{\"day\":\"2013-06-28\",\"nb_orders\":1},{\"day\":\"2013-06-29\",\"nb_orders\":0},{\"day\":\"2013-06-30\",\"nb_orders\":2},{\"day\":\"2013-07-01\",\"nb_orders\":3},{\"day\":\"2013-07-02\",\"nb_orders\":2},{\"day\":\"2013-07-03\",\"nb_orders\":2},{\"day\":\"2013-07-04\",\"nb_orders\":3},{\"day\":\"2013-07-05\",\"nb_orders\":2},{\"day\":\"2013-07-06\",\"nb_orders\":4},{\"day\":\"2013-07-07\",\"nb_orders\":6},{\"day\":\"2013-07-08\",\"nb_orders\":4},{\"day\":\"2013-07-09\",\"nb_orders\":7},{\"day\":\"2013-07-10\",\"nb_orders\":4},{\"day\":\"2013-07-11\",\"nb_orders\":6},{\"day\":\"2013-07-12\",\"nb_orders\":1},{\"day\":\"2013-07-13\",\"nb_orders\":4},{\"day\":\"2013-07-14\",\"nb_orders\":9},{\"day\":\"2013-07-15\",\"nb_orders\":3},{\"day\":\"2013-07-16\",\"nb_orders\":6},{\"day\":\"2013-07-17\",\"nb_orders\":9},{\"day\":\"2013-07-18\",\"nb_orders\":5},{\"day\":\"2013-07-19\",\"nb_orders\":4},{\"day\":\"2013-07-20\",\"nb_orders\":5},{\"day\":\"2013-07-21\",\"nb_orders\":6},{\"day\":\"2013-07-22\",\"nb_orders\":3},{\"day\":\"2013-07-23\",\"nb_orders\":5},{\"day\":\"2013-07-24\",\"nb_orders\":6},{\"day\":\"2013-07-25\",\"nb_orders\":1},{\"day\":\"2013-07-26\",\"nb_orders\":4},{\"day\":\"2013-07-27\",\"nb_orders\":4},{\"day\":\"2013-07-28\",\"nb_orders\":5},{\"day\":\"2013-07-29\",\"nb_orders\":4},{\"day\":\"2013-07-30\",\"nb_orders\":5},{\"day\":\"2013-07-31\",\"nb_orders\":6},{\"day\":\"2013-08-01\",\"nb_orders\":3},{\"day\":\"2013-08-02\",\"nb_orders\":5},{\"day\":\"2013-08-03\",\"nb_orders\":2},{\"day\":\"2013-08-04\",\"nb_orders\":1},{\"day\":\"2013-08-05\",\"nb_orders\":7},{\"day\":\"2013-08-06\",\"nb_orders\":2},{\"day\":\"2013-08-07\",\"nb_orders\":4},{\"day\":\"2013-08-08\",\"nb_orders\":5},{\"day\":\"2013-08-09\",\"nb_orders\":6},{\"day\":\"2013-08-10\",\"nb_orders\":1},{\"day\":\"2013-08-11\",\"nb_orders\":2},{\"day\":\"2013-08-12\",\"nb_orders\":6},{\"day\":\"2013-08-13\",\"nb_orders\":4},{\"day\":\"2013-08-14\",\"nb_orders\":10},{\"day\":\"2013-08-15\",\"nb_orders\":1},{\"day\":\"2013-08-16\",\"nb_orders\":3},{\"day\":\"2013-08-17\",\"nb_orders\":1},{\"day\":\"2013-08-18\",\"nb_orders\":1},{\"day\":\"2013-08-19\",\"nb_orders\":3},{\"day\":\"2013-08-20\",\"nb_orders\":2},{\"day\":\"2013-08-21\",\"nb_orders\":3},{\"day\":\"2013-08-22\",\"nb_orders\":3},{\"day\":\"2013-08-23\",\"nb_orders\":6},{\"day\":\"2013-08-24\",\"nb_orders\":5},{\"day\":\"2013-08-25\",\"nb_orders\":3},{\"day\":\"2013-08-26\",\"nb_orders\":4},{\"day\":\"2013-08-27\",\"nb_orders\":1},{\"day\":\"2013-08-28\",\"nb_orders\":3},{\"day\":\"2013-08-29\",\"nb_orders\":3},{\"day\":\"2013-08-30\",\"nb_orders\":5},{\"day\":\"2013-08-31\",\"nb_orders\":3},{\"day\":\"2013-09-01\",\"nb_orders\":5},{\"day\":\"2013-09-02\",\"nb_orders\":5},{\"day\":\"2013-09-03\",\"nb_orders\":3},{\"day\":\"2013-09-04\",\"nb_orders\":1},{\"day\":\"2013-09-05\",\"nb_orders\":5},{\"day\":\"2013-09-06\",\"nb_orders\":2},{\"day\":\"2013-09-07\",\"nb_orders\":4},{\"day\":\"2013-09-08\",\"nb_orders\":3},{\"day\":\"2013-09-09\",\"nb_orders\":3},{\"day\":\"2013-09-10\",\"nb_orders\":3},{\"day\":\"2013-09-11\",\"nb_orders\":4},{\"day\":\"2013-09-12\",\"nb_orders\":3},{\"day\":\"2013-09-13\",\"nb_orders\":1},{\"day\":\"2013-09-14\",\"nb_orders\":1},{\"day\":\"2013-09-15\",\"nb_orders\":4},{\"day\":\"2013-09-16\",\"nb_orders\":3},{\"day\":\"2013-09-17\",\"nb_orders\":5},{\"day\":\"2013-09-18\",\"nb_orders\":2},{\"day\":\"2013-09-19\",\"nb_orders\":3},{\"day\":\"2013-09-20\",\"nb_orders\":3},{\"day\":\"2013-09-21\",\"nb_orders\":4},{\"day\":\"2013-09-22\",\"nb_orders\":5},{\"day\":\"2013-09-23\",\"nb_orders\":4},{\"day\":\"2013-09-24\",\"nb_orders\":6},{\"day\":\"2013-09-25\",\"nb_orders\":4},{\"day\":\"2013-09-26\",\"nb_orders\":4},{\"day\":\"2013-09-27\",\"nb_orders\":5},{\"day\":\"2013-09-28\",\"nb_orders\":2},{\"day\":\"2013-09-29\",\"nb_orders\":4},{\"day\":\"2013-09-30\",\"nb_orders\":3},{\"day\":\"2013-10-01\",\"nb_orders\":2},{\"day\":\"2013-10-02\",\"nb_orders\":3},{\"day\":\"2013-10-03\",\"nb_orders\":5},{\"day\":\"2013-10-04\",\"nb_orders\":4},{\"day\":\"2013-10-05\",\"nb_orders\":2},{\"day\":\"2013-10-06\",\"nb_orders\":4},{\"day\":\"2013-10-07\",\"nb_orders\":4},{\"day\":\"2013-10-08\",\"nb_orders\":1},{\"day\":\"2013-10-09\",\"nb_orders\":6},{\"day\":\"2013-10-10\",\"nb_orders\":5},{\"day\":\"2013-10-11\",\"nb_orders\":4},{\"day\":\"2013-10-12\",\"nb_orders\":4},{\"day\":\"2013-10-13\",\"nb_orders\":4},{\"day\":\"2013-10-14\",\"nb_orders\":4},{\"day\":\"2013-10-15\",\"nb_orders\":2},{\"day\":\"2013-10-16\",\"nb_orders\":2},{\"day\":\"2013-10-17\",\"nb_orders\":5},{\"day\":\"2013-10-18\",\"nb_orders\":3},{\"day\":\"2013-10-19\",\"nb_orders\":4},{\"day\":\"2013-10-20\",\"nb_orders\":6},{\"day\":\"2013-10-21\",\"nb_orders\":3},{\"day\":\"2013-10-22\",\"nb_orders\":2},{\"day\":\"2013-10-23\",\"nb_orders\":7},{\"day\":\"2013-10-24\",\"nb_orders\":6},{\"day\":\"2013-10-25\",\"nb_orders\":1},{\"day\":\"2013-10-26\",\"nb_orders\":3},{\"day\":\"2013-10-27\",\"nb_orders\":3},{\"day\":\"2013-10-28\",\"nb_orders\":4},{\"day\":\"2013-10-29\",\"nb_orders\":4},{\"day\":\"2013-10-30\",\"nb_orders\":2},{\"day\":\"2013-10-31\",\"nb_orders\":2},{\"day\":\"2013-11-01\",\"nb_orders\":4},{\"day\":\"2013-11-02\",\"nb_orders\":2},{\"day\":\"2013-11-03\",\"nb_orders\":4},{\"day\":\"2013-11-04\",\"nb_orders\":4},{\"day\":\"2013-11-05\",\"nb_orders\":6},{\"day\":\"2013-11-06\",\"nb_orders\":2},{\"day\":\"2013-11-07\",\"nb_orders\":2},{\"day\":\"2013-11-08\",\"nb_orders\":2},{\"day\":\"2013-11-09\",\"nb_orders\":4},{\"day\":\"2013-11-10\",\"nb_orders\":2},{\"day\":\"2013-11-11\",\"nb_orders\":6},{\"day\":\"2013-11-12\",\"nb_orders\":4},{\"day\":\"2013-11-13\",\"nb_orders\":3},{\"day\":\"2013-11-14\",\"nb_orders\":5},{\"day\":\"2013-11-15\",\"nb_orders\":3},{\"day\":\"2013-11-16\",\"nb_orders\":1},{\"day\":\"2013-11-17\",\"nb_orders\":4},{\"day\":\"2013-11-18\",\"nb_orders\":1},{\"day\":\"2013-11-19\",\"nb_orders\":1},{\"day\":\"2013-11-20\",\"nb_orders\":5},{\"day\":\"2013-11-21\",\"nb_orders\":2}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 43489,
+      "phase3_response_generation_ms": 150234,
+      "total_duration_ms": 193723,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:41:19",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Fully addresses the request by describing the complete calendar range, daily order counts (including zeros), and aggregate statistics."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All cited figures (4128 days, 16282 total orders, 3.94 avg, max 14, frequency distribution) are consistent with the 4128-row execution result and standard aggregates."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Clear, professional English with well-structured paragraphs and a readable sample table."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "No fabricated row values or invented entities; all statistics derive from population-level aggregates over the full result set."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL executed correctly; response provides an accurate, complete, and non-hallucinated interpretation of the calendar results.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 22278
+      }
+    },
+    {
+      "question_id": "northwind-l8-02",
+      "config_name": "GoldSQL + google\/gemma-4-31b-it",
+      "pipeline": "data_analysis",
+      "success": true,
+      "generated_sql": "WITH customer_rev AS (SELECT o.CustomerID, SUM(od.UnitPrice * od.Quantity * (1 - od.Discount)) AS total FROM Orders o JOIN \"Order Details\" od ON o.OrderID = od.OrderID GROUP BY o.CustomerID), quintile AS (SELECT CustomerID, total, NTILE(5) OVER (ORDER BY total DESC) AS q FROM customer_rev) SELECT q AS quintile, COUNT(*) AS nb_customers, SUM(total) AS segment_revenue, ROUND(100.0 * SUM(total) \/ (SELECT SUM(total) FROM customer_rev), 2) AS pct_total FROM quintile GROUP BY q ORDER BY q;",
+      "ai_response": "The customer spending segmentation into quintiles (based on records from the `quintile` table) is as follows:\n\n| Quintile | Customer Count | Total Revenue | % of Total Revenue |\n| :--- | :--- | :--- | :--- |\n| 1 | 19 | 103,443,611.25 EUR | 23.07% |\n| 2 | 19 | 94,209,464.23 EUR | 21.01% |\n| 3 | 19 | 90,871,496.68 EUR | 20.27% |\n| 4 | 18 | 82,871,897.64 EUR | 18.48% |\n| 5 | 18 | 76,990,163.38 EUR | 17.17% |\n\n**Key Insights:**\n*   **Total Population:** The analysis covers 93 customers across 5 quintiles.\n*   **Revenue Distribution:** The top quintile (1) is the most valuable, contributing 103,443,611.25 EUR (23.07% of total revenue).\n*   **Average Revenue per Customer:** While the results table provides total segment revenue, the average revenue per customer can be derived by dividing the segment revenue by the customer count (e.g., ~5,444,400 EUR for Quintile 1 vs ~4,277,231 EUR for Quintile 5).",
+      "sql_row_count": 5,
+      "chart_html": "<div class=\"chart-container\" style=\"max-width:700px;margin:20px auto;\">\r\n  <canvas id=\"chart_northwind_l8_02\"><\/canvas>\r\n<\/div>\r\n<script>\r\n(function(){\r\n  try {\r\n    var rawData = [{\"quintile\":1,\"nb_customers\":19,\"segment_revenue\":103443611.2475,\"pct_total\":23.07},{\"quintile\":2,\"nb_customers\":19,\"segment_revenue\":94209464.226499981,\"pct_total\":21.01},{\"quintile\":3,\"nb_customers\":19,\"segment_revenue\":90871496.682999987,\"pct_total\":20.27},{\"quintile\":4,\"nb_customers\":18,\"segment_revenue\":82871897.635499994,\"pct_total\":18.48},{\"quintile\":5,\"nb_customers\":18,\"segment_revenue\":76990163.376999987,\"pct_total\":17.170000000000003}];\r\n    if (!Array.isArray(rawData) || rawData.length === 0) return;\r\n    var keys = Object.keys(rawData[0]);\r\n    var labelKey = keys[0];\r\n    var valueKeys = keys.slice(1).filter(function(k){\r\n      return typeof rawData[0][k] === \"number\" || !isNaN(parseFloat(rawData[0][k]));\r\n    });\r\n    if (valueKeys.length === 0) valueKeys = keys.slice(1);\r\n    var labels = rawData.map(function(r){ return r[labelKey]; });\r\n    var colors = [\"#4e79a7\",\"#f28e2b\",\"#e15759\",\"#76b7b2\",\"#59a14f\",\r\n                  \"#edc948\",\"#b07aa1\",\"#ff9da7\",\"#9c755f\",\"#bab0ac\"];\r\n    var datasets = valueKeys.map(function(vk, i){\r\n      return {\r\n        label: vk,\r\n        data: rawData.map(function(r){ return parseFloat(r[vk]) || 0; }),\r\n        backgroundColor: colors[i % colors.length],\r\n        borderColor: colors[i % colors.length],\r\n        borderWidth: 1\r\n      };\r\n    });\r\n    new Chart(document.getElementById(\"chart_northwind_l8_02\"), {\r\n      type: \"bar\",\r\n      data: { labels: labels, datasets: datasets },\r\n      options: { responsive: true, plugins: { legend: { display: valueKeys.length > 1 } } }\r\n    });\r\n  } catch(e) { console.error(\"Chart error:\", e); }\r\n})();\r\n<\/script>\r\n",
+      "data_json": "[{\"quintile\":1,\"nb_customers\":19,\"segment_revenue\":103443611.2475,\"pct_total\":23.07},{\"quintile\":2,\"nb_customers\":19,\"segment_revenue\":94209464.226499981,\"pct_total\":21.01},{\"quintile\":3,\"nb_customers\":19,\"segment_revenue\":90871496.682999987,\"pct_total\":20.27},{\"quintile\":4,\"nb_customers\":18,\"segment_revenue\":82871897.635499994,\"pct_total\":18.48},{\"quintile\":5,\"nb_customers\":18,\"segment_revenue\":76990163.376999987,\"pct_total\":17.170000000000003}]",
+      "phase1_sql_generation_ms": 0,
+      "phase2_sql_execution_ms": 303,
+      "phase3_response_generation_ms": 14948,
+      "total_duration_ms": 15251,
+      "sql_model_used": "google\/gemma-4-31b-it",
+      "response_model_used": "google\/gemma-4-31b-it",
+      "provider_used": "OpenRouter",
+      "judged": true,
+      "used_gold_sql": true,
+      "run_at": "2026-05-26T21:41:35",
+      "verdict": {
+        "sql_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Gold SQL",
+              "max": 100,
+              "score": 100,
+              "justification": "Reference SQL injected â€” not evaluated"
+            }
+          ]
+        },
+        "response_score": {
+          "total": 100,
+          "criteria": [
+            {
+              "name": "Completeness",
+              "max": 30,
+              "score": 30,
+              "justification": "Fully addresses count, total revenue, pct share and derives the requested average revenue per customer for each quintile."
+            },
+            {
+              "name": "Factual Accuracy",
+              "max": 30,
+              "score": 30,
+              "justification": "All cited figures exactly match the five returned rows; derived averages are arithmetically correct."
+            },
+            {
+              "name": "Clarity",
+              "max": 20,
+              "score": 20,
+              "justification": "Well-structured English with clear table and bullet-point insights."
+            },
+            {
+              "name": "No Hallucination",
+              "max": 20,
+              "score": 20,
+              "justification": "No invented values; all numbers and aggregates are faithful to the result set."
+            }
+          ]
+        },
+        "global_score": 100,
+        "comment": "Gold SQL paired with a complete, accurate and well-written response that correctly derives the missing average metric.",
+        "judge_model": "x-ai\/grok-4.3",
+        "judge_duration_ms": 31004
+      }
+    }
+  ]
+}
