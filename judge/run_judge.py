@@ -46,14 +46,20 @@ def load_judge_system_prompt() -> str:
 
 
 def build_user_message(question: dict, model_answer: str) -> str:
-    return (
+    msg = (
         f"QUESTION:\n{question['question']}\n\n"
         f"SQL:\n{question['gold_sql']}\n\n"
         f"GOLD ANSWER:\n{question['gold_answer']}\n\n"
         f"EXPECTED INSIGHTS:\n"
         + "\n".join(f"- {i}" for i in question.get("expected_insights", []))
-        + f"\n\nMODEL ANSWER:\n{model_answer}\n"
     )
+    # Deterministic facts computed from the database by
+    # scripts/build_verification_facts.py. Present from judge prompt v0.3 onward.
+    # Optional on purpose: datasets built before v0.3 still run unchanged.
+    facts = question.get("verification_facts")
+    if facts:
+        msg += f"\n\nVERIFICATION FACTS (computed from the database, authoritative):\n{facts}"
+    return msg + f"\n\nMODEL ANSWER:\n{model_answer}\n"
 
 
 # ---------------------------------------------------------------------------

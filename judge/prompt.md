@@ -4,6 +4,7 @@ This is the system prompt used by the LLM judge to score a model's answer agains
 
 ## Changelog
 
+- **v0.3 (2026-08-04) — input contract change, not a rubric change.** The judge now receives a `VERIFICATION FACTS` block computed from the database by `scripts/build_verification_facts.py`: window facts (over the first 200 rows, i.e. what the model saw) and population facts (over the full result), each labelled. Motivation, measured: on `ledger-l10-01` the judge scored a false ledger total 100/100 on faithfulness even though the gold answer already stated the true total — starving or burying the fact was enough for it to be skipped. With the block in place the same judge scores 10. Conversely `ledger-l9-02`, where a true window-scoped answer was condemned at 10 because the gold held population facts only, now scores 100. **Scores under v0.3 are not comparable with v0.2**; runs carry a `-v03` suffix and the v0.2 files are kept.
 - **v0.2 (2026-07-30)** — the judge is now told that the evaluated model saw at most the first 200 result rows; scoped-claim rule added (a claim explicitly limited to the shown rows is not a fabrication; an unscoped global claim contradicting the full-population facts is); scoped partial answers distinguished from refusals. Motivated by an independent review: under v0.1 the same window-derived figure scored F=10/40/100 across models, and true statements about the row cap were labeled "fabricated".
 - **v0.1** — initial rubric.
 
