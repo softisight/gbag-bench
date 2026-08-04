@@ -1,6 +1,6 @@
 # GBAG-Bench
 
-**Grounded BI Answer Generation** — a public benchmark for the step nobody was scoring: how faithfully an LLM interprets a SQL result into a natural-language answer.
+**Grounded BI Answer Generation** — a public benchmark for the step after the SQL: how faithfully an LLM interprets a query result into a natural-language answer.
 
 > NL2SQL measures half the problem. GBAG measures the other half.
 
@@ -15,7 +15,21 @@
 
 Existing benchmarks (Spider, BIRD, WikiSQL) measure whether a model generates correct SQL. They stop there. But in a real BI product, what the user reads is the **natural-language answer** the model writes after the SQL is executed — and that step is where most failures actually happen.
 
-A correct SQL query followed by a hallucinated number, an inverted trend, or a missing key insight is **still a failed product experience**. GBAG isolates and measures that neglected second half.
+A correct SQL query followed by a hallucinated number, an inverted trend, or a missing key insight is **still a failed product experience**. GBAG isolates and measures that second half.
+
+### Related work
+
+Grading free-form text generated over tabular data is not new, and GBAG does not claim to be first at it:
+
+- **[FeTaQA](https://github.com/Yale-LILY/FeTaQA)** (TACL 2022) — 10K Wikipedia tables with free-form answers, evaluated on faithfulness and comprehensiveness.
+- **[QTSumm](https://github.com/yale-nlp/QTSumm)** (EMNLP 2023) — 7,111 query-summary pairs over 2,934 tables; query-focused table summarization.
+- **[ToTTo](https://github.com/google-research-datasets/ToTTo)** (Google) — controlled table-to-text, built around faithfulness to highlighted cells.
+- **[RAGTruth](https://github.com/ParticleMedia/RAGTruth)** — word-level hallucination corpus, including a data-to-text task over structured JSON.
+- **[FaithJudge](https://github.com/vectara/FaithJudge)** (Vectara) — LLM-as-judge for faithfulness, with a public leaderboard.
+- **[AbstentionBench](https://github.com/facebookresearch/AbstentionBench)** (NeurIPS 2025) — 20 datasets on when a model should decline to answer, underspecified context included. Its headline result, that abstention is unsolved and scale barely helps, is the same family of failure GBAG's held-out cliff exposes in a BI setting.
+- **[DataBench](https://aclanthology.org/2025.semeval-1.324/)** (SemEval 2025 Task 8) — QA over real tabular datasets, with a "Lite" split capped at 20 sampled rows. Closest published setup to the held-out cliff, and instructive by contrast: Lite carries a separate `sample_answer`, so the model is graded on the sample against the sample's own answer. GBAG grades a 200-row slice against the **population's** answer, which is what turns an unbounded claim into a detectable error rather than a mere omission.
+
+What GBAG adds is the setting rather than the task. The table is a **SQL result from a relational database**, not a curated Wikipedia table, so its shape is whatever the query returns. The **SQL is given**, which isolates interpretation from query generation. And the held-out suite grades answers written over a result the model **only partly received** — what it asserts about the rows it was never shown. We could not find that regime measured elsewhere; if it has been, open an issue and we will cite it.
 
 ## What it evaluates
 
