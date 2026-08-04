@@ -33,11 +33,12 @@ from pricing import estimate_cost, format_cost
 
 
 JUDGE_PROMPT_PATH = Path(__file__).parent / "prompt.md"
+PROMPT_OVERRIDE: Path | None = None
 
 
 def load_judge_system_prompt() -> str:
     """Extract the System prompt section from prompt.md."""
-    text = JUDGE_PROMPT_PATH.read_text(encoding="utf-8")
+    text = (PROMPT_OVERRIDE or JUDGE_PROMPT_PATH).read_text(encoding="utf-8")
     marker = "## System prompt"
     idx = text.find(marker)
     if idx == -1:
@@ -132,6 +133,51 @@ def call_openrouter(system: str, user: str, model: str = "anthropic/claude-sonne
     return resp.choices[0].message.content, (usage.prompt_tokens if usage else None), (usage.completion_tokens if usage else None)
 
 
+def call_ollama(system: str, user: str, model: str = "phi4:14b") -> tuple[str, int | None, int | None]:
+    """Local Ollama judge. Set OLLAMA_HOST to target another machine.
+
+    Three settings are not optional here, they are the experiment:
+
+      num_ctx     the longest prompt in the held-out suite measures ~5,000 tokens and
+                  the per-claim verification table adds output on top. A context
+                  smaller than the prompt makes Ollama truncate FROM THE START, i.e.
+                  exactly where the gold facts live: the judge then scores without
+                  them and produces textbook gold_starvation that looks like model
+                  weakness. Override with GBAG_OLLAMA_NUM_CTX if needed.
+      temperature 0, so that the self-consistency floor (same judge, same answer,
+                  three passes) measures the runtime and not the sampler.
+      format      strict JSON, because small models drift out of the schema far more
+                  than hosted ones do.
+    """
+    import requests
+
+    host = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
+    if not host.startswith("http"):
+        host = "http://" + host
+    num_ctx = int(os.environ.get("GBAG_OLLAMA_NUM_CTX", "16384"))
+    payload = {
+        "model": model,
+        "system": system,
+        "prompt": user,
+        "stream": False,
+        "format": "json",
+        "think": False,
+        "options": {"temperature": 0, "num_ctx": num_ctx, "seed": 42},
+    }
+    resp = requests.post(f"{host}/api/generate", json=payload, timeout=900)
+    resp.raise_for_status()
+    data = resp.json()
+
+    prompt_tok = data.get("prompt_eval_count")
+    if prompt_tok and prompt_tok >= num_ctx:
+        raise RuntimeError(
+            f"prompt used {prompt_tok} tokens against num_ctx={num_ctx}: the context was "
+            "saturated and the head of the prompt was silently dropped. Raise "
+            "GBAG_OLLAMA_NUM_CTX before trusting any score from this run."
+        )
+    return data.get("response", ""), prompt_tok, data.get("eval_count")
+
+
 def call_deepseek(system: str, user: str, model: str = "deepseek-chat") -> tuple[str, int | None, int | None]:
     """DeepSeek API is OpenAI-compatible. Set DEEPSEEK_API_KEY."""
     from openai import OpenAI
@@ -202,12 +248,16 @@ def main() -> int:
     ap.add_argument("--dataset", required=True, help="Path to questions.jsonl")
     ap.add_argument("--answers", required=True, help="Path to model_answers.jsonl")
     ap.add_argument("--output", required=True, help="Where to write scores.jsonl")
-    ap.add_argument("--judge", choices=["anthropic", "openai", "nvidia", "openrouter", "deepseek"], default="anthropic")
+    ap.add_argument("--judge", choices=["anthropic", "openai", "nvidia", "openrouter", "deepseek", "ollama"], default="anthropic")
     ap.add_argument("--model", default=None, help="Override judge model id")
     ap.add_argument("--limit", type=int, default=0, help="Score only first N (debug)")
+    ap.add_argument("--prompt", default=None, help="alternative judge prompt file")
     ap.add_argument("--resume", action="store_true",
                     help="Skip questions already scored in the output file (retry errors only)")
     args = ap.parse_args()
+    global PROMPT_OVERRIDE
+    if getattr(args, "prompt", None):
+        PROMPT_OVERRIDE = Path(args.prompt)
 
     dataset = {q["id"]: q for q in (json.loads(l) for l in Path(args.dataset).open(encoding="utf-8") if l.strip())}
     answers = [json.loads(l) for l in Path(args.answers).open(encoding="utf-8") if l.strip()]
@@ -215,9 +265,9 @@ def main() -> int:
         answers = answers[: args.limit]
 
     system = load_judge_system_prompt()
-    caller = {"anthropic": call_anthropic, "openai": call_openai, "nvidia": call_nvidia, "openrouter": call_openrouter, "deepseek": call_deepseek}[args.judge]
+    caller = {"anthropic": call_anthropic, "openai": call_openai, "nvidia": call_nvidia, "openrouter": call_openrouter, "deepseek": call_deepseek, "ollama": call_ollama}[args.judge]
     kwargs = {"model": args.model} if args.model else {}
-    judge_model = args.model or {"anthropic": "claude-sonnet-4-6", "openai": "gpt-5", "nvidia": "nvidia/llama-3.3-nemotron-super-49b-v1", "openrouter": "anthropic/claude-sonnet-4-5", "deepseek": "deepseek-chat"}[args.judge]
+    judge_model = args.model or {"anthropic": "claude-sonnet-4-6", "openai": "gpt-5", "nvidia": "nvidia/llama-3.3-nemotron-super-49b-v1", "openrouter": "anthropic/claude-sonnet-4-5", "deepseek": "deepseek-chat", "ollama": "phi4:14b"}[args.judge]
 
     # --resume: load already-scored IDs from existing output file
     done_ids: set[str] = set()
