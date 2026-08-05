@@ -57,6 +57,11 @@ def build_user_message(question: dict, model_answer: str) -> str:
     # Deterministic facts computed from the database by
     # scripts/build_verification_facts.py. Present from judge prompt v0.3 onward.
     # Optional on purpose: datasets built before v0.3 still run unchanged.
+    # Scope resolution computed by scripts/resolve_scope.py: r3 is non-local, so it is
+    # settled once in code and handed to the judge as a local fact (prompt v0.4.2+).
+    scope = question.get("scope_resolution")
+    if scope:
+        msg += "\n\n" + scope
     facts = question.get("verification_facts")
     if facts:
         msg += f"\n\nVERIFICATION FACTS (computed from the database, authoritative):\n{facts}"
