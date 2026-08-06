@@ -21,6 +21,7 @@ Requires: ANTHROPIC_API_KEY or OPENAI_API_KEY environment variable.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -274,6 +275,33 @@ def main() -> int:
     kwargs = {"model": args.model} if args.model else {}
     judge_model = args.model or {"anthropic": "claude-sonnet-4-6", "openai": "gpt-5", "nvidia": "nvidia/llama-3.3-nemotron-super-49b-v1", "openrouter": "anthropic/claude-sonnet-4-5", "deepseek": "deepseek-chat", "ollama": "phi4:14b"}[args.judge]
 
+    # Stamped on EVERY scored line, because a run that cannot be re-labelled cannot be
+    # re-checked. On 2026-08-06 the same case (claude-fable-5 / ledger-l10-02) carried 40
+    # in calibration and 100 in the 105-judgment pass. Deciding whether that was a prompt
+    # change, a dataset change, a host change or plain run-to-run drift was impossible
+    # from the artefacts: they recorded the scores and the token counts and nothing else.
+    # It cost a judge re-run to answer a question the files should have answered. The
+    # environment variables are the trap in particular — OLLAMA_HOST and
+    # GBAG_OLLAMA_NUM_CTX steer the result and leave no trace of having done so.
+    #
+    # The prompt is fingerprinted on the string actually sent, not on the path: a file
+    # edited between two runs keeps its name.
+    judge_config: dict = {
+        "backend": args.judge,
+        "model": judge_model,
+        "prompt_file": str(PROMPT_OVERRIDE or JUDGE_PROMPT_PATH),
+        "prompt_sha256": hashlib.sha256(system.encode("utf-8")).hexdigest()[:16],
+        "dataset": args.dataset,
+        "answers": args.answers,
+    }
+    if args.judge == "ollama":
+        judge_config.update({
+            "host": os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434"),
+            "num_ctx": int(os.environ.get("GBAG_OLLAMA_NUM_CTX", "16384")),
+            "seed": 42,
+            "temperature": 0,
+        })
+
     # --resume: load already-scored IDs from existing output file
     done_ids: set[str] = set()
     out_path = Path(args.output)
@@ -322,6 +350,18 @@ def main() -> int:
                 "judge_input_tokens": in_tok,
                 "judge_output_tokens": out_tok,
                 "judge_cost_usd": cost,
+                # batch_size / batch_position are NOT bookkeeping: they are part of the
+                # experimental condition. Measured 2026-08-06 on gemma4:31b — the same
+                # case, same prompt, same 3211 input tokens, same host, seed 42,
+                # temperature 0, scored faithfulness 40 when it was the first call of the
+                # process and 100 when any other case preceded it. The shared system
+                # prompt is computed cold on the first request and served from the prefix
+                # cache afterwards; the numerical difference is enough to flip a verdict
+                # sitting on the contradicted/unverifiable boundary. Reproducing a score
+                # therefore requires replaying the same list in the same order, not merely
+                # the same seed.
+                "judge_config": {**judge_config, "batch_size": len(answers),
+                                 "batch_position": i},
             }
             out.write(json.dumps(record, ensure_ascii=False) + "\n")
             out.flush()
