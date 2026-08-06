@@ -151,6 +151,23 @@ def main() -> int:
             if i > len(buckets) * 20:
                 break
 
+    # Machine-readable companions, so that measuring a judge on the reserve is one command
+    # once the verdicts are filled in. Emitting them pre-judges nothing: the verdict column
+    # is left empty on purpose, and the arbitrator must not be whoever wrote the law.
+    out = ROOT / "data"
+    with open(out / "questions-reserve.jsonl", "w", encoding="utf-8") as fq, \
+         open(out / "answers-reserve.jsonl", "w", encoding="utf-8") as fa, \
+         open(out / "verdicts-reserve.template.jsonl", "w", encoding="utf-8") as fv:
+        for model, qid, ans, st in picked:
+            nid = f"{model}__{qid}"
+            qq = dict(qs[qid])
+            qq["id"] = nid
+            fq.write(json.dumps(qq, ensure_ascii=False) + "\n")
+            fa.write(json.dumps({"id": nid, "model_answer": ans}, ensure_ascii=False) + "\n")
+            fv.write(json.dumps({"id": nid, "stratum": st, "verdict": "", "band": "",
+                                 "material_claim": "", "proof_sql": "",
+                                 "arbitrated_by": "", "date": ""}, ensure_ascii=False) + "\n")
+
     print("# Reserve worksheet — held out from the law-writing set\n")
     print(f"Selected {len(picked)} of {len(cands)} eligible cases, deterministic order, "
           f"stratified {STRATA}. The seven tuning cases are excluded by name.\n")
