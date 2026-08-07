@@ -144,7 +144,7 @@ F = Faithfulness · C = Completeness · I = Insight. Full table, v0.1 archive an
 
 **2. Bigger is not (much) better.** Under a uniform strong judge, `qwen3.5:9b` (59.6) sits about 3 points below `qwen3-coder-480b-a35b` (62.8 on the common questions), i.e. **single digits**. Mind the MoE caveat: that model activates roughly 35B parameters per token, not 480B, so this is a dense 9B within single digits of a **35B-active** model, about 4× its active size. A 3-point gap is inside the 11-point inter-judge variance, so read it as a tie.
 
-**3. Judge selection matters as much as model selection.** Re-judging the same `qwen3.5:9b` answers with Grok-4.3 instead of deepseek-chat dropped the score from **72.7** to **59.6** — a 13-point gap on byte-identical answers. **Single-judge benchmarks are unreliable.** GBAG ships a dual-judge protocol with ICC(A,1) and Spearman correlation.
+**3. Judge selection matters as much as model selection.** Re-judging the same `qwen3.5:9b` answers with Grok-4.3 instead of deepseek-chat dropped the score from **72.7** to **59.6** — a 13-point gap on byte-identical answers. **Single-judge benchmarks are unreliable.** GBAG ships a dual-judge protocol with ICC(A,1) and Spearman correlation. A later result sharpens this: a judge does not only disagree with other judges, it disagrees with **itself**. Asked to grade one answer four times, with the answer key in front of it and temperature 0, Grok-4.3 returned **40, 40, 100, 10**. A single run of any judge is a sample, not a measurement — see [JUDGE_VALIDATION.md](https://github.com/softisight/gbag-bench/blob/main/JUDGE_VALIDATION.md).
 
 **4. Thinking mode: no measurable effect (non-result).** The clean ablation is `qwen3-next-80b-a3b-thinking` against its non-thinking sibling `qwen3-next-80b-a3b-instruct`: same family, same size, same judge. On the **28 questions both answered**, thinking scores **60.6** against **58.9**, a +1.7 gap in thinking's favour, far inside the 11-point inter-judge variance. **No conclusion either way.** An earlier version claimed thinking "can hurt grounded tasks" by comparing against *different* models; that comparison was confounded and the claim is **withdrawn**.
 
@@ -184,7 +184,7 @@ We document them openly:
 
 - **Small dataset** — 35 questions. Statistically informative for spot-checks, not enough for definitive claims. v0.3 will expand.
 - **3 databases only** — Sakila / Chinook / Northwind are well-known public samples that may appear in some models' training data. Held-out databases are under evaluation for v0.3.
-- **LLM-as-judge variance** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain. The dual-judge protocol with ICC(A,1) and Spearman correlation is the recommended path.
+- **LLM-as-judge variance** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain *between* judges, and a hosted judge is not reproducible against itself either: its seed cannot be pinned. The dual-judge protocol with ICC(A,1) and Spearman correlation is the recommended path, now with several runs per judge. Method, cases and measurements: [JUDGE_VALIDATION.md](https://github.com/softisight/gbag-bench/blob/main/JUDGE_VALIDATION.md).
 - **English only** — multilingual extension planned.
 - **Faithfulness over Insight** — the 50/30/20 weighting reflects our judgment that hallucinated numbers are worse than missing insights. Alternative weightings are documented in [METRIC.md](https://github.com/softisight/gbag-bench/blob/main/METRIC.md).
 

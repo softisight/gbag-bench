@@ -245,3 +245,20 @@ scripts/raw_*.json
 # no published claim depends on them).
 runs/*-fix2*
 runs/debug_*/
+
+
+# Working notebooks — deliberately local, never published.
+#
+# These are drafting documents: the running argument between two models while the
+# scope law was being written, the roadmap, and explanatory drafts in French. They
+# contain half-formed positions, corrections of each other, and reasoning that was
+# later abandoned. Published as-is they would misrepresent the conclusions, which
+# live in JUDGE_VALIDATION.md and in the judge prompts.
+#
+# Listed here so that `git add .` cannot leak them by accident.
+COLLAB_JUGE_V03.md
+ENTREE_7_OPUS_JUGE_LOCAL.md
+Legislation_des_juges_explication_simple.md
+ROADMAP_2026-08.md
+reserve_worksheet.md
+.mailmap-rewrite
