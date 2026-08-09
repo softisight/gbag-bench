@@ -90,6 +90,33 @@ With one rule at the centre:
 That is ~150 words longer. The same gemma4-31b went from **2/7 to 7/7**, and v0.4.1 is the
 best-scoring prompt for every judge tested, not only for the one that ends up on top.
 
+## Which files these numbers come from
+
+`runs/` holds the history of every experiment this benchmark has been through, and several
+of them carry names one character apart. A reviewer checking the figures above went to
+`gemma4-12b_deskinsight_heldout.jsonl` — a different run, on a different pipeline, with 10
+questions — and concluded two of the seven models had answered fewer questions than the
+others. They had not. But the confusion was earned: for those two models alone, `runs/`
+contains 34 lookalike files.
+
+So the exact provenance, in full:
+
+| what | path |
+|---|---|
+| the 15 questions | `data/questions-heldout.jsonl` |
+| the 7 answer sets | `runs/<model>-heldout.jsonl` — **hyphen**, and no suffix |
+| the 7 arbitrated cases | `data/judge-truth-set.jsonl` |
+| the answers those cases quote | `runs/judge-calibration/t7-a.jsonl` |
+| the judge runs behind the table | `runs/judge-calibration/t7-<judge>-v041[-pN].jsonl` |
+| the judge prompt | `judge/prompt-v041.md` |
+
+The seven models are `claude-fable-5`, `gpt-5.6-sol`, `kimi-k3`, `qwen3-coder-480b`,
+`qwen3.6`, `nemotron-3-nano-30b`, `gemma4-12b`. Each answered all 15 questions; none is
+averaged over a different subset.
+
+Anything matching `*_deskinsight_*`, `*-public`, `*-a35b-instruct` or `*-openrouter-public`
+belongs to an earlier campaign and is **not** part of what is reported here.
+
 ## Reproduce it
 
 ```bash
