@@ -269,3 +269,6 @@ reserve_worksheet.md
 
 # French working notes (drafts of the published docs, local only)
 Explication et francais/
+
+# Blind arbitration package (built by scripts/build_arbitration_sheet.py, sent to the arbiter)
+arbitration-reserve/
