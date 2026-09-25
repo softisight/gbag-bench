@@ -1,0 +1,119 @@
+# GBAG v0.5 judge — trigger list (PROTOCOL_v0.5_JUDGE.md, step 1).
+# A sentence becomes a claim if it contains a digit OR one of these words/phrases
+# (case-insensitive, whole words). Broad on purpose: over-selecting costs one translation,
+# under-selecting hides a claim. Frozen with the judge; changes are logged as deviations.
+#
+# quantifiers
+every
+each
+all
+any
+none
+no other
+nothing
+only
+never
+always
+entire
+entirely
+whole
+overall
+majority
+most
+mostly
+vast majority
+almost all
+nearly all
+half
+few
+many
+typical
+typically
+usually
+generally
+consistently
+# totals and extents
+total
+in total
+sum
+final
+finally
+ends
+ended
+ending
+closes
+closed
+closing
+starts
+began
+opening
+last
+first
+latest
+through
+until
+span
+period
+# extremes and ranks
+highest
+lowest
+largest
+smallest
+biggest
+maximum
+minimum
+peak
+peaks
+top
+bottom
+record
+outlier
+outliers
+exceed
+exceeds
+# comparison and trend
+more than
+less than
+twice
+double
+half
+times
+increase
+increased
+increases
+decrease
+decreased
+decreases
+grow
+grows
+growth
+grew
+decline
+declined
+declines
+rise
+rose
+rising
+fall
+fell
+falling
+drop
+dropped
+trend
+steady
+steadily
+stable
+flat
+accelerat
+slowdown
+rebound
+recovery
+# scope markers (rule r1 of the scope law)
+shown
+displayed
+visible
+returned
+in the dataset
+in the ledger
+in the data
+across

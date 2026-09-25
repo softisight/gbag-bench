@@ -92,4 +92,17 @@ Severity of a condemnation:
 
 ## Deviations
 
-*None yet.*
+**V1 — 2026-09-25 — development translations are hosted until the local GPU is free.**
+- **What changes.** The local GPU is measuring the v0.4 Stage 2 control (J6) overnight,
+  and loading another model on it would disturb that measurement. Development iterations
+  therefore translate with the **same model family, hosted**: `qwen/qwen3.8-27b`, pinned
+  to `deepinfra/bf16`, with seed 42 and reasoning off.
+- **Freezing and test stay local.** The frozen v0.5 is re-measured on the development set
+  with the local `qwen3.8:27b` before freezing, and those local numbers are the ones that
+  count against the 20 % threshold. The test set is only ever judged locally.
+- **Implementation details fixed during development** (no measured result depends on them
+  yet):
+  - `column` is constrained to the result's real columns by the output schema;
+  - `value` is always present;
+  - translator output is capped at 1,200 tokens, and a capped output is treated as
+    unparseable (every claim of that sentence undecided).
