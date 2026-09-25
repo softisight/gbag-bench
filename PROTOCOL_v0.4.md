@@ -390,3 +390,24 @@ Each claim in the rewritten documents cites the file it comes from.
   the partial `J7-p1.jsonl` is kept.
 - **Affects.** Nothing in J1–J6. All of them have 5 complete ordered passes and an
   isolated pass.
+
+**D9 — 2026-09-25 — the reserve is arbitrated by the author, under proof.**
+- **What changes.** By the owner's decision, the 15 reserve cases are not arbitrated by an
+  outside arbiter.
+  - Claude drafts each verdict, and the owner validates or corrects every one.
+  - Section 5, point 2 ("the arbiter is not the author of the rule") is therefore **not
+    met**, and this will be stated wherever reserve results are reported.
+- **What replaces the independence.**
+  1. **No condemnation without proof.** Every `unfaithful_*` verdict carries the false
+     sentence, the SQL that refutes it, and that SQL's result on the frozen database.
+  2. **Blind to judges.** The arbitration is done from the blind package
+     (`arbitration-reserve/`) and the database. No judge output on these answers is
+     opened before the verdicts are committed: neither the August files in `runs/`, nor
+     any Stage 2 run.
+  3. **Ambiguity is not settled in our favour.** A case whose verdict depends on reading
+     rather than on data is marked `disputed` and excluded from accuracy.
+  4. **Open to contest.** The verdicts and proofs are published, anyone may contest them
+     in an issue, and an outside arbiter (Zaki) may still arbitrate as a second arbiter.
+     A disagreement excludes the case.
+- **Affects.** Stage 2: reserve accuracy is reported as "arbitrated by the author, under
+  proof".
