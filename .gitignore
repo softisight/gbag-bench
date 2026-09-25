@@ -262,3 +262,10 @@ Legislation_des_juges_explication_simple.md
 ROADMAP_2026-08.md
 reserve_worksheet.md
 .mailmap-rewrite
+
+# SQLite write-ahead files left by a local reader (never part of a database snapshot)
+*.sqlite-shm
+*.sqlite-wal
+
+# French working notes (drafts of the published docs, local only)
+Explication et francais/
