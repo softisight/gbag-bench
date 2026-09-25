@@ -72,7 +72,7 @@ V = [
      "1,212 of the 1,412 entries are below 5,250 and only 124 fall in 5,250-5,700 (median 3,079.46): the band is "
      "the tail of the 200 largest, presented as the shape of the ledger. Same failure as truth-set case 5. Also "
      "'12 VAT entries': there are 11."),
-    ("cas-08", "claude-fable-5__ledger-l9-01", "faithful", "100", "", "",
+    ("cas-08", "kimi-k3__ledger-l9-01", "faithful", "100", "", "",
      "Every claim is bounded to 'the 200 movements shown' / 'last visible position', with a closing note that later "
      "transactions are not included. The minimum 20,030.18 on 17 May 2023 is also the population minimum; back "
      "above 30,000 on 20 May is correct."),
@@ -110,10 +110,14 @@ V = [
 
 
 def main() -> int:
+    # Real ids come from the blind mapping, never typed: on 2026-09-25 a typed id sent
+    # cas-08's verdict to the wrong answer (D10).
+    mapping = json.loads((OUT.parent / "mapping.json").read_text(encoding="utf-8"))
     con = sqlite3.connect(f"file:{DB.as_posix()}?mode=ro", uri=True)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", encoding="utf-8") as f:
-        for cas, cid, verdict, band, claim, sql, note in V:
+        for cas, typed, verdict, band, claim, sql, note in V:
+            cid = mapping[cas]
             result = ""
             if sql:
                 cur = con.execute(sql)

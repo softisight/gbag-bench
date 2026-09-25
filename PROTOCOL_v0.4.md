@@ -411,3 +411,17 @@ Each claim in the rewritten documents cites the file it comes from.
      A disagreement excludes the case.
 - **Affects.** Stage 2: reserve accuracy is reported as "arbitrated by the author, under
   proof".
+
+**D10 — 2026-09-25 — a mistyped id in the reserve verdicts.**
+- **What happened.** The verdicts were arbitrated by blind number (`cas-01` to `cas-15`),
+  but the real answer id of each verdict was typed by hand. One was wrong: `cas-08`'s
+  verdict (`faithful`) carried the id `claude-fable-5__ledger-l9-01`, while `cas-08` is
+  `kimi-k3__ledger-l9-01`. The verdict itself was reached on `cas-08`'s content and is
+  unchanged.
+- **How it was found.** In the first Stage 2 passes, `cas-08` showed up as unarbitrated.
+  No judge score of `cas-08` was read before the fix.
+- **What changes.** The ids are now derived from `runs/v0.4/stage2/mapping.json`, never
+  typed. The fix touches the `id` field of one line only: verdict, band and proof are
+  identical, and this is asserted in the fix.
+- **Affects.** Stage 2 accuracy is computed against the corrected file (14 arbitrated
+  cases). The judge runs are unaffected, since judges never read the verdicts.
