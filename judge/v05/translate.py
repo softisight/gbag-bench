@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from pathlib import Path
 
 from .sheet import Sheet, schema_for
 
@@ -33,13 +34,16 @@ type (pick one):
                (e.g. filter_column=document_number, filter_op=startswith, filter_value=VAT-).
   extreme    - a maximum or minimum. which=max|min; value = the stated extreme (if any);
                at = the date/label where it occurs (if stated).
-  end_value  - where the data starts or ends. which=first|last; value = stated value;
-               at = stated date/label. "ends at X on D" -> which=last, value=X, at=D.
+  end_value  - ONLY where the whole data starts or ends ("the account ends at X on D",
+               "the last posting is D", "opened with X"). which=first|last; value = X; at = D.
+  point      - the value of a column at one row or period that is not the start/end:
+               "a net movement of +18,528.56 in May 2024", "from ~35,000 on 2023-04-25",
+               "-44.9% in January 2024". value = the figure; at = the date/label/period.
   share      - a proportion of rows in a range: low/high = the range as written;
                quantifier = all|almost_all|most|majority|half|few|none, or value = "N%".
-  ratio      - "N times", "Nx", "twice": value = the stated ratio ("7x", "twice" -> "2x"
-               only if written); reference = second_max|median|mean|min|value, and
-               reference_value if a figure is named.
+  ratio      - "N times", "Nx", "twice": value = the ratio exactly as written ("7x",
+               "twice", "about eight times"); reference = second_max|median|mean|min|value,
+               and reference_value if a figure is named.
   universal  - every/none of the rows satisfy a comparison: op, value, quantifier=all|none.
   trend      - a direction over the rows' order: direction = up|down|flat.
   other      - a factual assertion none of the above can express.
@@ -113,7 +117,23 @@ def call(backend: str, model: str, user: str, columns: list[str] | None = None) 
     return list(parsed.get("claims") or []), meta
 
 
+CACHE_DIR = Path(__file__).resolve().parents[2] / "runs" / "v0.5" / "cache"
+
+
 def translate(backend: str, model: str, question: str, columns: str, context: str,
               sentence: str, column_names: list[str] | None = None) -> tuple[list[Sheet], dict]:
-    raw, meta = call(backend, model, user_message(question, columns, context, sentence), column_names)
+    user = user_message(question, columns, context, sentence)
+    # Development cache: while the CODE (verify/decide) is being fixed, the translations
+    # must not move underneath it. Keyed on everything the translator sees; off with
+    # GBAG_V05_NO_CACHE=1 (the frozen judge is measured without it).
+    key = hashlib.sha256(json.dumps([backend, model, PROMPT, user, column_names or []]).encode()).hexdigest()
+    cached = CACHE_DIR / f"{key}.json"
+    if not os.environ.get("GBAG_V05_NO_CACHE") and cached.exists():
+        raw, meta = json.loads(cached.read_text(encoding="utf-8"))
+        meta = {**meta, "cached": True, "cost": 0}
+    else:
+        raw, meta = call(backend, model, user, column_names)
+        if "unparseable" not in meta:
+            CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            cached.write_text(json.dumps([raw, meta]), encoding="utf-8")
     return [Sheet.from_dict(d) for d in raw if isinstance(d, dict)], meta

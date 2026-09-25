@@ -41,7 +41,7 @@ def judge_answer(q: dict, answer: str, backend: str, model: str) -> dict:
         sheets, meta = translate(backend, model, q["question"], res.describe(), c.context, c.text, res.columns)
         calls.append(meta)
         for s in sheets:
-            pairs.append((c.text, validate(s, c.text)))
+            pairs.append((c.text, validate(s, c.text, c.context)))
     claims = judge_claims(pairs, res, decl)
     table = check_tables(sp.table_lines, res)
     v = verdict_for(claims, table)

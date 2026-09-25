@@ -1,0 +1,1 @@
+[[{"span": "a 0-entry day (2023-04-17)", "scope": "all_data", "type": "point", "column": "nb_entries", "value": "0", "at": "2023-04-17", "answers_question": true}, {"span": "immediately followed by", "scope": "all_data", "type": "other", "column": "day", "value": "2023-04-17", "answers_question": false}], {"in": 995, "out": 166, "cost": 0.0003723, "provider": "DeepInfra"}]

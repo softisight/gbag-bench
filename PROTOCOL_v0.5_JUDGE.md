@@ -106,3 +106,53 @@ Severity of a condemnation:
   - `value` is always present;
   - translator output is capped at 1,200 tokens, and a capped output is treated as
     unparseable (every claim of that sentence undecided).
+
+**V2 — 2026-09-25 — a 9th type, `point`, found by the development set.**
+- **What was measured.** In development iteration 2, 11 of the 19 claims blocking an
+  acquittal were typed `other`, and nearly all had one form: the value of a column at a
+  row or period ("a net movement of +18,528.56 in May 2024", "−44.9% in January 2024").
+  None of the 8 designed types expresses it, although it is the most common claim in
+  answers over monthly results.
+- **What changes.**
+  - `point` is added: the column's value on the row(s) the statement locates. It is true
+    if a located row matches. It is false only if at most 3 rows are located and none
+    matches; otherwise it is undecided.
+  - An `end_value` whose place is not the first or last row, and whose words do not say
+    "end" ("ends at", "closes", "final", "last"…), is evaluated as a `point`.
+- **Other fixes of this iteration**, all in reading or verification, none in the decision
+  rules:
+  - partial dates ("26 Nov", "August", "January 2023");
+  - counts read from an aggregated row;
+  - local peaks not taken as the global extreme unless a singular superlative asserts it;
+  - an `extreme` with neither value nor place is undecided (it was vacuously true);
+  - figures written in words ("twice", "six");
+  - currency symbols ignored when checking that a value occurs in the sentence.
+- The design's list of 8 types becomes 9, before freezing.
+
+**V3 — 2026-09-25 — development iterations 3 to 5 (reading and validation only).**
+
+| iteration | undecided | correct on decided |
+|---|---|---|
+| 1 | 14 % | 12/18 |
+| 2 | 24 % | 15/16 |
+| 3 | 14 % | 15/18 |
+| 4 | 24 % | 16/16 |
+| 5 | **19 %** | **17/17** |
+
+Iterations 4 and 5 reuse the translations of iteration 3 (the development cache), so they
+measure code changes only. The changes, none of them to the decision rules:
+- the currency sign between the sign and the digits ("-$18,489.48");
+- comparators read in the sentence ("above 30,000" is ≥, not =);
+- r3 declarations counted in entries, movements, lines… as well as rows ("Using the 200
+  displayed entries");
+- max/min inferred from the words when the translator left it empty;
+- a count filter that selects no row is undecided;
+- sheet figures validated as values ("20,000 to 53,000" is supported by "between 20,000
+  and 53,000");
+- a normalised date is validated component by component against the sentence and the one
+  before it.
+
+**Caveat, stated before anyone reads it as a result.** These numbers come from five
+iterations on the same 21 cases. They show that the code works on its development set,
+not that it generalises. Only the local re-measurement (V1) and then the sealed test set
+can say that.

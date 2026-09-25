@@ -1,0 +1,1 @@
+[[{"span": "Many values appear more than once", "scope": "all_data", "type": "share", "column": "total_amount", "value": "many", "low": null, "high": null, "quantifier": "most", "answers_question": true}], {"in": 954, "out": 96, "cost": 0.0002349, "provider": "DeepInfra"}]

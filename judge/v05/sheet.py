@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-TYPES = ["total", "count", "extreme", "end_value", "share", "ratio", "universal", "trend", "other"]
+TYPES = ["total", "count", "extreme", "end_value", "point", "share", "ratio", "universal", "trend", "other"]
 SCOPES = ["rows_shown", "all_data", "interpretation"]
 QUANTIFIERS = ["all", "almost_all", "most", "majority", "half", "few", "none"]
 
@@ -93,12 +93,51 @@ class Sheet:
 
 
 def _norm(s: str) -> str:
-    s = re.sub(r"[*_`]+", "", s or "")
-    s = s.replace(" ", " ").replace(" ", " ").replace("‑", "-").replace("−", "-")
+    from .numbers import words_to_digits
+    s = re.sub(r"[*_`$€£]+", "", s or "")
+    for ch in "    ":
+        s = s.replace(ch, " ")
+    s = s.replace("‑", "-").replace("−", "-")
+    s = words_to_digits(s)
     return re.sub(r"\s+", " ", s).strip().lower()
 
 
-def validate(sheet: Sheet, sentence: str) -> Sheet:
+WORD_VALUES = {"up", "down", "flat", "all", "none", "most", "majority", "few", "half", "initial"}
+
+
+MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august",
+               "september", "october", "november", "december"]
+
+
+def _figures_supported(v: str, sentence: str) -> bool:
+    """Every figure of the sheet's value is a figure of the sentence (compared as values:
+    '20,000 to 53,000' is supported by 'between 20,000 and 53,000')."""
+    from .numbers import find_values, words_to_digits
+    mine = [x.value for x in find_values(words_to_digits(v))]
+    theirs = {round(x.value, 6) for x in find_values(words_to_digits(sentence))}
+    return bool(mine) and all(round(x, 6) in theirs or round(-x, 6) in theirs for x in mine)
+
+
+def _date_supported(at: str, sentence: str, context: str) -> bool:
+    """A normalised date ('2024-01') is supported if its year (and day) are in the sentence
+    and its month is named in the sentence or the one before ('each January ... in 2024')."""
+    from .numbers import date_parts
+    parts = date_parts(at)
+    if not parts:
+        return False
+    both = f"{context} {sentence}".lower()
+    for y, m, d in parts:
+        if y is not None and not re.search(rf"\b{y}\b", sentence):
+            return False
+        if m is not None and not (re.search(rf"\b({MONTH_NAMES[m - 1]}|{MONTH_NAMES[m - 1][:3]})\b", both)
+                                  or re.search(rf"\b\d{{4}}-{m:02d}\b", sentence)):
+            return False
+        if d is not None and not re.search(rf"\b0?{d}\b", sentence):
+            return False
+    return True
+
+
+def validate(sheet: Sheet, sentence: str, context: str = "") -> Sheet:
     """Reject a sheet whose span or stated figures are not in the sentence."""
     sent = _norm(sentence)
     if not sheet.span or _norm(sheet.span) not in sent:
@@ -106,9 +145,21 @@ def validate(sheet: Sheet, sentence: str) -> Sheet:
         return sheet
     for name in ("value", "at", "low", "high", "reference_value"):
         v = getattr(sheet, name)
-        if v and _norm(v) not in sent:
-            sheet.rejected = f"{name} {v!r} not found in the sentence"
-            return sheet
+        if not v:
+            continue
+        if name == "value" and not re.search(r"\d", _norm(v)) and v.lower() in WORD_VALUES:
+            setattr(sheet, name, None)            # a direction/quantifier word, not a figure
+            continue
+        core = re.sub(r"^\s*(?:[<>=~≈]+|more than|less than|over|under|above|below|about|approximately)\s*",
+                      "", _norm(v))
+        if core in sent:
+            continue
+        if name == "at" and _date_supported(v, sentence, context):
+            continue
+        if name != "at" and re.search(r"\d", core) and _figures_supported(v, sentence):
+            continue
+        sheet.rejected = f"{name} {v!r} not found in the sentence"
+        return sheet
     if sheet.scope == "interpretation" and re.search(r"\d", sheet.span):
         # a figure is never an opinion: an 'interpretation' carrying one would escape checking
         sheet.rejected = "interpretation scope on a span that carries a figure"

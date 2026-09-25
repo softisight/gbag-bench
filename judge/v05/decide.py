@@ -56,13 +56,23 @@ def declaration(answer: str, res: Result) -> dict | None:
         if d1 and d2 and same_date(d1, lo) and same_date(d2, hi):
             return {"kind": "date range", "quote": m.group(0)}
     excluded = [(m.start(), m.end()) for m in ROWS_EXCLUDE.finditer(answer)]
-    for m in ROWS_RE.finditer(answer):
-        if any(a <= m.start() < b for a, b in excluded):
-            continue
-        n = int(next(g for g in m.groups() if g))
-        if n == len(res.shown):
-            return {"kind": "row count", "quote": m.group(0)}
+    for rx in (ROWS_RE, ROWS_RE_V05):
+        for m in rx.finditer(answer):
+            if any(a <= m.start() < b for a, b in excluded):
+                continue
+            n = int(next(g for g in m.groups() if g))
+            if n == len(res.shown):
+                return {"kind": "row count", "quote": m.group(0)}
     return None
+
+
+# r3 declarations say "entries", "movements", "lines" as often as "rows":
+# "Using the 200 displayed entries", "across the 200 movements shown".
+_UNIT = r"(?:rows?|entries|lines|records|movements|transactions|days|postings)"
+ROWS_RE_V05 = re.compile(
+    rf"(?:based\s+on|from|across|within|using|given|only|of)\s+(?:the\s+)?(?:first\s+)?(\d{{2,4}})\s+"
+    rf"(?:displayed\s+|shown\s+|visible\s+|returned\s+)?{_UNIT}\b"
+    rf"|(\d{{2,4}})\s+{_UNIT}\s+(?:shown|displayed|provided|visible|available|returned)", re.I)
 
 
 @dataclass
@@ -101,9 +111,32 @@ def decide_scope(sentence: str, sheet, decl) -> tuple[str, str]:
     return sheet.scope, "translator"
 
 
+def _share_siblings(pairs) -> None:
+    """A translator may split one assertion into two sheets of the same sentence: the
+    figure in one, the scope in the other ("5 entries on April 16 — the highest single-day
+    count in the dataset"). A sheet with no value and no place borrows them from a sibling
+    of the same type and column, so the scope-bearing half is checked against the figure
+    the sentence actually states instead of being vacuously true."""
+    by_sentence: dict[str, list] = {}
+    for sentence, sheet in pairs:
+        by_sentence.setdefault(sentence, []).append(sheet)
+    for sheets in by_sentence.values():
+        for s in sheets:
+            if s.rejected or s.value or s.at or s.type not in ("extreme", "end_value", "total"):
+                continue
+            donor = next((o for o in sheets if o is not s and not o.rejected and o.type == s.type
+                          and o.column == s.column and (o.value or o.at)), None)
+            if donor:
+                s.value, s.at = donor.value, donor.at
+                s.which = s.which or donor.which
+                s.extra["borrowed_from"] = donor.span
+
+
 def judge_claims(pairs, res: Result, decl) -> list[ClaimResult]:
+    _share_siblings(pairs)
     out = []
     for sentence, sheet in pairs:
+        sheet.extra["sentence"] = sentence
         if sheet.rejected:
             out.append(ClaimResult(sentence, asdict(sheet), sheet.scope, "rejected", None,
                                    detail=sheet.rejected))

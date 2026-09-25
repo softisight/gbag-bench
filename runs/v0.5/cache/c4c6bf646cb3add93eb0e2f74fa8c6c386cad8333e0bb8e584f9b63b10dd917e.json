@@ -1,0 +1,1 @@
+[[{"span": "PU \u2014 Purchases: 267 entries", "scope": "all_data", "type": "count", "column": "nb_entries", "value": "267", "filter_column": "journal_code", "filter_op": "eq", "filter_value": "PU", "answers_question": true}], {"in": 802, "out": 107, "cost": 0.000320925, "provider": "DeepInfra"}]

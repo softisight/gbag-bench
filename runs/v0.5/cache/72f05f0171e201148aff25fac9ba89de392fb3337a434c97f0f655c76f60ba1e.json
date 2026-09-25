@@ -1,0 +1,1 @@
+[[{"span": "Most other postings in the ledger are much smaller, typically ranging between 100 and 6,000.", "scope": "all_data", "type": "share", "column": "debit", "value": "100 to 6,000", "low": "100", "high": "6,000", "quantifier": "most", "answers_question": true}], {"in": 1081, "out": 130, "cost": 0.0004059, "provider": "DeepInfra"}]

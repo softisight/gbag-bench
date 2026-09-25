@@ -1,0 +1,1 @@
+[[{"span": "The cumulative\u2011debit column ends at 289 822.36 (the value shown in the final row)", "scope": "all_data", "type": "end_value", "column": "cumulative_debit", "value": "289 822.36", "which": "last", "at": null, "answers_question": true}], {"in": 1032, "out": 120, "cost": 0.0002916, "provider": "DeepInfra"}]

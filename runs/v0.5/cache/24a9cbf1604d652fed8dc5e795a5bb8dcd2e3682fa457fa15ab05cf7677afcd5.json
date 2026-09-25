@@ -1,0 +1,1 @@
+[[{"span": "the period of weakest liquidity for account 512 was around 17 May 2023, when the running balance hit 20 030.18", "scope": "all_data", "type": "extreme", "column": "running_balance", "value": "20 030.18", "which": "min", "at": "17 May 2023", "answers_question": true}], {"in": 1086, "out": 137, "cost": 0.000331575, "provider": "DeepInfra"}]

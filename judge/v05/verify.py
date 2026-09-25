@@ -6,10 +6,11 @@ the result — unknown column, unreadable figure, type `other` — never a guess
 """
 from __future__ import annotations
 
+import re
 import statistics
 from dataclasses import dataclass
 
-from .numbers import Value, find_values, matches, parse_date, parse_value
+from .numbers import Value, date_parts, find_dates, matches, parse_value, parts_match
 from .result import Result
 
 # what a quantifier word commits to, as a share of rows
@@ -39,13 +40,18 @@ def _is_num(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
+SINGULAR_SUPERLATIVE = re.compile(
+    r"\b(the|its|a|an)\s+(single\s+)?(highest|lowest|largest|smallest|biggest|maximum|minimum|"
+    r"peak|low point|high point|top|record|strongest|weakest|deepest|tightest)\b|"
+    r"\b(all-time|record)\s+(high|low)\b|\bhighest point\b|\blowest point\b", re.I)
+
+
 def _cell_matches(stated: str, cell) -> bool:
     """A stated label/date/number against one result cell."""
     if cell is None or stated is None:
         return False
-    d_st, d_cell = parse_date(stated), parse_date(str(cell))
-    if d_st and d_cell:
-        return d_cell.startswith(d_st) or d_st.startswith(d_cell)
+    if find_dates(str(cell)) and date_parts(stated):
+        return parts_match(stated, cell)
     if _is_num(cell):
         v = parse_value(stated)
         return v is not None and matches(v, float(cell))
@@ -53,18 +59,74 @@ def _cell_matches(stated: str, cell) -> bool:
     return norm(stated) == norm(cell) and norm(stated) != ""
 
 
-def _value_matches(stated: str, true) -> bool | None:
+ABOVE = re.compile(r"\b(above|over|more than|exceed(?:s|ed|ing)?|greater than|at least|beyond|>)\s*[~≈]?\s*$", re.I)
+BELOW = re.compile(r"\b(below|under|less than|at most|no more than|<)\s*[~≈]?\s*$", re.I)
+
+
+def comparator(sheet) -> str | None:
+    """'>' when the words just before the stated figure say "above 30,000", '<' for
+    "below", None for a plain value. Read in the sentence, not asked of the model."""
+    text = (sheet.extra.get("sentence") or sheet.span or "")
+    v = (sheet.value or "").strip()
+    if not v:
+        return None
+    for probe in (v, re.sub(r"^\s*[<>=~≈]+\s*", "", v)):
+        i = text.find(probe)
+        if i > 0:
+            before = text[max(0, i - 24):i]
+            if ABOVE.search(before):
+                return ">"
+            if BELOW.search(before):
+                return "<"
+    if re.match(r"^\s*(>|more than|over|above)", v, re.I):
+        return ">"
+    if re.match(r"^\s*(<|less than|under|below)", v, re.I):
+        return "<"
+    return None
+
+
+def _value_matches(stated: str, true, cmp: str | None = None) -> bool | None:
     if true is None:
         return None
     if not _is_num(true):
-        d_st, d_true = parse_date(stated), parse_date(str(true))
-        if d_st and d_true:
-            return d_true.startswith(d_st) or d_st.startswith(d_true)
         return _cell_matches(stated, true)
     v = parse_value(stated)
     if v is None:
         return None
+    if cmp == ">":
+        return float(true) >= v.value or matches(v, float(true))
+    if cmp == "<":
+        return float(true) <= v.value or matches(v, float(true))
     return matches(v, float(true))
+
+
+END_FIRST = re.compile(r"\b(open(?:ed|ing|s)?|start(?:ed|ing|s)?|began|begins|first|initial|from)\b", re.I)
+END_LAST = re.compile(r"\b(end(?:ed|ing|s)?|clos(?:e|ed|ing|es)|final(?:ly)?|last|latest|to|by|stands at|settl(?:ed|ing))\b", re.I)
+
+
+STRONG_END = re.compile(r"\b(end(?:s|ed|ing)?\s+(?:at|on|with)|clos(?:es|ed|ing)|final|last|"
+                        r"open(?:s|ed|ing)?\s+(?:at|with)|start(?:s|ed)?\s+at|finish(?:es|ed)?)\b", re.I)
+
+
+def _infer_end(sheet) -> str | None:
+    """first/last from the words of the span, when the translator left `which` empty."""
+    span = sheet.span or ""
+    f, l = END_FIRST.search(span), END_LAST.search(span)
+    if f and not l:
+        return "first"
+    if l and not f:
+        return "last"
+    return None
+
+
+def _point(sheet, res: Result, rows, ci) -> bool:
+    """Is the stated figure the column's value on a row the statement locates?"""
+    if not sheet.value or not sheet.at:
+        return False
+    for r in rows:
+        if any(_cell_matches(sheet.at, cell) for cell in r) and _value_matches(sheet.value, r[ci]):
+            return True
+    return False
 
 
 def _column(sheet, res: Result) -> int | None:
@@ -84,19 +146,33 @@ def evaluate(sheet, res: Result, scope: str) -> Outcome:
 
     if t == "count":
         sel = rows
-        if sheet.filter_column:
-            fi = res.col(sheet.filter_column)
-            if fi is None:
-                return _undecided(f"filter column {sheet.filter_column!r} not in the result")
+        fi = res.col(sheet.filter_column) if sheet.filter_column else None
+        if sheet.filter_column and fi is not None:
             fv = (sheet.filter_value or "").lower()
             op = sheet.filter_op or "eq"
             test = {"eq": lambda c: str(c).lower() == fv,
                     "startswith": lambda c: str(c).lower().startswith(fv),
                     "contains": lambda c: fv in str(c).lower()}[op]
             sel = [r for r in rows if test(r[fi])]
+            if not sel:
+                # a filter that selects nothing says more about the translation than about
+                # the answer ("payroll" against codes like "PY"): never grounds for condemning
+                return _undecided(f"filter {sheet.filter_column} {op} {fv!r} selects no row")
+        stated = parse_value(sheet.value or "")
+        if stated is None:
+            return _undecided("count without a readable figure")
+        # An aggregated result already holds the count in a cell ("BK: 683 entries" is the
+        # nb_entries cell of row BK; a one-row result is the count itself): counting the
+        # result's rows would be counting the wrong thing.
+        cells = [float(c) for r in sel for c in r if _is_num(c)]
+        if len(sel) <= 1 or (fi is not None and len(sel) == 1):
+            if cells:
+                return Outcome(any(matches(stated, c) for c in cells), cells,
+                               "count read from the aggregated row")
+        if sheet.filter_column and fi is None:
+            return _undecided(f"filter column {sheet.filter_column!r} not in the result")
         n = len(sel)
-        ok = _value_matches(sheet.value or "", n)
-        return Outcome(ok, n, f"{n} matching rows")
+        return Outcome(matches(stated, n), n, f"{n} matching rows")
 
     if ci is None:
         return _undecided(f"column {sheet.column!r} not in the result")
@@ -112,24 +188,70 @@ def evaluate(sheet, res: Result, scope: str) -> Outcome:
         return Outcome(_value_matches(sheet.value or "", true), true,
                        "final value of a running total" if cumulative else "sum of the column")
 
+    if t == "end_value" and sheet.at and not STRONG_END.search(sheet.span or ""):
+        # "from ~35,000 on 2023-04-25": a value at a date that is not where the data starts
+        # or ends is a point, not an end — unless the words say end ("ends at", "closes").
+        end_rows = [rows[0], rows[-1]]
+        if not any(_cell_matches(sheet.at, cell) for r in end_rows for cell in r):
+            sheet.type = "point"
+            return evaluate(sheet, res, scope)
+
     if t in ("extreme", "end_value"):
+        if not sheet.value and not sheet.at:
+            return _undecided(f"{t} states neither a value nor where")
+        which = sheet.which
+        if t == "end_value" and which not in ("first", "last"):
+            which = _infer_end(sheet)
+        if t == "extreme" and which not in ("max", "min"):
+            words = sheet.span or ""
+            up = re.search(r"\b(highest|largest|biggest|maximum|max|peak|top|strongest|record high)\b", words, re.I)
+            down = re.search(r"\b(lowest|smallest|minimum|min|trough|bottom|tightest|weakest|record low)\b", words, re.I)
+            which = "max" if up and not down else "min" if down and not up else None
         if t == "extreme":
-            if sheet.which not in ("max", "min"):
+            if which not in ("max", "min"):
                 return _undecided("extreme without max/min")
             keyed = [(c, r) for c, r in zip(cells, rows) if c is not None]
-            best = (max if sheet.which == "max" else min)(keyed, key=lambda cr: _sortable(cr[0]))[0]
+            best = (max if which == "max" else min)(keyed, key=lambda cr: _sortable(cr[0]))[0]
             hit_rows = [r for c, r in keyed if c == best]
         else:
-            if sheet.which not in ("first", "last"):
+            if which not in ("first", "last"):
                 return _undecided("end_value without first/last")
-            r = rows[0] if sheet.which == "first" else rows[-1]
+            r = rows[0] if which == "first" else rows[-1]
             best, hit_rows = r[ci], [r]
         ok = True
         if sheet.value:
-            ok = _value_matches(sheet.value, best)
+            ok = _value_matches(sheet.value, best, comparator(sheet))
         if ok and sheet.at:
             ok = any(_cell_matches(sheet.at, cell) for r in hit_rows for cell in r)
-        return Outcome(ok, best, f"{sheet.which} = {best!r}")
+        if ok is False and t == "extreme":
+            # Only a SINGULAR superlative ("the highest point", "the peak") asserts the global
+            # extreme. "peaks of 52,900 and 50,423" names local points: if the figure is really
+            # there at the stated place it is a true fact about a row, otherwise undecided —
+            # never condemned as a false maximum.
+            said = (sheet.extra.get("sentence") or "") + " " + (sheet.span or "")
+            if not SINGULAR_SUPERLATIVE.search(said):
+                point = _point(sheet, res, rows, ci)
+                return Outcome(True if point else None, best,
+                               "local point found at the stated place" if point
+                               else "not the global extreme, and not asserted as one")
+        return Outcome(ok, best, f"{which} = {best!r}")
+
+    if t == "point":
+        # "net movement of +18,528.56 in May 2024": the column's value on the row(s) the
+        # statement locates. The place comes from `at`, or from the dates in the span.
+        if not sheet.value:
+            return _undecided("point without a value")
+        locator = sheet.at or " ".join(find_dates(sheet.span or "")) or sheet.span
+        located = [r for r in rows if any(_cell_matches(locator, cell) for cell in r)]
+        if not located:
+            return _undecided("the stated place matches no row")
+        cmp = comparator(sheet)
+        hits = [r[ci] for r in located if _value_matches(sheet.value, r[ci], cmp)]
+        if hits:
+            return Outcome(True, hits[0], f"found on {len(located)} located row(s)")
+        if len(located) <= 3:
+            return Outcome(False, [r[ci] for r in located], f"value differs on the {len(located)} located row(s)")
+        return _undecided(f"{len(located)} rows located, none matches — place too vague to condemn")
 
     if t == "share":
         nums = [float(c) for c in cells if _is_num(c)]
