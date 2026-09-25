@@ -1,0 +1,15 @@
+J1: 7/7 over 5 passes [7, 7, 7, 7, 7] | contradictions 0 [] | iso flips 0 | served ['DeepInfra'] | 575 out tok | $0.0106
+      F spread nemotron-3-nano-30b__ledger-l10-01: 0..10 (sd 4.9)
+J2: 7/7 over 5 passes [7, 7, 7, 7, 7] | contradictions 0 [] | iso flips 0 | served ['DeepInfra'] | 573 out tok | $0.0092
+      F spread nemotron-3-nano-30b__ledger-l10-01: 0..10 (sd 4.0)
+      F spread nemotron-3-nano-30b__ledger-l10-02: 10..40 (sd 14.7)
+J3: 7/7 over 5 passes [7, 7, 7, 7, 7] | contradictions 0 [] | iso flips 1 | served ['DeepInfra'] | 583 out tok | $0.0093
+      F spread nemotron-3-nano-30b__ledger-l10-01: 0..10 (sd 4.0)
+J4: 5/7 over 5 passes [5, 5, 5, 5, 5] | contradictions 0 [] | iso flips 0 | served [] | 613 out tok | $0
+J5: 6/7 over 5 passes [6, 6, 6, 6, 6] | contradictions 0 [] | iso flips 0 | served ['Darkbloom'] | 622 out tok | $0.0507
+J6: 6/7 over 5 passes [6, 6, 6, 6, 6] | contradictions 0 [] | iso flips 0 | served [] | 563 out tok | $0
+J7: 6.5/7 over 2 passes [7, 6] | contradictions 1 ['qwen3.6__ledger-l9-02'] | iso flips n/a | served ['DeepInfra'] | 10489 out tok | $0.0623
+      F spread claude-fable-5__ledger-l10-02: 10..40 (sd 15.0)
+      F spread qwen3.6__ledger-l9-02: 40..100 (sd 30.0)
+
+spent: $0.1880 of $15.0

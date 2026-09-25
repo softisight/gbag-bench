@@ -376,3 +376,17 @@ Each claim in the rewritten documents cites the file it comes from.
   and the same runtime.
 - **Affects.** Criterion 4 of the acceptance (reserve accuracy ≥ J6) uses today's J6.
   The published 7/7 is reported as not reproduced.
+
+**D8 — 2026-09-25 — Stage 1 passes redone after transport failures.**
+- **What happened.** Three ordered passes stopped before their 7th case and were redone
+  whole, as the runner requires; a partial pass is never resumed.
+  - J4 p1: read timeout of 900 s on the local host.
+  - J5 p4: "Provider returned error" from Darkbloom.
+  - J7 p1: a DNS resolution failure.
+- **What was not redone.** On the retry, J7 p1 failed again: the judge returned an object
+  without a `faithfulness` field. That is an **unparseable output** under Stage 1's
+  metrics, reported as such and not retried again, since retrying until it parses would
+  select the outputs. J7 is therefore reported on 2 valid passes plus 1 unparseable, and
+  the partial `J7-p1.jsonl` is kept.
+- **Affects.** Nothing in J1–J6. All of them have 5 complete ordered passes and an
+  isolated pass.
