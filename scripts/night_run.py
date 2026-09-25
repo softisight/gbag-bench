@@ -28,7 +28,7 @@ if a longer window is available.
 Nothing here is a scoring decision: it re-runs an existing judge on existing answers and
 compares. Usage (from the repo root, GPU free):
 
-    set OLLAMA_HOST=http://192.168.0.112:11434
+    set OLLAMA_HOST=http://<your-ollama-host>:11434
     python scripts/night_run.py
 
 Resumable: any output file already complete is skipped, so an interrupted night can be

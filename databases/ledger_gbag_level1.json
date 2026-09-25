@@ -1,6 +1,6 @@
 {
   "name": "GBAG-ledger held-out (Level 1 / core) for DeskInsight Runner (10 questions)",
-  "database": "Z:\\gbag-bench\\databases\\ledger.sqlite",
+  "database": "<local-path>\\gbag-bench\\databases\\ledger.sqlite",
   "questions": [
     {
       "id": "ledger-l1-01",

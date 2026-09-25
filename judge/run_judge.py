@@ -36,6 +36,18 @@ from pricing import estimate_cost, format_cost
 JUDGE_PROMPT_PATH = Path(__file__).parent / "prompt.md"
 PROMPT_OVERRIDE: Path | None = None
 
+# OpenRouter execution condition, set from the command line. None = not sent, which
+# reproduces every hosted run made before v0.4: no seed, default routing, the provider's
+# default reasoning. JUDGE_VALIDATION.md blamed hosted instability on "cannot pin the
+# seed" while this caller had never sent one; PROTOCOL_v0.4.md tests that claim.
+OR_SEED: int | None = None
+OR_PROVIDER: str | None = None      # endpoint tag, e.g. "deepinfra/fp8"; pinned, no fallback
+OR_REASONING: bool | None = None
+
+# What actually served the last call. The requested provider is not proof: only the
+# response says which endpoint ran the judge.
+LAST_CALL: dict = {}
+
 
 def load_judge_system_prompt() -> str:
     """Extract the System prompt section from prompt.md."""
@@ -121,22 +133,76 @@ def call_nvidia(system: str, user: str, model: str = "nvidia/llama-3.3-nemotron-
 
 
 def call_openrouter(system: str, user: str, model: str = "anthropic/claude-sonnet-4-5") -> tuple[str, int | None, int | None]:
-    """OpenRouter API — OpenAI-compatible. Set OPENROUTER_API_KEY."""
-    from openai import OpenAI
-    client = OpenAI(
-        api_key=os.environ["OPENROUTER_API_KEY"],
-        base_url="https://openrouter.ai/api/v1",
-    )
-    resp = client.chat.completions.create(
-        model=model,
-        temperature=0,
-        messages=[
+    """OpenRouter API. Set OPENROUTER_API_KEY.
+
+    Plain HTTP rather than the OpenAI SDK: the fields that make a hosted run
+    reproducible (the endpoint that served it, the cost OpenRouter charged, the
+    reasoning tokens) live outside the OpenAI schema.
+    """
+    import requests
+
+    body: dict = {
+        "model": model,
+        "temperature": 0,
+        "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ],
+        "usage": {"include": True},
+    }
+    if OR_SEED is not None:
+        body["seed"] = OR_SEED
+    if OR_PROVIDER is not None:
+        body["provider"] = {"order": [OR_PROVIDER], "allow_fallbacks": False}
+    if OR_REASONING is not None:
+        body["reasoning"] = {"enabled": OR_REASONING}
+
+    resp = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"},
+        json=body,
+        timeout=900,
     )
-    usage = resp.usage
-    return resp.choices[0].message.content, (usage.prompt_tokens if usage else None), (usage.completion_tokens if usage else None)
+    data = resp.json()
+    if "error" in data:
+        raise RuntimeError(f"OpenRouter: {data['error'].get('message', data['error'])}")
+
+    usage = data.get("usage") or {}
+    LAST_CALL.clear()
+    LAST_CALL.update({
+        "provider": data.get("provider"),
+        "model": data.get("model"),
+        "reasoning_tokens": (usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),
+        "cost_usd": usage.get("cost"),
+    })
+    msg = data["choices"][0]["message"]
+    return msg.get("content") or "", usage.get("prompt_tokens"), usage.get("completion_tokens")
+
+
+def openrouter_quantizations(model: str) -> dict[str, str]:
+    """provider name -> quantization, as OpenRouter lists it for this model's endpoints.
+
+    The chat response names the provider but not the precision it served. The listing
+    is the only public source, so it is recorded as "listed", not as measured.
+    """
+    import requests
+    r = requests.get(f"https://openrouter.ai/api/v1/models/{model}/endpoints", timeout=30)
+    r.raise_for_status()
+    return {e["provider_name"]: e.get("quantization") for e in r.json()["data"]["endpoints"]}
+
+
+def ollama_model_info(model: str) -> dict:
+    """Server version, quantization and digest of the local judge, read from the host."""
+    import requests
+    host = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
+    if not host.startswith("http"):
+        host = "http://" + host
+    info: dict = {"ollama_version": requests.get(f"{host}/api/version", timeout=30).json().get("version")}
+    for m in requests.get(f"{host}/api/tags", timeout=30).json().get("models", []):
+        if m["name"] == model:
+            info.update({"quantization": m["details"].get("quantization_level"),
+                         "digest": m.get("digest", "")[:16]})
+    return info
 
 
 def call_ollama(system: str, user: str, model: str = "phi4:14b") -> tuple[str, int | None, int | None]:
@@ -260,10 +326,21 @@ def main() -> int:
     ap.add_argument("--prompt", default=None, help="alternative judge prompt file")
     ap.add_argument("--resume", action="store_true",
                     help="Skip questions already scored in the output file (retry errors only)")
+    ap.add_argument("--seed", type=int, default=None,
+                    help="openrouter: send this seed (default: none sent)")
+    ap.add_argument("--provider", default=None,
+                    help="openrouter: pin this endpoint tag, no fallback (e.g. deepinfra/fp8)")
+    ap.add_argument("--reasoning", choices=["on", "off"], default=None,
+                    help="openrouter: force reasoning on or off (default: provider's default)")
     args = ap.parse_args()
-    global PROMPT_OVERRIDE
+    global PROMPT_OVERRIDE, OR_SEED, OR_PROVIDER, OR_REASONING
     if getattr(args, "prompt", None):
         PROMPT_OVERRIDE = Path(args.prompt)
+    if args.judge != "openrouter" and (args.seed is not None or args.provider or args.reasoning):
+        ap.error("--seed, --provider and --reasoning apply to --judge openrouter only")
+    OR_SEED = args.seed
+    OR_PROVIDER = args.provider
+    OR_REASONING = None if args.reasoning is None else args.reasoning == "on"
 
     dataset = {q["id"]: q for q in (json.loads(l) for l in Path(args.dataset).open(encoding="utf-8") if l.strip())}
     answers = [json.loads(l) for l in Path(args.answers).open(encoding="utf-8") if l.strip()]
@@ -300,7 +377,19 @@ def main() -> int:
             "num_ctx": int(os.environ.get("GBAG_OLLAMA_NUM_CTX", "16384")),
             "seed": 42,
             "temperature": 0,
+            "think": False,
+            **ollama_model_info(judge_model),
         })
+    else:
+        # Hosted backends record what they were asked to do, including what they were
+        # NOT asked: a null seed is a condition, not a missing field.
+        judge_config.update({
+            "seed": OR_SEED if args.judge == "openrouter" else None,
+            "provider_requested": OR_PROVIDER if args.judge == "openrouter" else None,
+            "reasoning": args.reasoning if args.judge == "openrouter" else None,
+            "temperature": 0,
+        })
+    quantizations = openrouter_quantizations(judge_model) if args.judge == "openrouter" else {}
 
     # --resume: load already-scored IDs from existing output file
     done_ids: set[str] = set()
@@ -330,16 +419,31 @@ def main() -> int:
             continue
         user = build_user_message(q, ans["model_answer"])
         try:
+            LAST_CALL.clear()
             raw, in_tok, out_tok = caller(system, user, **kwargs)
             parsed = clamp_scores(parse_judge_response(raw))
             score = compute_gbag_score(parsed)
+
+            served = None
+            if args.judge == "openrouter":
+                served = {**LAST_CALL, "quantization_listed": quantizations.get(LAST_CALL.get("provider"))}
+                norm = lambda s: "".join(ch for ch in s.lower() if ch.isalnum())
+                if OR_PROVIDER and served["provider"] and \
+                        norm(served["provider"]) != norm(OR_PROVIDER.split("/")[0]):
+                    # allow_fallbacks=false should make this impossible; if it ever
+                    # happens, the score belongs to another condition and must not land
+                    # in this file.
+                    raise RuntimeError(f"pinned {OR_PROVIDER} but served by {served['provider']}")
 
             cost = None
             if in_tok is not None and out_tok is not None:
                 tokens_known = True
                 total_in += in_tok
                 total_out += out_tok
-                cost = estimate_cost(args.judge, judge_model, in_tok, out_tok)
+                # The price OpenRouter actually charged beats our pricing table.
+                cost = LAST_CALL.get("cost_usd")
+                if cost is None:
+                    cost = estimate_cost(args.judge, judge_model, in_tok, out_tok)
                 if cost is not None:
                     total_cost += cost
 
@@ -363,6 +467,8 @@ def main() -> int:
                 "judge_config": {**judge_config, "batch_size": len(answers),
                                  "batch_position": i},
             }
+            if served is not None:
+                record["judge_served"] = served
             out.write(json.dumps(record, ensure_ascii=False) + "\n")
             out.flush()
             n_ok += 1

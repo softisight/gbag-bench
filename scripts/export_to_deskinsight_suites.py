@@ -2,16 +2,16 @@
 Convert GBAG questions.jsonl into 3 DeskInsight Benchmark Runner suites
 (one per database: sakila, chinook, northwind).
 
-Output: <db>_gbag.json files written directly to Z:\\SampleDB\\, next to
+Output: <db>_gbag.json files written directly to <local-path>\\SampleDB\\, next to
 the SQLite files they target. DeskInsight's "Load JSON" dialog already
 opens in that folder, so the user just picks the file.
 
 Workflow:
     1. python scripts/export_to_deskinsight_suites.py
-       → creates Z:\\SampleDB\\{sakila,chinook,northwind}_gbag.json
+       → creates <local-path>\\SampleDB\\{sakila,chinook,northwind}_gbag.json
     2. In DeskInsight Benchmark Runner: Load JSON → pick <db>_gbag.json
     3. Run benchmark (model = your choice + Use Gold SQL ON + Production)
-    4. Copy each resulting benchmark_raw.json into Z:\\gbag-bench\\runs\\
+    4. Copy each resulting benchmark_raw.json into <local-path>\\gbag-bench\\runs\\
        under a descriptive name like raw_<db>_<model>.json
     5. python scripts/import_from_deskinsight_results.py converts those
        back to GBAG model_answers.jsonl format
@@ -21,12 +21,12 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
-SAMPLE_DB_DIR = Path(r"Z:\SampleDB")
+SAMPLE_DB_DIR = Path(r"<local-path>\SampleDB")
 
 DB_PATHS = {
-    "sakila":    r"Z:\SampleDB\sakila.db",
-    "chinook":   r"Z:\SampleDB\Chinook_Sqlite.sqlite",
-    "northwind": r"Z:\SampleDB\Northwind_small.sqlite",
+    "sakila":    r"<local-path>\SampleDB\sakila.db",
+    "chinook":   r"<local-path>\SampleDB\Chinook_Sqlite.sqlite",
+    "northwind": r"<local-path>\SampleDB\Northwind_small.sqlite",
 }
 
 questions = [json.loads(l) for l in (ROOT / "data" / "questions.jsonl").open(encoding="utf-8") if l.strip()]
@@ -63,7 +63,7 @@ print("1. Open DeskInsight Benchmark Runner -> Load JSON")
 print(f"   The dialog opens in {SAMPLE_DB_DIR} -- pick <db>_gbag.json")
 print("2. Verify model, profile = Production, Use Gold SQL = ON")
 print("3. Run benchmark")
-print("4. Copy the resulting benchmark_raw.json into Z:\\gbag-bench\\runs\\")
+print("4. Copy the resulting benchmark_raw.json into <local-path>\\gbag-bench\\runs\\")
 print("   under a descriptive name like raw_<db>_<model>.json")
 print("5. python scripts/import_from_deskinsight_results.py")
 print("6. python judge/run_judge.py --judge openrouter --model x-ai/grok-4.3")
