@@ -90,6 +90,45 @@ Severity of a condemnation:
 - **Faithfulness only.** Completeness and insight are not scored by v0.5.
 - The GBAG composite score is not recomputed with it until a later version says how.
 
+## Freeze — v0.5.0 (2026-09-26, before the sealed test set is opened)
+
+**Development result that authorised the freeze.** Measured on the 21 arbitrated
+development cases with the **local** translator, which is the V1 condition that counts:
+
+| | value | threshold |
+|---|---|---|
+| undecided | **4 of 21 (19 %)** | at most 20 % |
+| correct on decided cases | **17 of 17** | — |
+
+These cases were iterated on (V2, V3), so this proves readiness only. It is not a result.
+
+**The judge is this, and nothing else** (SHA-256 of the committed content, first 16 hex):
+
+| file | fingerprint |
+|---|---|
+| `judge/v05/__init__.py` | `92997d38ead2be71` |
+| `judge/v05/decide.py` | `237eb22a5313aa11` |
+| `judge/v05/numbers.py` | `79b9c322fc90caac` |
+| `judge/v05/result.py` | `113eb7ef987840e1` |
+| `judge/v05/run_v05.py` | `29aade561d667b5d` |
+| `judge/v05/sheet.py` | `251235ee49aaeacf` |
+| `judge/v05/split.py` | `95fae2e3518a7fc6` |
+| `judge/v05/tables.py` | `88755a56a8a6092b` |
+| `judge/v05/translate.py` | `832570f7787f1110` |
+| `judge/v05/verify.py` | `d47d60dca640c795` |
+| `judge/v05/triggers.txt` | `64df69e98c280614` |
+
+- **Translation prompt**: SHA-256 `40e5e99dc797d2c3`.
+- **Types**: `total, count, extreme, end_value, point, share, ratio, universal, trend`,
+  plus `other`, which is always undecided.
+- **Translator**: `qwen3.8:27b` on Ollama 0.34.4, digest `22130167c4c20e20`, `Q4_K_M`,
+  temperature 0, seed 42, `think: false`, `num_ctx` 8192.
+- **Cache**: off (`GBAG_V05_NO_CACHE=1`) for every test-set run.
+- **Host**: the RTX 3060 of PROTOCOL_v0.4 D1.
+
+**After the freeze.** Any change to these files, or to this configuration, makes a
+different judge. It would have to be measured on a **new** test set, never on this one.
+
 ## Deviations
 
 **V1 — 2026-09-25 — development translations are hosted until the local GPU is free.**

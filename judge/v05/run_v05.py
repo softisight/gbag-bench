@@ -28,7 +28,7 @@ from .split import TRIGGERS_FILE, split_answer
 from .tables import check_tables
 from .translate import PROMPT_SHA, translate
 
-VERSION = "0.5.0-dev"
+VERSION = "0.5.0"
 
 
 def judge_answer(q: dict, answer: str, backend: str, model: str) -> dict:

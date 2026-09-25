@@ -119,6 +119,26 @@ def _infer_end(sheet) -> str | None:
     return None
 
 
+def _infer_direction(span: str) -> str | None:
+    """up/down/flat from the words, when the translator left `direction` empty."""
+    up = re.search(r"\b(increas\w*|ris(?:e|es|ing)|rose|grow\w*|grew|upward|climb\w*|positive trend|gain\w*)\b", span, re.I)
+    down = re.search(r"\b(decreas\w*|declin\w*|fall\w*|fell|drop\w*|downward|negative trend|shrink\w*)\b", span, re.I)
+    flat = re.search(r"\b(stable|flat|steady|unchanged|constant)\b", span, re.I)
+    found = [d for d, m in (("up", up), ("down", down), ("flat", flat)) if m]
+    return found[0] if len(found) == 1 else None
+
+
+def _infer_reference(span: str) -> str | None:
+    """The denominator of a ratio, from the words ("eight times the median")."""
+    if re.search(r"\bmedian\b", span, re.I):
+        return "median"
+    if re.search(r"\b(average|mean)\b", span, re.I):
+        return "mean"
+    if re.search(r"\b(next[- ]largest|second[- ]largest|any other|next biggest)\b", span, re.I):
+        return "second_max"
+    return None
+
+
 def _point(sheet, res: Result, rows, ci) -> bool:
     """Is the stated figure the column's value on a row the statement locates?"""
     if not sheet.value or not sheet.at:
@@ -172,7 +192,22 @@ def evaluate(sheet, res: Result, scope: str) -> Outcome:
         if sheet.filter_column and fi is None:
             return _undecided(f"filter column {sheet.filter_column!r} not in the result")
         n = len(sel)
-        return Outcome(matches(stated, n), n, f"{n} matching rows")
+        if matches(stated, n):
+            return Outcome(True, n, f"{n} matching rows")
+        if not sheet.filter_column:
+            # an unfiltered count that misses the row count may be a lookup whose filter the
+            # translation dropped ("OB - Opening balances: 1 entry" on a per-journal result):
+            # true if a row named in the sentence carries it, undecided if some row does
+            said = (sheet.extra.get("sentence") or "") + " " + (sheet.span or "")
+            norm = lambda s: "".join(ch for ch in str(s).lower() if ch.isalnum())
+            words = {norm(w) for w in re.findall(r"[\w-]+", said)}
+            for r in rows:
+                if any(norm(c) in words for c in r if isinstance(c, str) and norm(c)) and \
+                        any(matches(stated, float(c)) for c in r if _is_num(c)):
+                    return Outcome(True, stated.value, "count read from the row the sentence names")
+            if any(matches(stated, float(c)) for r in rows for c in r if _is_num(c)):
+                return _undecided("unfiltered count: the figure is a cell of the result, not the row count")
+        return Outcome(False, n, f"{n} matching rows")
 
     if ci is None:
         return _undecided(f"column {sheet.column!r} not in the result")
@@ -249,6 +284,10 @@ def evaluate(sheet, res: Result, scope: str) -> Outcome:
         hits = [r[ci] for r in located if _value_matches(sheet.value, r[ci], cmp)]
         if hits:
             return Outcome(True, hits[0], f"found on {len(located)} located row(s)")
+        if any(_value_matches(sheet.value, c, cmp) for r in located for c in r if _is_num(c)):
+            # the figure IS on the located row, under another column: the translation picked
+            # the wrong column (a credit read as a debit). That is not a proof of falsity.
+            return _undecided("the figure is on the located row under another column")
         if len(located) <= 3:
             return Outcome(False, [r[ci] for r in located], f"value differs on the {len(located)} located row(s)")
         return _undecided(f"{len(located)} rows located, none matches — place too vague to condemn")
@@ -277,6 +316,8 @@ def evaluate(sheet, res: Result, scope: str) -> Outcome:
         if stated is None or not nums:
             return _undecided("ratio without a readable figure")
         ref = sheet.reference or "value"
+        if ref == "value" and not sheet.reference_value:
+            ref = _infer_reference(sheet.span or "") or ref
         num = nums[0]
         if ref == "second_max":
             if len(nums) < 2:
@@ -314,12 +355,29 @@ def evaluate(sheet, res: Result, scope: str) -> Outcome:
 
     if t == "trend":
         nums = [float(c) for c in cells if _is_num(c)]
+        if sheet.direction not in ("up", "down", "flat"):
+            sheet.direction = _infer_direction(sheet.span or "")
         if len(nums) < 8 or sheet.direction not in ("up", "down", "flat"):
             return _undecided("trend needs a direction and at least 8 points")
+        # A direction has several honest readings. Each one below is a standard measure;
+        # the claim is TRUE only if they all agree with it, FALSE only if none does, and
+        # undecided when they disagree among themselves (no single reading is a proof).
+        def label(change):
+            return "up" if change > 0.05 else "down" if change < -0.05 else "flat"
         q = max(2, len(nums) // 4)
         a, b = statistics.mean(nums[:q]), statistics.mean(nums[-q:])
-        change = (b - a) / abs(a) if a else 0.0
-        true = "up" if change > 0.05 else "down" if change < -0.05 else "flat"
-        return Outcome(true == sheet.direction, true, f"mean of first vs last quarter: {change:+.1%}")
+        readings = {"quarter means": label((b - a) / abs(a) if a else 0.0),
+                    "first vs last": label((nums[-1] - nums[0]) / abs(nums[0]) if nums[0] else 0.0)}
+        if any(x < 0 for x in nums) and any(x > 0 for x in nums):
+            # a flow column (net movements): its direction over the period is its sum's sign
+            total = sum(nums)
+            readings["sum of flows"] = label(total / (sum(abs(x) for x in nums) or 1))
+        found = set(readings.values())
+        detail = ", ".join(f"{k}: {v}" for k, v in readings.items())
+        if found == {sheet.direction}:
+            return Outcome(True, sheet.direction, detail)
+        if sheet.direction not in found:
+            return Outcome(False, sorted(found), detail)
+        return _undecided(f"readings disagree ({detail})")
 
     return _undecided(f"type {t!r} is not verifiable")
