@@ -352,3 +352,27 @@ Each claim in the rewritten documents cites the file it comes from.
   - Hosted models, old and new, are pinned to one provider (recorded). Seed 42 is sent
     where accepted.
 - **Affects.** The generation rule of Stage 3. Nothing measured.
+
+**D7 — 2026-09-25 — the control failed the gate; the cause is the runtime.**
+- **What was measured.** J6 (`gemma4:31b`), 5 ordered passes: **6/7 on every pass, with
+  identical scores on all 5**, and 0 self-contradictions.
+  - The missed case is `claude-fable-5__ledger-l10-02`. It scored F=100 today, against
+    F=40 in each of the three passes of 2026-08-05.
+  - The input is the same 3,211 tokens, at the same batch position.
+- **What was ruled out.**
+  - The judge caller is byte-identical to commit `27f7066`, which produced the published
+    7/7.
+  - The prompt fingerprint is identical (`c19c1a53c770f808`).
+  - The model blob is unchanged: `gemma4:31b` was pulled on 2026-05-23 (digest
+    `6316f0629137b426`).
+  - The machine is the same, confirmed by its owner.
+- **What remains.** The Ollama runtime (0.34.4 today; the August version was not
+  recorded, and the Windows build updates itself) or the GPU driver.
+- **Finding, to be published as such.** A local judge is deterministic *on a given
+  runtime*, not across runtime updates. The published 7/7 does not reproduce on the same
+  weights, prompt, seed and machine.
+- **What changes.** The stop rule is lifted by the owner's decision. Stage 1 continues,
+  and J6 as measured today (6/7) is the control. Every judge is compared on the same day
+  and the same runtime.
+- **Affects.** Criterion 4 of the acceptance (reserve accuracy ≥ J6) uses today's J6.
+  The published 7/7 is reported as not reproduced.

@@ -17,6 +17,7 @@ run is relaunched with the same command.
 Usage (repo root):
     set OLLAMA_HOST=http://<your-ollama-host>:11434
     python scripts/campaign_v04_stage1.py run        # gate, then everything
+    python scripts/campaign_v04_stage1.py rest       # everything after the gate (D7)
     python scripts/campaign_v04_stage1.py report     # read back what exists
 """
 from __future__ import annotations
@@ -204,7 +205,7 @@ def report() -> None:
 
 
 def main() -> int:
-    if len(sys.argv) < 2 or sys.argv[1] not in ("run", "report"):
+    if len(sys.argv) < 2 or sys.argv[1] not in ("run", "rest", "report"):
         print(__doc__)
         return 2
     if sys.argv[1] == "report":
@@ -212,13 +213,21 @@ def main() -> int:
         return 0
     OUT.mkdir(parents=True, exist_ok=True)
     log(f"OLLAMA_HOST={os.environ.get('OLLAMA_HOST')}")
-    log("=== control J6, 5 ordered passes ===")
-    run_config("J6", isolated_too=False)
-    if not gate_ok():
-        log("GATE FAILED: J6 does not reproduce 7/7 with 0 contradictions. Stopping.")
-        report()
-        return 1
-    log("GATE PASSED: J6 reproduces 7/7, 0 contradictions.")
+    if sys.argv[1] == "run":
+        log("=== control J6, 5 ordered passes ===")
+        run_config("J6", isolated_too=False)
+        if not gate_ok():
+            log("GATE FAILED: J6 does not reproduce 7/7 with 0 contradictions. Stopping.")
+            report()
+            return 1
+        log("GATE PASSED: J6 reproduces 7/7, 0 contradictions.")
+    else:
+        # PROTOCOL_v0.4.md, deviation D7: the control failed the gate on the runtime, not
+        # on the model; the owner lifted the stop rule. The 5 J6 passes must exist.
+        if summarise("J6") is None or summarise("J6")["passes"] < 5:
+            log("J6 ordered passes missing: run `run` first.")
+            return 1
+        log("=== after the gate (D7): local and hosted chains in parallel ===")
 
     def local():
         isolated_pass("J6")
