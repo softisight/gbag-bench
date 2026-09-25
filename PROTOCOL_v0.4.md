@@ -425,3 +425,47 @@ Each claim in the rewritten documents cites the file it comes from.
   identical, and this is asserted in the fix.
 - **Affects.** Stage 2 accuracy is computed against the corrected file (14 arbitrated
   cases). The judge runs are unaffected, since judges never read the verdicts.
+
+**D11 — 2026-09-25 — J5 cannot be measured on the reserve.**
+- **What happened.** The pinned endpoint `darkbloom/fp4` returns "Provider returned error"
+  on every call for `cas-02` and `cas-03`, the two longest prompts (7,039 and 8,418 input
+  tokens), in 5 ordered attempts and in the isolated pass.
+  - It is not a context limit: the endpoint lists 262,144 tokens.
+  - Since a partial ordered pass is never resumed, J5 has no complete ordered pass on the
+    reserve.
+- **What changes.** J5 is reported on the reserve as **not measurable (provider
+  failure)**, with its isolated pass on the 13 cases the endpoint served, labelled as
+  such. J5 is not re-pinned to another endpoint: that would change the precision measured
+  in Stage 1 and make J5 a different configuration.
+- **Affects.** Stage 2 reports three judges (J2, J4, J6) plus J5's partial isolated pass.
+
+**D12 — 2026-09-25 — Stage 3 suspended; a verifying judge (v0.5), with a sealed test set.**
+- **Why.** Stage 2 showed that no judge qualifies on cases the rule was not written
+  against.
+  - `deepseek-v4.1-flash` (J2): 11.4/14 with 4 self-contradictions.
+  - `qwen3.8:27b` (J4): between 13/14 and 11/14 depending on the pass.
+  - Every judge measured so far acquits `cas-01`, whose false claim one SQL query refutes.
+  Ranking models with such a judge (Stage 3) would publish noise. The owner decided to
+  suspend Stage 3.
+- **The next judge (v0.5).** Code checks every figure against the data; a local model is
+  asked only to classify the scope of each sentence (the rows shown, or the whole data);
+  the verdict follows mechanically. This is step A of the August roadmap. It is a new
+  judge, not a revision of the v0.4.1 prompt.
+- **Development and test sets.**
+  - The 7 truth-set cases and the 15 reserve cases have been read line by line, so they
+    become the **development set** of v0.5.
+  - The **test set** is 15 other answers, drawn by `scripts/draw_sealed_test_set.py`
+    before any v0.5 design work: same pool, same strata and same round-robin as the
+    reserve, excluding the tuning and reserve cases. Only their ids were printed; no
+    answer was read.
+  - They live in `data/sealed/test-v05/` and are **not opened until v0.5 is frozen**.
+    The August judge scores in `runs/` that cover these answers are not opened either.
+  - Fingerprints:
+    - `questions.jsonl` `2ec79810d78815c09bd18cf0a0c9a055070d5298e47722c681cfc5eb4ca1023a`
+    - `answers.jsonl` `7cced12e6237ad2420b5af07390e4e987abbdd90496f703abd302ff2fb3a9eb8`
+    - `verdicts.template.jsonl` `6a2f54f42ba528073453ba9bf5902d23f01261b85d0ca36d6a6bb0b19b3b3799`
+  - These answers share their 15 **questions** with the reserve (same held-out suite);
+    only the answers are unseen. That is stated wherever v0.5 results are reported.
+- **Arbitration of the test set.** Same rules as D9, done after the v0.5 judge is frozen.
+- **Stages 1–2 stand as the baseline** that v0.5 must beat, on the same cases and under
+  the same metrics.
