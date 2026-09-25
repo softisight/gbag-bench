@@ -252,11 +252,19 @@ def main() -> int:
     ap.add_argument("--cap", type=int, default=200)
     ap.add_argument("--write", action="store_true", help="write the field back into the datasets")
     ap.add_argument("--show", default=None, help="print the full block for one question id")
+    # A re-rolled ledger (PROTOCOL_v0.4.md, suite HO-B) is its own database and its own
+    # dataset file; the frozen ones must not be touched. Defaults = the published build.
+    ap.add_argument("--ledger-db", type=Path, default=None, help="ledger database to use")
+    ap.add_argument("--dataset", type=Path, action="append", default=None,
+                    help="dataset file to process (repeatable; default: the published ones)")
     args = ap.parse_args()
+    if args.ledger_db is not None:
+        DB_FILES["ledger"] = args.ledger_db
+    datasets = args.dataset or DATASETS
 
     problems: list[dict] = []
-    for path in DATASETS:
-        questions = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    for path in datasets:
+        questions =[json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         results = [analyse(q, args.cap) for q in questions]
 
         n_over = sum(1 for r in results if r.get("over_cap"))
