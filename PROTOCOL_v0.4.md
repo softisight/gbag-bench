@@ -263,4 +263,92 @@ Each claim in the rewritten documents cites the file it comes from.
 
 ## Deviations
 
-*None yet. Format: date — what changed — why — which results it can affect.*
+*Format: date — what changed — why — which results it can affect.*
+
+**D1 — 2026-09-25 — local quantization rule (J4/J5).**
+- **What was found.** The local host is an RTX 3060 (12 GB VRAM) with 32 GB RAM, running
+  Ollama 0.34.4. It is reached at `<your-ollama-host>` over Tailscale; this is the same
+  machine as `<your-ollama-host>`, according to its owner. No quantization of `qwen3.8:27b`
+  fits entirely in 12 GB:
+  - `q4_K_M` runs with partial CPU offload (8.6 of 18.7 GB in VRAM, measured);
+  - the control `gemma4:31b` runs the same way (9.1 of 21.5 GB).
+- **What changes.** The rule "highest quantization that fits entirely in VRAM" cannot be
+  met. J4 uses `q4_K_M`, and J5 is pinned to `darkbloom/fp4`, following the rule's q4
+  branch.
+- **Affects.** J4 against J5 is reported as a comparison of **stability only**.
+- **To keep in mind.** The Ollama version that produced the published gemma4:31b 7/7 was
+  not recorded. If J6 fails to reproduce it, the version is a candidate cause.
+
+**D2 — 2026-09-25 — J1 provider.**
+- **What was found.** Pinning `deepseek` is refused by the account's data policy: that
+  endpoint may train on paid traffic, and the account excludes such providers. The setting
+  is kept.
+- **What changes.** J1 becomes `deepinfra/fp8` **without seed**. It is now identical to
+  J2 except for the seed, which isolates exactly the variable J1 against J2 was meant to
+  test.
+- **Affects.** J1 no longer reproduces the provider of the old hosted runs. That provider
+  was never recorded anyway.
+
+**D3 — 2026-09-25 — Stage 0 scope.**
+- **What changes.** Two additions to the Stage 0 tooling:
+  - `build_heldout_dataset.py` and `build_verification_facts.py` gain input/output path
+    parameters, with defaults unchanged, so that HO-B can be built without overwriting
+    the frozen files. No logic change.
+  - The isolated pass reuses the one-process-per-case mechanism of
+    `scripts/night_run.py`.
+- **Affects.** Nothing measured.
+
+**D4 — 2026-09-25 — ledger reproduction: content, not file bytes.**
+- **What was found.** Regenerating with the default seed does not reproduce the frozen
+  file's SHA-256. The unmodified script gives the same result, so the new `--seed`/`--out`
+  parameters are not the cause.
+  - The content is identical: schema, and every row of all 8 tables (per-table digest
+    comparison).
+  - The difference is the SQLite library that wrote the file: 3.42.0 for the frozen
+    database, 3.50.4 today. It is stamped in the header.
+  - Two regenerations today are byte-identical to each other.
+- **What changes.** The Stage 0 criterion becomes **content identity**. The frozen
+  `databases/ledger.sqlite` stays the reference file.
+- **Incident.** During this check, a first attempt ran the unpatched script, which ignored
+  `--out` and rebuilt `databases/ledger.sqlite` in place. The file was restored from git,
+  and its SHA-256 was verified against the frozen value (`93a44074…`) before anything
+  else ran.
+- **Affects.** Nothing measured: no measured call had been made.
+
+**D5 — 2026-09-25 — HO-B golds for the extreme tier.**
+- **What was found.** Rebuilding HO-A from the regenerated database reproduces 10 of the
+  15 questions exactly, and all 15 verification-facts blocks. The 5 extreme questions
+  (l9/l10) differ.
+  - Commit `af330c4` (2026-07-29) added "full-population facts" by hand to their gold
+    answers and expected insights. No script produces them.
+  - A re-roll built by the scripts alone would therefore carry weaker golds on exactly
+    the tier the benchmark is about.
+- **What changes.** Before HO-B is built, a script computes those population facts from
+  SQL. It is accepted only if it reproduces the frozen HO-A text for the 5 questions
+  exactly; it then runs on HO-B.
+  - If exact reproduction is not reachable, HO-A against HO-B is compared on **level 1
+    only** (10 questions), and that is stated.
+- **Affects.** Stage 3, contamination signal.
+
+**D6 — 2026-09-25 — answer generation ran with reasoning ON, not off.**
+- **What was found.** `examples/baseline_runner.py` sends `"think": false` inside
+  `options`. Ollama reads `think` only at the top level of the request.
+  - Measured on the local host: with the published payload, the model still reasons (a
+    `thinking` field of 1,341 characters for a one-number answer).
+  - Every published local answer set (`qwen3.6`, `gemma4-12b`) was therefore generated
+    with reasoning at Ollama's default, which is on. `qwen3.6` averages 2,124 output
+    tokens for a 713-character answer.
+  - The hosted sets ran at each provider's default reasoning, with no seed and default
+    routing.
+  - The judges were not affected: `run_judge.py` places `think` correctly.
+- **What changes.** The generation condition of Stage 3 becomes **reasoning at the
+  runtime's default**, for all 12 models on HO-A and HO-B. This is the condition every
+  existing answer was actually produced in, so HO-A against HO-B stays a comparison of
+  data, not of settings.
+  - The runner gains an explicit `--think default|on|off`. `default` sends nothing, which
+    is the historical behaviour, now stated.
+  - The misplaced key is removed. Ollama ignores it, so the behaviour is unchanged.
+  - Every answer line records the condition, including the reasoning actually produced.
+  - Hosted models, old and new, are pinned to one provider (recorded). Seed 42 is sent
+    where accepted.
+- **Affects.** The generation rule of Stage 3. Nothing measured.
