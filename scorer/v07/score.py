@@ -45,7 +45,9 @@ def parse(answer: str) -> dict | None:
 
 
 def _is_none(v: str) -> bool:
-    return v.strip().strip("<>").upper() in ("NONE", "N/A", "NULL", "UNKNOWN", "")
+    t = v.strip().strip("<>").upper()
+    # D11: a model that writes the scope word into `value` ("cannot_determine") declines
+    return t in ("NONE", "N/A", "NULL", "UNKNOWN", "") or t.replace(" ", "_") == "CANNOT_DETERMINE"
 
 
 def same(value: str, truth, typ: str) -> bool:
