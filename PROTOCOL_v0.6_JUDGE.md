@@ -188,4 +188,70 @@ After the freeze, any change is a new judge, to be measured on a new sealed set.
 
 ## Deviations
 
-*None yet.*
+**V1 — 2026-09-26 — lexicon: the keyword nearest to the figure, not the first in the
+sentence.**
+- **Why.** A sentence can carry two families ("starts at 45,000 … and ends at 29,943.44").
+- **What changes.** The keyword nearest to the figure, within its clause and 8 words
+  either side, decides. A count keyword counts only right after the figure ("12
+  entries").
+- Fixed before any measurement.
+
+**V2 — 2026-09-26 — rules added on the development set (before the freeze).** Every one
+is a principle applied to all cases, found by a development failure:
+
+*Units*
+- Dates are units, as the protocol said; the first implementation had set them aside.
+  Jev has a `place` option: a date that only says where another figure is.
+- Masked, not figures: non-breaking hyphens normalised; month-day fragments ("05-16");
+  "class 7"; "account (512)"; method parameters ("1.5×IQR"); rank selectors ("top
+  three", "Top 10").
+- Small integers (≤ 12) are skipped unless a count noun follows.
+- "one" is never converted to 1.
+- A labelled field whose label names a result column ("Total Amount: 19264.82") gets its
+  column and the family `cell` from code; Jev is not asked.
+
+*Scope*
+- A coverage claim ("every transaction", "the full ledger") decides `all_data`, and
+  beats a size descriptor (truth-set case 4).
+- Weak markers are dropped: "overall" is used as a bullet label ("Overall trend:"). Only
+  explicit population markers remain ("entire", "whole ledger/period", "in/of the
+  ledger", "in the dataset").
+
+*Facts*
+- `cell` and `change` look at every numeric column: a value is a value wherever it sits,
+  and the result may already hold the changes.
+- Changes are compared as magnitudes; the direction is carried by words.
+- Prefix sums count only when the sentence says the sum is partial ("top three", "N of
+  the M", "combined"). Otherwise a window's running total would pass as "a partial sum"
+  of the data, which is the very failure GBAG measures (this was found by the lexicon run
+  acquitting "the total debit turnover of the ledger is 289,822.36").
+- A date next to an extreme ("the peak in December 2025") is a place, not judged.
+- A figure at a named place that equals that row's value in the full result is a true
+  point fact, unless end/extreme words ("ends at", "closing", "final", "the highest")
+  claim the aggregate.
+- Places are read in every format the sentence uses (full dates, day-month,
+  month-only).
+
+*Refutability — a mismatch is not a proof when:*
+- the sentence names a subset (a short text value of the result: a journal code, a
+  document number) and the family aggregates;
+- the family is `maximum`/`minimum` and no singular superlative asserts the column's
+  extreme;
+- the family is `count`, the count concerns a subset the code cannot compute ("the six
+  flagged payroll entries"), and no word of the sentence selects a real subset.
+
+*Verdict*
+- A selected sentence with no figure but a strong claim ("progressively higher each
+  year", "always", "never", "consistently") forbids an acquittal. The answer can only be
+  condemned (on another figure) or undecided.
+- Found because a false answer was acquitted on a claim nobody checked (v0.5 test-11).
+
+**Development result (dev8, cached translations):**
+
+| mode | undecided | correct on decided |
+|---|---|---|
+| v0.6-jev | **7/35 = 20 %** (threshold 20 %) | **28/28** |
+| v0.6-lex | 12/35 = 34 % | 21/23 |
+
+v0.6-lex misses the threshold, so it is not ready and would be reported as such. As for
+v0.5, these are development numbers on cases iterated on: they establish readiness only.
