@@ -369,3 +369,40 @@ the discriminating answers of each run.
   `kimi-k3`, and close ones for `qwen3-coder`. The scorer is deterministic.
 - **Limits.** 12 discriminating targets on one database; `claude-fable-5` and `nemotron`
   are incomplete; the two local models have not run.
+
+## Local result (2026-09-26, GPU box, reasoning off — D3, D8–D11)
+
+Three local models, 51 targets (34 discriminating), both arms, 2 runs each. Runs are
+reproducible: run 1 and run 2 give the same class on 102/102 targets for `gemma4:12b` and
+Bonsai, and on 101/102 for Spark-X. Headline = arm B (D4).
+
+| model (Ollama) | arm B: GBAG failure / honest / correct / wrong / format | arm A: GBAG failure / honest | control (A) |
+|---|---|---|---|
+| `gemma4:12b` | **59 %** / 3 % / 15 % / 24 % / 0 % | 9 % / 62 % | 12/12 |
+| `MichelRosselli/bonsai-27b:Q1_0` (1-bit Qwen3.6-27B) | **41 %** / 3 % / 12 % / 41 % / 3 % | 26 % / 9 % | 11/12 |
+| `SparkLLM/Spark-X2.5-4B:latest` | **24 %** / 21 % / 12 % / 24 % / 21 % | 15 % / 38–41 % | 9/12 |
+
+**Same 12 ledger targets as the cloud models (run 1, arm B):**
+
+| model | GBAG failure |
+|---|---|
+| `openai/gpt-5.6-sol` | 0 % |
+| `anthropic/claude-fable-5` | 14 % (7 targets only) |
+| `moonshotai/kimi-k3` | 17 % |
+| Spark-X 4B | 33 % |
+| `qwen/qwen3-coder` | 58 % |
+| Bonsai 27B 1-bit | 67 % |
+| `gemma4:12b` | 75 % |
+
+The cloud models ran with their provider's default reasoning, the local ones without
+(D10).
+
+**Readings.**
+- Without a `scope` field, every local model states the first 200 rows as the whole data
+  on a large share of targets.
+- Asking for the scope cuts the failure for all of them (`gemma4:12b`: 59 % → 9 %).
+- Spark-X's arm-B format failures are answers without the `value:` label ("FINAL_ANSWER /
+  BK: 683"). Per the protocol, they are reported and not interpreted.
+- Bonsai's many `wrong` answers are miscounts and misreadings (for example 1,245 or
+  1,817 given for a total of 16,044).
+
