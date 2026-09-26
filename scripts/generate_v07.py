@@ -7,9 +7,13 @@ closing instruction asking for the FINAL_ANSWER block. Arm A asks for value + sc
 (priming check) for value only.
 
 Usage (repo root):
-    python scripts/generate_v07.py                       # every cloud model, both arms, 2 runs
-    python scripts/generate_v07.py --models openai/gpt-5.6-sol --arms A --runs 1
-    python scripts/generate_v07.py --provider ollama --models qwen3.6:latest   # later, local
+    python scripts/generate_v07.py --provider openrouter --models openai/gpt-5.6-sol   # cloud: not for GBAG (D3)
+    set OLLAMA_HOST=http://<your-ollama-host>:11434
+    python scripts/generate_v07.py --provider ollama --models qwen3.6:latest gemma4:12b
+
+PROTOCOL_v0.7 D5: the served-call metadata is kept per thread and stored under "served"
+(it never overwrites "model"); local models run one after the other with an explicit
+context window, and a prompt that fills it is flagged, never silently truncated.
 """
 from __future__ import annotations
 
@@ -20,6 +24,8 @@ import sqlite3
 import sys
 import threading
 import time
+import urllib.request
+from collections.abc import MutableMapping
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,9 +38,54 @@ TARGETS = ROOT / "data" / "v07" / "targets.jsonl"
 QUESTIONS = ROOT / "data" / "questions-heldout.jsonl"
 DB = ROOT / "databases" / "ledger.sqlite"
 OUT = ROOT / "runs" / "v0.7" / "answers"
+LOCAL_MODELS = ["qwen3.6:latest", "gemma4:12b"]      # D3: GBAG runs on local models only
 CLOUD_MODELS = ["anthropic/claude-fable-5", "openai/gpt-5.6-sol", "moonshotai/kimi-k3",
                 "nvidia/nemotron-3-nano-30b-a3b", "qwen/qwen3-coder"]
 COST_CAP_USD = 15.0
+NUM_CTX = 16384          # Ollama truncates a longer prompt silently: set it, then check it
+OLLAMA_TIMEOUT_S = 1800  # a 3060 with reasoning on can take minutes per answer
+
+
+class _PerThread(MutableMapping):
+    """baseline_runner.LAST_CALL, one dict per thread: the shared dict let a thread record
+    another thread's model and cost (D2, D5)."""
+    def __init__(self):
+        self._local = threading.local()
+
+    def _d(self) -> dict:
+        if not hasattr(self._local, "d"):
+            self._local.d = {}
+        return self._local.d
+
+    def __getitem__(self, k): return self._d()[k]
+    def __setitem__(self, k, v): self._d()[k] = v
+    def __delitem__(self, k): del self._d()[k]
+    def __iter__(self): return iter(self._d())
+    def __len__(self): return len(self._d())
+
+
+br.LAST_CALL = _PerThread()
+
+
+def call_ollama(system: str, user: str, model: str) -> tuple[str, int | None, int | None, dict]:
+    """Ollama /api/generate with an explicit context window (baseline_runner's caller sets
+    none, and the 200-row prompts exceed Ollama's default)."""
+    host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+    payload = {"model": model, "prompt": user, "system": system, "stream": False,
+               "options": {"temperature": 0, "num_ctx": NUM_CTX}}
+    req = urllib.request.Request(f"{host}/api/generate", data=json.dumps(payload).encode("utf-8"),
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT_S) as r:
+        data = json.loads(r.read().decode("utf-8"))
+    tin, tout = data.get("prompt_eval_count"), data.get("eval_count")
+    meta = {"num_ctx": NUM_CTX, "thinking_chars": len(data.get("thinking") or ""),
+            "context_full": bool(tin and tin >= NUM_CTX - 8)}
+    return (data.get("response") or "").strip(), tin, tout, meta
+
+
+def call_openrouter(system: str, user: str, model: str) -> tuple[str, int | None, int | None, dict]:
+    text, tin, tout = br.call_openrouter(system, user, model)
+    return text, tin, tout, dict(br.LAST_CALL)
 
 BLOCK_A = (
     "End your answer with exactly this block, where `value` is {ask}:\n"
@@ -81,7 +132,7 @@ def slug(model: str) -> str:
 
 
 def run_model(model: str, provider: str, arms: list[str], runs: int, items: list) -> None:
-    call = br.call_openrouter if provider == "openrouter" else br.call_ollama
+    call = call_openrouter if provider == "openrouter" else call_ollama
     for run in range(1, runs + 1):
         for arm in arms:
             out = OUT / f"{slug(model)}-{arm}-r{run}.jsonl"
@@ -92,18 +143,20 @@ def run_model(model: str, provider: str, arms: list[str], runs: int, items: list
                 if _spent[0] >= COST_CAP_USD:
                     print(f"cost cap {COST_CAP_USD} USD reached — stopping {model}", flush=True)
                     return
-                t0, text, err, tin, tout = time.time(), "", None, None, None
+                t0, text, err, tin, tout, meta = time.time(), "", None, None, None, {}
                 for attempt in range(3):
                     try:
-                        text, tin, tout = call(br.SYSTEM_PROMPT, prompt, model)
+                        text, tin, tout, meta = call(br.SYSTEM_PROMPT, prompt, model)
                         err = None
                         break
                     except Exception as e:  # transport or provider error: same prompt, retried
                         err = str(e)[:300]
                         time.sleep(5 * (attempt + 1))
-                meta = dict(br.LAST_CALL) if provider == "openrouter" else {}
-                rec = {"tid": t["tid"], "arm": arm, "run": run, "model": model, "answer": text, "error": err,
-                       "input_tokens": tin, "output_tokens": tout, "seconds": round(time.time() - t0, 1), **meta}
+                if meta.get("context_full"):
+                    err = f"prompt filled the {NUM_CTX}-token context: possibly truncated"
+                rec = {"tid": t["tid"], "arm": arm, "run": run, "model": model, "provider": provider,
+                       "answer": text, "error": err, "input_tokens": tin, "output_tokens": tout,
+                       "seconds": round(time.time() - t0, 1), "served": meta}
                 with _lock:
                     _spent[0] += meta.get("cost_usd") or 0
                     with out.open("a", encoding="utf-8") as f:
@@ -113,19 +166,26 @@ def run_model(model: str, provider: str, arms: list[str], runs: int, items: list
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--models", nargs="*", default=CLOUD_MODELS)
-    ap.add_argument("--provider", choices=["openrouter", "ollama"], default="openrouter")
+    ap.add_argument("--models", nargs="*", default=None)
+    ap.add_argument("--provider", choices=["openrouter", "ollama"], default="ollama")
     ap.add_argument("--arms", nargs="*", default=["A", "B"])
     ap.add_argument("--runs", type=int, default=2)
     args = ap.parse_args()
+    if args.models is None:
+        args.models = LOCAL_MODELS if args.provider == "ollama" else CLOUD_MODELS
     OUT.mkdir(parents=True, exist_ok=True)
     items = prompts()
-    threads = [threading.Thread(target=run_model, args=(m, args.provider, args.arms, args.runs, items))
-               for m in args.models]
-    for th in threads:
-        th.start()
-    for th in threads:
-        th.join()
+    if args.provider == "ollama":
+        # one GPU: local models run one after the other
+        for m in args.models:
+            run_model(m, args.provider, args.arms, args.runs, items)
+    else:
+        threads = [threading.Thread(target=run_model, args=(m, args.provider, args.arms, args.runs, items))
+                   for m in args.models]
+        for th in threads:
+            th.start()
+        for th in threads:
+            th.join()
     print(f"all done — {_spent[0]:.3f} USD", flush=True)
     return 0
 

@@ -218,6 +218,21 @@ it (owner's decision).**
 - **Decided after the partial results were seen.** Both arms stay published in full, so
   anyone can read either one.
 
+**D5 — 2026-09-26 — generation script fixed before the local runs
+(`scripts/generate_v07.py`); prompts unchanged.**
+- **Per-thread call metadata.** The served model, provider and cost are kept per thread
+  and stored under `served`. They never overwrite the answer's `model` field (the D2
+  defect).
+- **Local caller with an explicit context window.** `num_ctx` = 16,384. The largest v0.7
+  prompt is about 11,400 characters, about 3,500 tokens, which is close to Ollama's
+  default window, and Ollama truncates silently. A prompt that fills the window is
+  recorded as a failed call, never scored.
+- **Local models run one after the other** (one GPU), with a 30-minute timeout per
+  answer.
+- **Local is the default provider** (D3). The cloud needs `--provider openrouter`.
+- Tested offline: the per-thread metadata under 8 threads, and the Ollama caller against a
+  fake server (`num_ctx` sent, full context flagged).
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
