@@ -1,0 +1,1 @@
+[[{"span": "The Bank journal (BK) is by far the most used, with 683 entries", "scope": "all_data", "type": "extreme", "column": "nb_entries", "value": "683", "answers_question": true}, {"span": "nearly twice as many as the next journal", "scope": "all_data", "type": "ratio", "column": "nb_entries", "value": "nearly twice", "answers_question": false}], {"in": 919, "out": 154}]

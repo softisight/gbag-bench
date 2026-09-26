@@ -129,6 +129,33 @@ These cases were iterated on (V2, V3), so this proves readiness only. It is not 
 **After the freeze.** Any change to these files, or to this configuration, makes a
 different judge. It would have to be measured on a **new** test set, never on this one.
 
+## Test result — v0.5.0 is NOT accepted (2026-09-26)
+
+The sealed test set (`data/sealed/test-v05/`) was opened after the freeze. It was
+arbitrated before any judge output was read, with the verdicts validated by the owner
+(commit `77594bf`): 7 faithful, 7 false, 1 disputed (excluded). All judges ran overnight
+with their outputs unread until then. `scripts/eval_v05_test.py`:
+
+| criterion | v0.5.0 | result |
+|---|---|---|
+| 1. undecided ≤ 20 % | 2/14 = 14 % | pass |
+| 2. accuracy on decided cases ≥ best v0.4 judge (J6) on the same cases | **9/12 = 75 %** vs J6 **10/12 = 83 %** | **fail** |
+| 3. no condemnation without recorded proof | 0 | pass |
+| 4. five passes identical | yes | pass |
+
+- **False answers.** v0.5.0 condemns all 6 of those it decides, including test-06, which
+  J6 acquits 5 times out of 5. test-11 is undecided.
+- **Correct answers.** v0.5.0 wrongly condemns 3 of 7, each time because a translation
+  error was taken as a proof:
+  - test-01: two figures of one sentence merged into one sheet;
+  - test-05: "to 475,982.19 by early July 2024" typed as the data's end value;
+  - test-15: a partial sum ("1,307 of the 1,412") typed as the total.
+- **For reference, on all 14 cases:** J6 scores 11/14 with 0 self-contradictions; J2
+  scores 10.4/14 with 5 self-contradictions.
+- **Reading.** The two judges fail in opposite directions: v0.5.0 is too strict on correct
+  answers, J6 too lenient on false ones.
+- **This test set is spent for v0.5.x.** Any fixed version is measured on a new sealed set.
+
 ## Deviations
 
 **V1 — 2026-09-25 — development translations are hosted until the local GPU is free.**

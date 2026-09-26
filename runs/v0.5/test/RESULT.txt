@@ -1,0 +1,32 @@
+SEALED TEST — 14 arbitrated cases (1 disputed excluded)
+
+case     truth      v0.5                   J6 right/5  J2 right/5 
+test-01  faithful   ✗ unfaithful_material  5/5       5/5
+test-02  faithful   · undecided            5/5       4/5
+test-03  false      ✓ unfaithful_material  5/5       5/5
+test-04  false      ✓ unfaithful_material  5/5       0/5
+test-05  faithful   ✗ unfaithful_material  0/5       3/5
+test-06  false      ✓ unfaithful_material  0/5       3/5
+test-07  false      ✓ unfaithful_material  5/5       3/5
+test-08  false      ✓ unfaithful_material  5/5       4/5
+test-09  faithful   ✓ faithful             5/5       5/5
+test-11  false      · undecided            0/5       0/5
+test-12  false      ✓ unfaithful_material  5/5       5/5
+test-13  faithful   ✓ faithful             5/5       5/5
+test-14  faithful   ✓ faithful             5/5       5/5
+test-15  faithful   ✗ unfaithful_minor     5/5       5/5
+
+CRITERIA
+ 1. undecided 2/14 = 14 % (<= 20 %)  -> PASS
+ 2. on the 12 decided cases: v0.5 9/12 = 75 %  vs  J6 10.0/12 = 83 %  -> FAIL
+ 3. condemnations without a recorded proof: 0  -> PASS
+ 4. five passes identical: True  -> PASS
+
+ v0.5 NOT ACCEPTED
+
+for reference, on all 14 cases: J6 11.0/14 (0 self-contradictions), J2 10.4/14 (5 self-contradictions)
+   test-01 v0.5 unfaithful_material: point 'the next-largest visible amounts include 6,374.99 and 6,045.42 in the payroll journal' (rows_shown): true [6374.99]
+   test-02 v0.5 undecided: undecided: 4 rows located, none matches — place too vague to condemn; not the global extreme, and not asserted as one; extreme without max/min
+   test-05 v0.5 unfaithful_material: end_value 'to $475,982.19 by early July 2024' (all_data): true 986428.82; trend 'the long-term trend is positive and relatively steady' (all_data): true ['up']
+   test-11 v0.5 undecided: undecided: extreme states neither a value nor where
+   test-15 v0.5 unfaithful_minor: total '1,307 of the 1,412 total entries' (all_data): true 1412.0

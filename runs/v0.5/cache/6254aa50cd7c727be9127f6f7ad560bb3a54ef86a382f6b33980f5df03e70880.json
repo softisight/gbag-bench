@@ -1,0 +1,1 @@
+[[{"span": "All other days have at most 4 entries", "scope": "all_data", "type": "universal", "column": "nb_entries", "value": "4", "answers_question": true}, {"span": "the majority have 0\u20132", "scope": "all_data", "type": "share", "column": "nb_entries", "value": "majority", "answers_question": true}], {"in": 963, "out": 138}]

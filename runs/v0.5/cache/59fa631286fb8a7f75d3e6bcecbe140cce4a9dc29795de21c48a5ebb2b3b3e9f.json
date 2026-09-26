@@ -1,0 +1,1 @@
+[[{"span": "OB-2023 ($45,000.00) is a clear statistical outlier", "scope": "all_data", "type": "other", "column": "total_amount", "value": "$45,000.00", "answers_question": true}, {"span": "exceeding the next highest entry by over 130%", "scope": "all_data", "type": "ratio", "column": "total_amount", "value": "over 130%", "answers_question": true}], {"in": 1012, "out": 126}]
