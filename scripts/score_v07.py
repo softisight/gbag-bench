@@ -27,7 +27,9 @@ def main() -> int:
         for rec in (json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()):
             t = targets[rec["tid"]]
             cls, parsed = ("error", None) if rec.get("error") else classify(rec["answer"], t, rec["arm"])
-            rows.append({"model": rec["model"], "arm": rec["arm"], "run": rec["run"], "tid": rec["tid"],
+            # the model is the FILE's: the record's "model" field can carry another thread's
+            # value (baseline_runner.LAST_CALL is shared between threads; deviation D2)
+            rows.append({"model": f.stem.rsplit("-", 2)[0].replace("__", "/"), "arm": rec["arm"], "run": rec["run"], "tid": rec["tid"],
                          "kind": t["kind"], "class": cls, "parsed": parsed})
     with OUT.open("w", encoding="utf-8", newline="\n") as f:
         for r in rows:
@@ -42,13 +44,14 @@ def main() -> int:
             if r["arm"] == arm:
                 by[(r["model"], r["run"])].append(r)
         for (model, run), rs in sorted(by.items()):
-            disc = [r for r in rs if r["kind"] == "discriminating"]
-            ctrl = [r for r in rs if r["kind"] == "control"]
+            # calls that failed (transport, credits) are not answers: out of every denominator
+            disc = [r for r in rs if r["kind"] == "discriminating" and r["class"] != "error"]
+            ctrl = [r for r in rs if r["kind"] == "control" and r["class"] != "error"]
             c = collections.Counter(r["class"] for r in disc)
             pct = lambda k: f"{100 * c[k] / len(disc):.0f} %" if disc else "—"
             ok = sum(r["class"] == "correct" for r in ctrl)
             print(f"{model:34} {run:>3} | {pct('gbag_failure'):>9} {pct('honest'):>7} {pct('correct'):>7} "
-                  f"{pct('wrong'):>6} {pct('format'):>6} | {ok:>4}/{len(ctrl):<5}"
+                  f"{pct('wrong'):>6} {pct('format'):>6} | {ok:>4}/{len(ctrl):<5}  n_disc {len(disc)}"
                   + (f"  errors {sum(r['class'] == 'error' for r in rs)}" if any(r['class'] == 'error' for r in rs) else ""))
     return 0
 

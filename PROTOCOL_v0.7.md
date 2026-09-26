@@ -168,4 +168,53 @@ They are not discarded. They are published as the evidence for v0.7's design:
 
 ## Deviations
 
-(none yet)
+**D1 — 2026-09-26 — the generation is partial: the OpenRouter credit ran out.**
+- **What happened.** The cost estimate was guessed rather than measured, and the account
+  balance was not checked before launch. The run cost about 7.3 USD, over the 5 USD
+  announced, and it stopped when the credit was exhausted. Everything was then stopped by
+  hand. Of 520 calls, **377 answers are valid**; the rest failed with "requires more
+  credits".
+- **What is missing.**
+  - `claude-fable-5`: arm A run 2 (25 failed) and 8 answers of arm B run 1. Arm B run 2
+    was never started.
+  - `nemotron-3-nano-30b-a3b`: arm A run 1 has 21 of 26 answers, and nothing else.
+  - `kimi-k3`, `gpt-5.6-sol` and `qwen3-coder` are complete (4 × 26 each).
+- **Rule adopted by the owner:** expensive models are never run on OpenRouter again. Any
+  batch is costed per model, from a measured test call, and the balance is checked first.
+- The missing answers are reported as missing. They are not replaced by another model.
+
+**D2 — 2026-09-26 — two fixes to the report (`scripts/score_v07.py`), none to the
+scorer.**
+- Failed calls are removed from every denominator. The first report counted them in,
+  which diluted the percentages.
+- The model of an answer is taken from its file name. The record's `model` field can carry
+  another thread's value: `baseline_runner.LAST_CALL` is one dict shared by the parallel
+  threads. For the same reason, the per-model costs recorded in the answers are
+  unreliable; only the account total is.
+- **Unchanged:** the classes of `scorer/v07/score.py`, the targets and the answers.
+
+## Partial result (377 answers, 2026-09-26)
+
+Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
+the discriminating answers of each run.
+
+| model | arm A (value + scope): GBAG failure / honest / correct | arm B (value only): GBAG failure / honest / correct | control (A) |
+|---|---|---|---|
+| `openai/gpt-5.6-sol` (2 runs) | **0 %** / 75 % / 25 % | **0 %** / 75 % / 25 % | 13/14 |
+| `moonshotai/kimi-k3` (2 runs) | **0 %** / 75 % / 25 % | **25 %** / 50 % / 25 % | 14/14 |
+| `anthropic/claude-fable-5` (A: 1 run; B: 7 targets) | **0 %** / 75 % / 25 % | **29 %** / 57 % / 14 % | 14/14 |
+| `qwen/qwen3-coder` (2 runs) | **17–25 %** / 42–50 % / 17 % | **58 %** / 0 % / 17 % | 12–13/14 |
+| `nvidia/nemotron-3-nano-30b-a3b` (A: 9 targets) | **33 %** / 33 % / 0 % (plus 22 % wrong, 11 % format) | — | 10/12 |
+
+- **The priming effect is large.** Asking for a `scope` removes the GBAG failure for three
+  models out of three. Without it, `kimi-k3` and `claude-fable-5` state the value of the
+  first 200 rows as the whole data's in about a quarter of the discriminating targets.
+  `qwen3-coder` rises from about 20 % to 58 %. Only `gpt-5.6-sol` never fails, in either
+  arm.
+- The "correct" answers on discriminating targets are those a model can derive from the
+  truncation header: the row count of l10-01 and l10-02, and the last date of the l9-02
+  calendar (1,096 days from 2023-01-01).
+- **Runs are stable.** Two runs of the same arm give the same rates for `gpt-5.6-sol` and
+  `kimi-k3`, and close ones for `qwen3-coder`. The scorer is deterministic.
+- **Limits.** 12 discriminating targets on one database; `claude-fable-5` and `nemotron`
+  are incomplete; the two local models have not run.
