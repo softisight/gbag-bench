@@ -303,6 +303,23 @@ answer.**
 - The local models are therefore `gemma4:12b` (as pre-registered) and `qwen3.8:27b`.
   The v0.4 corpus build `qwen3.6` is no longer measured in v0.7.
 
+**D9 — 2026-09-26 — the second local model becomes Bonsai 27B, and Spark-X2.5-4B is added
+(owner's decision).**
+- **Why.** `qwen3.8:27b` (17.7 GB) does not fit in the 3060's 12 GB, so it runs partly
+  on the CPU (about 12–15 h for the v0.7 run). The two models the owner installs fit
+  entirely on the GPU:
+  - **Bonsai 27B**, a 1-bit (Q1_0) build of Qwen3.6-27B, about 4.4 GB. It is the Qwen3.6
+    line that D8 had dropped, compressed.
+  - **Spark-X2.5-4B**, a 4B model.
+- **What changes.**
+  - The local models are `gemma4:12b` (as pre-registered), Bonsai 27B and Spark-X2.5-4B.
+    `qwen3.8:27b` is not run.
+  - The exact Ollama names are read on the box at run time and recorded in every answer
+    (`model`).
+- **Unchanged:** the prompts, the targets, the scorer and the caller.
+- **Resume.** A call that fails while the box is unreachable is retried at relaunch; its
+  error row stays in the file, scored `error` (out of every denominator).
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of

@@ -36,7 +36,7 @@ from scorer.v07.targets import ROW_CAP, load_questions, run_gold
 
 TARGETS = ROOT / "data" / "v07" / "targets.jsonl"
 OUT = ROOT / "runs" / "v0.7" / "answers"
-LOCAL_MODELS = ["gemma4:12b", "qwen3.8:27b"]         # D3: local only; D8: qwen3.8:27b for qwen3.6
+LOCAL_MODELS = ["gemma4:12b"]   # D3: local only; D9: Bonsai 27B and Spark-X2.5-4B passed by name (runs/v0.7/queue_box.sh)
 CLOUD_MODELS = ["anthropic/claude-fable-5", "openai/gpt-5.6-sol", "moonshotai/kimi-k3",
                 "nvidia/nemotron-3-nano-30b-a3b", "qwen/qwen3-coder"]
 COST_CAP_USD = 15.0
@@ -133,7 +133,10 @@ def run_model(model: str, provider: str, arms: list[str], runs: int, items: list
     for run in range(1, runs + 1):
         for arm in arms:
             out = OUT / f"{slug(model)}-{arm}-r{run}.jsonl"
-            done = {json.loads(l)["tid"] for l in out.read_text(encoding="utf-8").splitlines() if l.strip()} if out.exists() else set()
+            # a failed call (box paused, transport) is retried on resume; its error row stays
+            # in the file and is scored `error`, out of every denominator (D2)
+            done = {r["tid"] for r in (json.loads(l) for l in out.read_text(encoding="utf-8").splitlines() if l.strip())
+                    if not r.get("error")} if out.exists() else set()
             for t, a, prompt in items:
                 if a != arm or t["tid"] in done:
                     continue
