@@ -177,6 +177,48 @@ Before the test set is opened, the following are fingerprinted:
 
 After the freeze, any change is a new judge, to be measured on a new sealed set.
 
+### Freeze v0.6.0 — 2026-09-26
+
+Frozen with the rules of V1–V3, before `data/sealed/test-v06/` is opened.
+- **Version:** `VERSION = "0.6.0"` (`judge/v06/run_v06.py`).
+- **Jev:** model `typesafe/jev-1.13`, dated version returned on development
+  `typesafe/jev-1.13-20260917`. The dated version returned on the test set is recorded on
+  every verdict; a different one is reported.
+- **Thresholds:** `confidence` ≥ 0.70 with a lead ≥ 0.10; `on_question` not bearing at
+  ≤ 0.10; median of 3 calls per figure.
+- **Question texts and options:** SHA-256 of
+  `json.dumps(jev.questions(["<column>"]), sort_keys=True, ensure_ascii=False)` =
+  `3cafc2ed28c53a318ca4b69a26ef2d3b2926a8a99fcf23c273440a3e46972090`. The option order is
+  the code's.
+- **Test-set runs:** `GBAG_V06_NO_CACHE=1` (no cached score is read), through
+  `scripts/campaign_v06_test.py`, which prints no verdict.
+- **Code** (SHA-256 with line endings normalised to LF; the `judge/v05` modules are those
+  frozen at v0.5.0 and imported unchanged):
+
+| file | SHA-256 |
+|---|---|
+| `judge/v06/__init__.py` | `cbc0cdf9f4ee87d5b0343311f7344204cf69389cebe261f07b8d1c85372c65db` |
+| `judge/v06/units.py` | `64f7e1a9b8d933f524daef1c850aec40b9adb7643d6a3069134c6513dace37bf` |
+| `judge/v06/jev.py` | `a29b35a0bc0b51c9d5d70d7b02cf3fa61d0d280394f6466e0355663b7bca518d` |
+| `judge/v06/facts.py` | `8015f50584222a5423dd69a6a78709f2c6ca2d009a3c699d9d40de9becfd9a70` |
+| `judge/v06/lex.py` (lexicon) | `c2966e130a56f42ea34406c5e431831e36a07e91c1894b37eba064bda6372af0` |
+| `judge/v06/decide.py` | `aba2f7872b624451705b03c7e741ffb13f64bf5fac295a9118c9369a70f05fb3` |
+| `judge/v06/run_v06.py` | `3b2868f6a4f9d04c96ba42a77b7e14f29c127f2c592cd5db5d7dfafa00a0cf8a` |
+| `judge/v05/__init__.py` | `92997d38ead2be711dac37a23ac9ccc4a71dddfcd395a65ad165c04145c26f53` |
+| `judge/v05/numbers.py` | `79b9c322fc90caac6bc20f0f0a56a967c5fdd7fe9fa52bdba865bac61867ed25` |
+| `judge/v05/result.py` | `113eb7ef987840e17917bc38782c0c3baac1723312bd00903ecfb2aa9d57765d` |
+| `judge/v05/split.py` | `95fae2e3518a7fc6a67dada765ef6b7529f21551ad993bd1bcab7e446af57ee7` |
+| `judge/v05/tables.py` | `88755a56a8a6092b0d0735e1b1a939f303bfcbf14566cc6fc6d8a8548751f9f4` |
+| `judge/v05/decide.py` | `237eb22a5313aa11054b7b12e94d03305b5b147e0340b03a5cfe423570c8d399` |
+| `judge/v05/triggers.txt` | `64df69e98c2806142c7cc81de411c2b994b67c1256718caadf8a9772158e9f95` |
+
+- **Readiness:** development undecided 23 % against a 20 % threshold (V3). The freeze goes
+  ahead with this reported, by the owner's decision.
+- **J6 deferred:** the GPU box is unavailable on the day of the freeze. The cloud judges
+  (v0.6-jev, v0.6-lex, J2) run first. J6 runs later on the same frozen set, with outputs
+  unread until the arbitration is committed. Until then, criterion 2 and the secondary
+  configuration stay open.
+
 ## Secondary configuration: v0.6 + J6 on the undecided (added 2026-09-26, before the freeze)
 
 **Why.** v0.6 leaves some answers undecided: sentences about a subset the code cannot

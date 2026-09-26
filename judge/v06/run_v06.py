@@ -28,7 +28,7 @@ from . import jev, lex
 from .decide import declaration, judge_unit, scope_of, verdict
 from .units import units_of
 
-VERSION = "0.6.0-dev"
+VERSION = "0.6.0"
 
 
 def judge_answer(q: dict, answer: str, mode: str) -> dict:
