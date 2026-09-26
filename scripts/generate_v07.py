@@ -32,11 +32,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "examples"))
 import baseline_runner as br  # the v0.4 generation prompt and callers, unchanged
-from scorer.v07.targets import ROW_CAP
+from scorer.v07.targets import ROW_CAP, load_questions, run_gold
 
 TARGETS = ROOT / "data" / "v07" / "targets.jsonl"
-QUESTIONS = ROOT / "data" / "questions-heldout.jsonl"
-DB = ROOT / "databases" / "ledger.sqlite"
 OUT = ROOT / "runs" / "v0.7" / "answers"
 LOCAL_MODELS = ["qwen3.6:latest", "gemma4:12b"]      # D3: GBAG runs on local models only
 CLOUD_MODELS = ["anthropic/claude-fable-5", "openai/gpt-5.6-sol", "moonshotai/kimi-k3",
@@ -110,14 +108,13 @@ def user_prompt(q: dict, cols: list[str], shown: list[tuple], n_rows: int, ask: 
 
 
 def prompts() -> list[tuple[dict, str, str]]:
-    qs = {json.loads(l)["id"]: json.loads(l) for l in QUESTIONS.read_text(encoding="utf-8").splitlines() if l.strip()}
-    con = sqlite3.connect(DB)
-    out = []
+    qs = load_questions(ROOT)
+    out, gold = [], {}
     for t in (json.loads(l) for l in TARGETS.read_text(encoding="utf-8").splitlines() if l.strip()):
         q = qs[t["qid"]]
-        cur = con.execute(q["gold_sql"])
-        cols = [d[0] for d in cur.description]
-        rows = cur.fetchall()
+        if t["qid"] not in gold:                # D7: each question on its own database, run once
+            gold[t["qid"]] = run_gold(ROOT, q)
+        cols, rows = gold[t["qid"]]
         for arm in ("A", "B"):
             out.append((t, arm, user_prompt(q, cols, rows[:ROW_CAP], len(rows), t["ask"], arm)))
     return out

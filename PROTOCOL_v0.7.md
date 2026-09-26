@@ -272,6 +272,31 @@ it (owner's decision).**
   - Arm A is unchanged; the other models are unchanged.
 - Unit tests: 31/31. The truths are unchanged; only the `kind` of four targets changes.
 
+**D7 — 2026-09-26 — 25 targets added on the three public databases, before any local
+answer.**
+- **Why.** 12 discriminating targets on one database left a wide margin: about ±25
+  points on a model's GBAG rate.
+- **What is added.** The eight public questions whose result exceeds 200 rows:
+  - `sakila-l7-01`, `l8-01`, `l9-03`, `l10-01`, `l10-02`;
+  - `chinook-l3-01`, `l8-01`;
+  - `northwind-l8-01`.
+  
+  They get 25 targets, with truths computed by the same code on each question's own
+  database: row counts, last days, totals, maxima, zero-days, mean and median.
+- **The target set is now 51:** 34 discriminating, 12 control and 5 same-value. The
+  margin on a model's GBAG rate falls to about ±15 points per run.
+  - `sakila-l9-03`'s top film is a control: its SQL sorts by revenue descending.
+  - The largest daily rental count (sakila) and the largest payment (sakila) are
+    same-value: both happen to fall in the first 200 rows.
+- **Scope of the earlier answers.** The 377 cloud answers cover the 26 ledger targets
+  only; no cloud run is made for the new ones (D3). The local runs cover all 51.
+- **Code.** The questions are read from both question files, and each gold SQL runs on its
+  own database (`scorer/v07/targets.py`: `load_questions`, `run_gold`). Two ops are new,
+  `count_where` and `mean`. The prompts are unchanged; the largest is about 13,600
+  characters, within the 16,384-token window of D5.
+- Frozen with this commit: `data/v07/targets.jsonl` (51 targets), the scorer (31/31) and
+  the generation script.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of

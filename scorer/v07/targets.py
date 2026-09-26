@@ -45,21 +45,81 @@ TARGETS = [
     ("ledger-l10-02", "the median entry amount", "number", ("median", "total_amount")),
     ("ledger-l10-02", "the smallest entry amount", "number", ("min", "total_amount")),
     ("ledger-l10-02", "the document number of the largest entry", "id", ("argmax", "total_amount", "document_number")),
+    # ---- D7 (2026-09-26): truncated results of the three public databases, added before
+    # any local answer is generated
+    ("sakila-l7-01", "the number of customers segmented", "number", ("count",)),
+    ("sakila-l7-01", "the number of customers in the top monetary quintile (M = 5)", "number", ("count_where", "M", 5)),
+    ("sakila-l8-01", "the last day of the calendar (as YYYY-MM-DD)", "date", ("last", "day")),
+    ("sakila-l8-01", "the total number of rentals over the whole calendar", "number", ("sum", "nb")),
+    ("sakila-l8-01", "the highest number of rentals on a single day", "number", ("max", "nb")),
+    ("sakila-l8-01", "the number of days with zero rentals", "number", ("count_where", "nb", 0)),
+    ("sakila-l10-01", "the number of rentals on the last day of recorded activity", "number", ("last", "nb_rentals")),
+    ("sakila-l10-01", "the average number of rentals per day over the whole period", "number", ("mean", "nb_rentals")),
+    ("chinook-l3-01", "the number of tracks in the Rock genre", "number", ("count",)),
+    ("chinook-l8-01", "the last day of the calendar (as YYYY-MM-DD)", "date", ("last", "day")),
+    ("chinook-l8-01", "the total number of invoices over the whole calendar", "number", ("sum", "nb_invoices")),
+    ("chinook-l8-01", "the number of days with zero invoices", "number", ("count_where", "nb_invoices", 0)),
+    ("northwind-l8-01", "the last day of the calendar (as YYYY-MM-DD)", "date", ("last", "day")),
+    ("northwind-l8-01", "the total number of orders over the whole calendar", "number", ("sum", "nb_orders")),
+    ("northwind-l8-01", "the highest number of orders placed on a single day", "number", ("max", "nb_orders")),
+    ("northwind-l8-01", "the number of days with zero orders", "number", ("count_where", "nb_orders", 0)),
+    ("sakila-l9-03", "the title of the film with the highest revenue", "id", ("argmax", "revenue", "title")),
+    ("sakila-l9-03", "the mean revenue per film", "number", ("mean", "revenue")),
+    ("sakila-l9-03", "the median revenue per film", "number", ("median", "revenue")),
+    ("sakila-l9-03", "the number of films with no rental at all", "number", ("count_where", "rentals", 0)),
+    ("sakila-l9-03", "the lowest revenue of any film", "number", ("min", "revenue")),
+    ("sakila-l10-02", "the total cumulative revenue at the last payment", "number", ("last", "running_total")),
+    ("sakila-l10-02", "the number of payments", "number", ("count",)),
+    ("sakila-l10-02", "the date of the last payment (as YYYY-MM-DD)", "date", ("last", "payment_date")),
+    ("sakila-l10-02", "the largest single payment amount", "number", ("max", "amount")),
 ]
 
 # D6: truncated targets whose value the model can know for certain from what it sees. The
 # gold SQL of l10-02 sorts by amount descending, so the largest entry is the first row shown.
-DERIVABLE = {("ledger-l10-02", "the document number of the largest entry")}
+DERIVABLE = {("ledger-l10-02", "the document number of the largest entry"),
+             ("sakila-l9-03", "the title of the film with the highest revenue")}   # ORDER BY revenue DESC
+
+
+QUESTION_FILES = ("data/questions-heldout.jsonl", "data/questions.jsonl")
+
+
+def load_questions(root) -> dict:
+    """Every question the targets may use, by id (held-out ledger + public suite)."""
+    import json
+    from pathlib import Path
+    out = {}
+    for name in QUESTION_FILES:
+        for line in (Path(root) / name).read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                q = json.loads(line)
+                out[q["id"]] = q
+    return out
+
+
+def run_gold(root, q: dict) -> tuple[list[str], list[tuple]]:
+    """The gold SQL on its own frozen database: (columns, every row in query order)."""
+    import sqlite3
+    from pathlib import Path
+    con = sqlite3.connect(Path(root) / "databases" / f"{q['database']}.sqlite")
+    try:
+        cur = con.execute(q["gold_sql"])
+        return [d[0] for d in cur.description], cur.fetchall()
+    finally:
+        con.close()
 
 
 def compute(op: tuple, rows: list[dict]):
     kind = op[0]
     if kind == "count":
         return len(rows)
-    if kind in ("sum", "max", "min", "median", "last", "first"):
+    if kind == "count_where":
+        return sum(1 for r in rows if r[op[1]] == op[2])
+    if kind in ("sum", "max", "min", "median", "mean", "last", "first"):
         vals = [r[op[1]] for r in rows if r[op[1]] is not None]
         if kind == "sum":
             return round(sum(vals), 2)
+        if kind == "mean":
+            return round(statistics.mean(vals), 2)
         if kind == "median":
             return round(statistics.median(vals), 2)
         return {"max": max, "min": min, "last": lambda v: v[-1], "first": lambda v: v[0]}[kind](vals)
