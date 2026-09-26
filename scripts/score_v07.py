@@ -47,11 +47,13 @@ def main() -> int:
             # calls that failed (transport, credits) are not answers: out of every denominator
             disc = [r for r in rs if r["kind"] == "discriminating" and r["class"] != "error"]
             ctrl = [r for r in rs if r["kind"] == "control" and r["class"] != "error"]
+            same = collections.Counter(r["class"] for r in rs if r["kind"] == "same_value" and r["class"] != "error")
             c = collections.Counter(r["class"] for r in disc)
             pct = lambda k: f"{100 * c[k] / len(disc):.0f} %" if disc else "—"
             ok = sum(r["class"] == "correct" for r in ctrl)
             print(f"{model:34} {run:>3} | {pct('gbag_failure'):>9} {pct('honest'):>7} {pct('correct'):>7} "
                   f"{pct('wrong'):>6} {pct('format'):>6} | {ok:>4}/{len(ctrl):<5}  n_disc {len(disc)}"
+                  f"  same-value lucky {same['lucky']} honest {same['honest']} wrong {same['wrong']}"
                   + (f"  errors {sum(r['class'] == 'error' for r in rs)}" if any(r['class'] == 'error' for r in rs) else ""))
     return 0
 

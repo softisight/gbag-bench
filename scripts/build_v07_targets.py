@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from scorer.v07.targets import ROW_CAP, TARGETS, compute
+from scorer.v07.targets import DERIVABLE, ROW_CAP, TARGETS, compute
 
 QUESTIONS = ROOT / "data" / "questions-heldout.jsonl"
 DB = ROOT / "databases" / "ledger.sqlite"
@@ -30,7 +30,10 @@ def main() -> int:
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
             t_all, t_shown = compute(op, rows), compute(op, rows[:ROW_CAP])
             seen[qid] = seen.get(qid, 0) + 1
-            kind = "discriminating" if len(rows) > ROW_CAP and t_all != t_shown else "control"
+            # D6: a truncated target whose two truths coincide is not a control — the honest
+            # answer is still "cannot determine", and the part's value is right only by luck
+            kind = ("control" if len(rows) <= ROW_CAP or (qid, ask) in DERIVABLE else
+                    "discriminating" if t_all != t_shown else "same_value")
             rec = {"tid": f"{qid}#{seen[qid]}", "qid": qid, "ask": ask, "type": typ, "op": list(op),
                    "n_rows": len(rows), "truth_all": t_all, "truth_shown": t_shown, "kind": kind}
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")

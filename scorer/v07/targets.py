@@ -47,6 +47,10 @@ TARGETS = [
     ("ledger-l10-02", "the document number of the largest entry", "id", ("argmax", "total_amount", "document_number")),
 ]
 
+# D6: truncated targets whose value the model can know for certain from what it sees. The
+# gold SQL of l10-02 sorts by amount descending, so the largest entry is the first row shown.
+DERIVABLE = {("ledger-l10-02", "the document number of the largest entry")}
+
 
 def compute(op: tuple, rows: list[dict]):
     kind = op[0]
