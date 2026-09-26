@@ -1,8 +1,8 @@
 """Step 3/4 — the questions scored by Jev, and the thresholds that turn scores into choices.
 
 Jev only scores options written here. Its state never contains the data, the truncation,
-or any judge output. A choice is kept only at >= 0.80 with a >= 0.10 lead; otherwise it
-is uncertain (PROTOCOL_v0.6_JUDGE.md, step 4).
+or any judge output. A choice is kept only when Jev's `confidence` is >= 0.70 and the top
+option leads by >= 0.10; otherwise it is uncertain (PROTOCOL_v0.6_JUDGE.md, step 4 and V3).
 """
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 
 MODEL = "typesafe/jev-1.13"
 URL = "https://openrouter.ai/api/alpha/decisions"
-ACCEPT_P, ACCEPT_MARGIN = 0.80, 0.10
-ON_Q_YES, ON_Q_NO = 0.80, 0.20
+ACCEPT_CONF, ACCEPT_MARGIN = 0.70, 0.10     # V3: Jev's `confidence`, not the top probability
+ON_Q_YES, ON_Q_NO = 0.80, 0.10              # V3: "not bearing" only at <= 0.10
 CACHE_DIR = Path(__file__).resolve().parents[2] / "runs" / "v0.6" / "cache"
 
 FAMILIES = {
@@ -51,14 +51,46 @@ def questions(columns: list[str]) -> dict:
     }
 
 
+SAMPLES = 3     # PROTOCOL_v0.6 V3: median of 3 calls per figure
+
+
 def ask(question: str, context: str, sentence: str, figure: str, columns: list[str]) -> tuple[dict, dict]:
-    """(answers, metadata). Development cache on unless GBAG_V06_NO_CACHE=1."""
+    """(answers, metadata): the per-option MEDIAN of SAMPLES independent calls.
+
+    Two identical calls return probabilities up to ~0.03 apart; with scores sitting on the
+    0.80 threshold, one verdict in 37 flipped between passes (development, 2026-09-26). The
+    median of 3 halves that noise; the thresholds then apply to the median."""
+    import statistics
+    runs, metas = [], []
+    for k in range(SAMPLES):
+        a, m = _ask_once(question, context, sentence, figure, columns, k)
+        runs.append(a)
+        metas.append(m)
+    merged: dict = {}
+    for q in runs[0]:
+        base = dict(runs[0][q])
+        if base.get("type") == "choice":
+            opts = set().union(*[(r[q].get("probabilities") or {}).keys() for r in runs])
+            probs = {o: statistics.median([(r[q].get("probabilities") or {}).get(o, 0.0) for r in runs]) for o in opts}
+            base["probabilities"] = probs
+            base["choice"] = max(probs, key=probs.get)
+            base["confidence"] = statistics.median([r[q].get("confidence", 0.0) for r in runs])
+        elif base.get("type") == "noul":
+            base["noul"] = statistics.median([r[q].get("noul", 0.5) for r in runs])
+        merged[q] = base
+    return merged, {"model": metas[0].get("model"), "cost": sum(m.get("cost") or 0 for m in metas),
+                    "samples": SAMPLES}
+
+
+def _ask_once(question: str, context: str, sentence: str, figure: str, columns: list[str],
+              sample: int) -> tuple[dict, dict]:
+    """One call. Development cache on unless GBAG_V06_NO_CACHE=1 (keyed per sample index)."""
     import requests
     body = {"model": MODEL,
             "state": {"question_asked": question, "previous_sentence": context or "(none)",
                       "sentence": sentence, "figure_under_review": figure, "result_columns": columns},
             "questions": questions(columns)}
-    key = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
+    key = hashlib.sha256(json.dumps([body, sample], sort_keys=True).encode()).hexdigest()
     cached = CACHE_DIR / f"{key}.json"
     if not os.environ.get("GBAG_V06_NO_CACHE") and cached.exists():
         data = json.loads(cached.read_text(encoding="utf-8"))
@@ -81,7 +113,10 @@ def ask(question: str, context: str, sentence: str, figure: str, columns: list[s
 
 
 def accepted(answer: dict | None) -> str | None:
-    """The choice if it clears 0.80 with a 0.10 lead, else None (uncertain)."""
+    """The choice if Jev's confidence is >= 0.70 and the top option leads by >= 0.10, else
+    None (uncertain). `confidence` measures how concentrated the distribution is: a top
+    option at 0.60 with its mass spread over the others scores lower than one at 0.60 with
+    a single rival (V3)."""
     if not answer or answer.get("type") != "choice":
         return None
     probs = sorted((answer.get("probabilities") or {}).items(), key=lambda kv: -kv[1])
@@ -89,11 +124,13 @@ def accepted(answer: dict | None) -> str | None:
         return None
     top = probs[0][1]
     second = probs[1][1] if len(probs) > 1 else 0.0
-    return probs[0][0] if top >= ACCEPT_P and top - second >= ACCEPT_MARGIN else None
+    conf = answer.get("confidence") or 0.0
+    return probs[0][0] if conf >= ACCEPT_CONF and top - second >= ACCEPT_MARGIN else None
 
 
 def bears_on_question(answer: dict | None) -> bool:
-    """p >= 0.80 yes; p <= 0.20 no; in between counts as bearing (the conservative side)."""
+    """p <= 0.10 does not bear; anything above counts as bearing (the conservative side:
+    a condemnation stays material in doubt)."""
     p = (answer or {}).get("noul")
     if p is None:
         return True

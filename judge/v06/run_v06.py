@@ -59,6 +59,7 @@ def judge_answer(q: dict, answer: str, mode: str) -> dict:
                 scope, src = scope_of(c.text, jev.accepted(ans.get("scope")), decl)
                 on_q = jev.bears_on_question(ans.get("on_question"))
                 scores = {k: (v.get("probabilities") or v.get("noul")) for k, v in ans.items()}
+                scores["confidence"] = {k: v["confidence"] for k, v in ans.items() if "confidence" in v}
                 fam_src = "jev" if family else "jev uncertain"
             else:
                 family, column, reference = lex.family_of(u), None, None
@@ -93,8 +94,8 @@ def main() -> int:
         answers = [a for a in answers if a["id"] == args.only]
     config = {"judge": "gbag-v0.6", "version": VERSION, "mode": args.mode,
               "jev_model": jev.MODEL if args.mode == "jev" else None,
-              "thresholds": {"accept_p": jev.ACCEPT_P, "margin": jev.ACCEPT_MARGIN,
-                             "on_question": [jev.ON_Q_NO, jev.ON_Q_YES]},
+              "thresholds": {"accept_confidence": jev.ACCEPT_CONF, "margin": jev.ACCEPT_MARGIN,
+                             "on_question_not_bearing_at_most": jev.ON_Q_NO, "samples": jev.SAMPLES},
               "triggers_sha256": hashlib.sha256(TRIGGERS_FILE.read_bytes()).hexdigest()[:16],
               "dataset": args.dataset, "answers": args.answers}
     out = Path(args.output)
