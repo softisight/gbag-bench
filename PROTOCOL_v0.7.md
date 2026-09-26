@@ -297,6 +297,12 @@ answer.**
 - Frozen with this commit: `data/v07/targets.jsonl` (51 targets), the scorer (31/31) and
   the generation script.
 
+**D8 — 2026-09-26 — `qwen3.6:latest` replaced by `qwen3.8:27b` (owner's decision).**
+- `qwen3.6:latest` is not installed on the GPU box; `qwen3.8:27b` is. The owner chose
+  to use it rather than download the older model.
+- The local models are therefore `gemma4:12b` (as pre-registered) and `qwen3.8:27b`.
+  The v0.4 corpus build `qwen3.6` is no longer measured in v0.7.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
