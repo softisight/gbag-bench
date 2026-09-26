@@ -47,9 +47,28 @@ def load(p: Path) -> list[dict]:
 
 
 def main() -> int:
+    # --name / --exclude (2026-09-26, PROTOCOL_v0.6): a later sealed set excludes every
+    # answer already read, earlier sealed sets included. Defaults reproduce the v0.5 draw.
+    import argparse
+    global OUT, README
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--name", default="test-v05")
+    ap.add_argument("--exclude", action="append", default=[], help="answers file whose ids are excluded")
+    args = ap.parse_args()
+    if args.name != "test-v05":
+        OUT = ROOT / "data" / "sealed" / args.name
+        README = (README.replace("test set of the v0.5 verifying judge", f"test set {args.name}")
+                        .replace("v0.5 judge is frozen", "judge it tests is frozen")
+                        .replace("Drawn on 2026-09-25", "Drawn on 2026-09-26")
+                        .replace("before any v0.5 design work", "before any code of the judge it tests")
+                        .replace("PROTOCOL_v0.4.md, deviation D12", "see the protocol that names this set")
+                        .replace("recorded in PROTOCOL_v0.4.md (D12)", "recorded in the protocol that names this set")
+                        .replace("the v0.5 judge is frozen", "the judge it tests is frozen"))
     qs = {q["id"]: q for q in load(ROOT / "data" / "questions-heldout.jsonl")}
     reserve = {tuple(a["id"].split("__", 1)) for a in load(ROOT / "data" / "answers-reserve.jsonl")}
     excluded = TUNING | reserve
+    for f in args.exclude:
+        excluded |= {tuple(a["id"].split("__", 1)) for a in load(ROOT / f)}
 
     cands = []
     for path in sorted((ROOT / "runs").glob("*-heldout.jsonl")):
