@@ -370,3 +370,38 @@ v0.5, these are development numbers on cases iterated on: they establish readine
 - Its one error is `kimi-k3__ledger-l8-01`: J6 scores it faithful on all 5 passes, but it
   is false. The answer contains the claim "the lows are progressively higher each year",
   the kind of strong claim v0.6 refuses to acquit.
+
+## Test result — v0.6.0 NOT accepted (2026-09-26)
+
+Measured on `data/sealed/test-v06/` after the verdicts were committed (c759696) and the
+evaluation script was committed (da8539b), with `scripts/eval_v06_test.py`. Of the 15
+answers, 12 are counted: 1 is `unfaithful_minor` and 2 are `disputed`, all excluded.
+
+| criterion | v0.6-jev | v0.6-lex |
+|---|---|---|
+| 1. undecided ≤ 20 % | **5/12 = 42 % — FAIL** | 4/12 = 33 % — FAIL |
+| 2. accuracy on decided ≥ J6 | 5/7 = 71 % — open (J6 not run: GPU box unavailable) | 6/8 = 75 % — open |
+| 3. no condemnation without proof | 0 — PASS | 0 — PASS |
+| 4. five identical passes | yes — PASS | yes — PASS |
+
+- **Stability holds.** Five uncached passes gave identical verdicts: V3 worked.
+- **Jev:** dated version `typesafe/jev-1.13-20260917`, the same as on development.
+  Cost of the five passes: 0.127 USD.
+- **The two errors of v0.6-jev:**
+  - **test-03 wrongly condemned** (a faithful answer). "A peak of €49,861.49 on
+    2023-06-26, then another dip to ~€23,366 by late July" describes local extremes at
+    named dates. Jev scored them `maximum` / `minimum`. The point rule was blocked because
+    "peak" is an aggregate word, and the refutability rule let "A peak" through as a
+    superlative. This is the local-peak failure v0.5 already had, in another form.
+  - **test-11 wrongly acquitted** (a false answer). The false claim, "revenue more than
+    doubled", carries no figure. v0.6 does not judge such sentences, and the strong-claim
+    rule does not list "doubled". The 24 true figures acquitted the answer.
+- **Undecided:** 5 answers. Three are for reasons in the code: a subset it cannot recompute
+  (test-04, test-05) and a strong claim without a figure (test-09). Two are a local extreme
+  without a superlative (test-07) and a percentage with no fact (test-01).
+- **For reference:** J2 (`deepseek-v4.1-flash`) scores 10.2/12 per pass, with 2
+  self-contradictions. As the secondary configuration's information column, J2 decides 4 of
+  the 5 answers v0.6-jev leaves undecided, all 4 right.
+
+v0.6.0 is frozen and stays as measured. Any correction of the two failures above is a new
+judge, to be measured on a new sealed set.
