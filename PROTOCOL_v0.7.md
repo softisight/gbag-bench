@@ -193,6 +193,13 @@ scorer.**
   unreliable; only the account total is.
 - **Unchanged:** the classes of `scorer/v07/score.py`, the targets and the answers.
 
+**D3 — 2026-09-26 — from now on, v0.7 runs on local models only (owner's decision).**
+- The 377 cloud answers stay published as the partial result below.
+- Every further run uses local models through Ollama, with the same prompts and scorer
+  (`scripts/generate_v07.py --provider ollama`): `qwen3.6:latest` and `gemma4:12b` first,
+  then other local models.
+- **Why:** GBAG is aimed at the local-model community, and the cloud budget is spent.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
