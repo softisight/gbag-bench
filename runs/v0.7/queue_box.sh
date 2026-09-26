@@ -20,7 +20,7 @@ import json,sys
 names=[m['name'] for m in json.load(sys.stdin)['models'] if '$1' in m['name'].lower()]
 print(names[0] if names else '')"
 }
-for want in bonsai spark; do
+for want in bonsai spark-x; do
   name=""
   for i in $(seq 1 360); do name=$(tag "$want"); [ -n "$name" ] && break; sleep 60; done
   if [ -z "$name" ]; then log "$want introuvable sur la box après 6 h : sauté"; continue; fi

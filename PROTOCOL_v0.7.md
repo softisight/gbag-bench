@@ -320,6 +320,21 @@ answer.**
 - **Resume.** A call that fails while the box is unreachable is retried at relaunch; its
   error row stays in the file, scored `error` (out of every denominator).
 
+**D10 — 2026-09-26 — reasoning OFF for the local models (owner's decision).**
+- **What happened.** The local caller did not set Ollama's `think` field, so each model
+  ran with its runtime default: reasoning on for `gemma4:12b`. At temperature 0, 5 of its
+  first 9 answers looped in their reasoning until the 16,384-token context was full
+  (about 7 minutes each) and came back empty. The 4 answers that completed used at most
+  1,709 tokens. This was not flagged before launch, and no test call had been made.
+- **What changes.** Local calls send `"think": false`, recorded in every answer
+  (`served.think`). A test call per model (l3-01 and l10-01, arm A) returned a block
+  in 3–21 s, with no reasoning and no empty answer.
+- **The 9 reasoning answers** of `gemma4:12b` are kept apart
+  (`runs/v0.7/answers-thinking/`) and are not scored with the others.
+- **Consequence to report.** The cloud models ran with their provider's default
+  reasoning, the local ones without. The two groups are reported with this difference
+  stated.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of

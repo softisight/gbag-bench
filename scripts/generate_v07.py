@@ -69,14 +69,16 @@ def call_ollama(system: str, user: str, model: str) -> tuple[str, int | None, in
     """Ollama /api/generate with an explicit context window (baseline_runner's caller sets
     none, and the 200-row prompts exceed Ollama's default)."""
     host = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
-    payload = {"model": model, "prompt": user, "system": system, "stream": False,
+    # D10: reasoning OFF for local models. Left at the runtime default, gemma4:12b looped
+    # in its reasoning until the context was full (5 answers in 9, empty) at temperature 0.
+    payload = {"model": model, "prompt": user, "system": system, "stream": False, "think": False,
                "options": {"temperature": 0, "num_ctx": NUM_CTX}}
     req = urllib.request.Request(f"{host}/api/generate", data=json.dumps(payload).encode("utf-8"),
                                  headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT_S) as r:
         data = json.loads(r.read().decode("utf-8"))
     tin, tout = data.get("prompt_eval_count"), data.get("eval_count")
-    meta = {"num_ctx": NUM_CTX, "thinking_chars": len(data.get("thinking") or ""),
+    meta = {"num_ctx": NUM_CTX, "think": False, "thinking_chars": len(data.get("thinking") or ""),
             "context_full": bool(tin and tin >= NUM_CTX - 8)}
     return (data.get("response") or "").strip(), tin, tout, meta
 
