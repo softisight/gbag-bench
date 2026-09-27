@@ -1,8 +1,37 @@
 # Contributing to GBAG-Bench
 
-Thanks for considering a contribution. The most valuable contributions are **new model results** added to the leaderboard, but bug reports, dataset fixes, and metric discussions are equally welcome.
+Thanks for considering a contribution. The most valuable contributions are **new model results**, but bug reports, dataset fixes, and metric discussions are equally welcome.
 
-## Adding a new model result to the leaderboard
+## Adding a model result to v0.7 (current)
+
+v0.7 is scored by code, so a result needs no judge of your own.
+
+```bash
+git clone https://github.com/softisight/gbag-bench
+cd gbag-bench
+pip install -r requirements.txt
+
+# 1. Generate the declared answers (both prompt variants, 51 targets)
+OLLAMA_HOST=http://localhost:11434 python scripts/generate_v07.py --models <ollama-model> --runs 1
+
+# 2. Score them, then print the tables
+python scripts/score_v07.py
+python scripts/table_v07.py
+```
+
+- Commit the answer files that step 1 writes in `runs/v0.7/answers/`, unchanged, and open
+  a Pull Request. State the model, its quantization, the hardware, and whether reasoning
+  was on or off.
+- The narrow question (step 4 of the README) is run by the maintainers, with the same
+  reader for every model. Your "code only" score is final as you compute it; the GBAG
+  score is published after that step.
+- A call that failed is reported as failed. It is never replaced by another model's
+  answer.
+
+## Adding a model result to the v0.2 leaderboard (historical)
+
+The v0.2 leaderboard is scored by an LLM judge and is kept for the record
+([LEADERBOARD.md](LEADERBOARD.md)). The steps below apply to it only.
 
 ### Step 1 — Clone and install
 
@@ -37,7 +66,7 @@ python judge/run_judge.py \
 
 A frontier judge is required for fair scoring. **Do not judge a model with itself.**
 
-For v0.2 leaderboard comparability, score with the uniform reference judge (Grok-4.3 via OpenRouter — see the README Quick start). Dual-judge submissions are strongly preferred: run a second judge from a different vendor and report both (inter-judge variance is a known factor, see Finding #3 in the README).
+For v0.2 leaderboard comparability, score with the uniform reference judge (Grok-4.3 via OpenRouter: `--judge openrouter --model x-ai/grok-4.3`). Dual-judge submissions are strongly preferred: run a second judge from a different vendor and report both (inter-judge variance is a known factor, see Finding #3 in the README).
 
 **Two additions, from measurements taken after v0.2 was published** — see [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md):
 

@@ -20,6 +20,9 @@ What IS given, because it is truth and not opinion: the question, the SQL, the s
 result and of the part the model saw, and column facts computed from the database at both
 scopes, plus the database itself to query.
 
+The text of the package is in French, the arbiter's language. It is kept as the arbiter
+received it.
+
 Usage (repo root):
     python scripts/build_arbitration_sheet.py            # -> arbitration-reserve/
 """

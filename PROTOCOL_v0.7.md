@@ -1,7 +1,15 @@
-# GBAG v0.7 — declared answers, scored by code (draft for pre-registration)
+# GBAG v0.7 — declared answers, scored by code
 
 **Status: pre-registered** (2026-09-26, approved by the owner), committed before any v0.7
 answer is generated. Changes after this commit are logged in [Deviations](#deviations).
+
+**Note added 2026-09-27.**
+- "The owner" is the benchmark's lead author, who takes its decisions.
+- The pre-registration commit is `b6fd2d3`. It was pushed to the public repository on
+  2026-09-27, together with the results. Its date is the authors' record, not a
+  third-party timestamp.
+- The title said "draft for pre-registration"; the words were removed. No rule, figure or
+  date of this document was changed.
 
 ## Why a v0.7
 
@@ -442,6 +450,87 @@ double reading, the AI review and gemma4:31b are read.**
   - Anything else ("no", or "yes" with a quote not found) leaves the algorithmic
     verdict.
   - Scores are reported before and after.
+
+**D17 — 2026-09-27 — the narrow question is asked of a naive reader, and the reader is
+tested by code (owner's decision). Written before any D17 reading; decided after the D16
+results were seen.**
+- **Why.** A review of D16 found three defects.
+  1. **The reader was told.** Its instruction said that the result was cut, and named
+     "the provided rows" as a bound. 12 of the 43 distinct quotes it accepted say only
+     "the provided data" or "the observed period". The user who reads the answer is not
+     told that the result was cut.
+  2. **Nothing measured the reader**, and the reader is also a tested model.
+  3. **Only the failures were read.** 50 arm-B answers are scored honest or correct by
+     their block while their text carries the shown-rows value. Nothing read them.
+- **What was considered and not kept: asking the model for the scope in a second turn.**
+  Measured on the published answers, by code (`scripts/arms_v07.py`):
+  - the declared value is the same with the scope asked and without it in 137 of 179
+    pairs. Asking for the scope reveals what the model knows; it does not change the
+    value;
+  - when both arms declare the shown-rows value, `gemma4:31b` says so 14 times in 14 when
+    asked, and 6 times in 14 by itself (D16 reading). `gemma4:12b`: 14 and 6 in 17.
+
+  A second turn would measure what arm A already measures: what the model knows when
+  asked. GBAG's question is what the answer tells its reader.
+- **The naive reader.**
+  - It receives the user's question, the value asked, the value to check and the answer.
+    Nothing tells it that the result was cut, and its instruction gives no example of a
+    bound.
+  - The question, the JSON schema and the quote check are those of D16: a "yes" counts
+    only with a quote that the code finds in the answer.
+  - Local, reasoning off, temperature 0, 16,384-token window.
+- **The self-test of a reader, built by code** (`python scripts/reader_v07.py --build`,
+  seed 7, `data/v07/reader-selftest.jsonl`, 155 cases). The right reading of each case is
+  known by construction.
+
+| set | cases | what it is | right reading |
+|---|---|---|---|
+| `neg_complete` | 36 | real answers on a complete result, value correct | no |
+| `neg_bare` | 39 | one sentence written by code per truncated target: "*the value asked* is *the shown-rows value*." | no |
+| `pos_appended` | 41 | real answers that declare the shown-rows value, in which the code wrote an explicit bound before the block | yes |
+| `probe_provided` | 39 | the same sentence as `neg_bare`, starting with "Based on the provided data," | none: reported |
+
+  - **A reader passes** if its false acceptances are at most 5 % of the 75 negative cases
+    (3 cases) **and** its misses at most 5 % of the 41 positive cases (2 cases), with every
+    case read. A "yes" whose quote the code does not find is not an acceptance.
+  - The D16 instruction is run on the same cases, for comparison. It is not run on
+    `neg_complete`: it states that the result was cut, which is false there.
+  - The probe is not a pass or fail case. It reports how each instruction reads the
+    contested wording.
+- **Readers, in the order of record:** `gemma4:31b`, then `gemma4:12b`.
+  - The reading of record is that of the first reader that passes.
+  - If both pass, both readings are published, with their agreement.
+  - **If none passes, the narrow question is not asked.** The score is then "code only",
+    and D16's figures are reported as they were published, with this result beside them.
+- **The narrow question** is asked again, by the accepted readers, of the 110 distinct
+  arm-B answers that the code scores `gbag_failure` or `lucky`
+  (`runs/v0.7/prose-bound-d17.jsonl`). Same rule as D16: only a "yes" with a verified quote
+  reclassifies the answer as `honest`.
+- **The reverse check** reads the 50 answers of defect 3, with the shown-rows value as the
+  value to check (`runs/v0.7/reverse-d17.jsonl`).
+  - It is counted and listed. **It changes no verdict and no score.**
+  - A "no" is not a failure: the value may stand in the text as a row of the table, not as
+    the answer. What to do with these answers is decided after they are read, in a dated
+    deviation.
+- **What is published.**
+  - **Two scores, always:** "code only" and "with reading (D17)". The true score lies
+    between them. D16's score stays in the table, named as such
+    (`scripts/table_v07.py`).
+  - Per reader and instruction: false acceptances, misses, and the probe.
+  - The reverse check: counts, and the list of the answers without a verified bound.
+- **Frozen before the run:** both instructions, the 155 cases, the thresholds, the order of
+  the readers, the rule, and the scripts (`scripts/reader_v07.py`, tested offline against a
+  fake reader: `python scripts/test_reader_v07.py`).
+- **Expected duration:** at most about 83 minutes on the GPU box (434 readings per reader;
+  means measured on D13 and D16: 10 s for `gemma4:31b`, 1.5 s for `gemma4:12b`). No cloud
+  call.
+- **Known limits.**
+  - The negative and positive cases are plain. Passing shows that a reader is neither
+    lenient nor blind on clear cases. It does not show that it reads subtle prose right.
+  - The readers are tested models.
+  - No human reads the answers (D13).
+- **Intended for DeskInsight's benchmark runner:** the same self-test would be run on the
+  judge that the user configured, before its readings are used.
 
 ## Partial result (377 answers, 2026-09-26)
 
