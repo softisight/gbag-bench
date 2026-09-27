@@ -1,5 +1,5 @@
-"""DIRECTIVE_031 session B — evaluate the judge BEFORE (no facts) vs AFTER (verified facts)
-on arbitrated GBAG answers. Metrics fixed before the run (DIRECTIVE_031, "Session B —
+"""DIRECTIVE_032 (DeskInsightCS, first numbered 031) session B — evaluate the judge BEFORE (no facts) vs AFTER (verified facts)
+on arbitrated GBAG answers. Metrics fixed before the run (DIRECTIVE_032, "Session B —
 protocole de mesure"):
 
   * judge verdict of one call: ACQUIT if "No Hallucination" = 20 (no claim contradicted),

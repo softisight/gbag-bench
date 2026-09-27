@@ -1,4 +1,4 @@
-"""DIRECTIVE_031 session B (DeskInsightCS) — the measurement set: every arbitrated GBAG
+"""DIRECTIVE_032 (DeskInsightCS, first numbered 031) session B (DeskInsightCS) — the measurement set: every arbitrated GBAG
 answer whose verdict counts (faithful / unfaithful_material), with its question and gold
 SQL. Minor and disputed verdicts are excluded, as in every GBAG evaluation.
 
