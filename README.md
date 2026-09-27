@@ -75,45 +75,93 @@ judges built from code and small models. **None was reliable enough** (see
    The score is reported with its two parts: **accuracy** (complete results) and
    **faithfulness** (truncated results).
 
-Every verdict is reproducible: same answer, same verdict. No human arbitration, no free-
-text judgment. The full protocol, pre-registered and with every deviation dated (D1–D16),
-is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md).
+Every verdict is reproducible: same answer, same verdict. No human arbitrates a verdict.
+The only free-text reading left is step 4, and it changes a verdict only through a quote
+that the code finds in the answer.
+
+The full protocol is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md). It was committed before any
+v0.7 answer was generated (`b6fd2d3`), and every later change is a dated deviation
+(D1–D17). Several deviations were decided after results had been seen (D4, D6, D11, D16),
+and say so. The commits were pushed to this repository on 2026-09-27, together with the
+results: their dates are the authors' record, not a third-party timestamp.
 
 ## Results (v0.7)
 
 Headline condition: the model is told the result is truncated (`RESULT (first 200 of N rows
-shown)`), and asked only for the value — no hint about scope.
+shown)`), and asked only for the value — no hint about scope. One run per model (run 1).
+Both tables are printed by `python scripts/table_v07.py`.
 
-| Model | Where | Targets | **GBAG score** | GBAG failure rate | Score with scope declared |
-|---|---|---|---|---|---|
-| `openai/gpt-5.6-sol` | cloud | 26 | **100** | 0 % | 100 |
-| `anthropic/claude-fable-5` | cloud | 18 (partial) | **100** | 0 % | 100 |
-| `moonshotai/kimi-k3` | cloud | 26 | **100** | 0 % | 100 |
-| `gemma4:31b` | local | 51 | **59** | 26 % | 86 |
-| `qwen/qwen3-coder` (480B) | cloud | 26 | **58** | 42 % | 81 |
-| `gemma4:12b` | local | 51 | **55** | 38 % | 75 |
-| `SparkLLM/Spark-X2.5-4B` | local | 51 | **39** | 21 % | 53 |
-| Bonsai 27B 1-bit (`MichelRosselli/bonsai-27b:Q1_0`) | local | 51 | **33** | 38 % | 35 |
+**Every model, on the same targets: the 26 ledger targets.** The cloud answers cover
+these targets only, so this is the table that compares all the models. 11 targets are
+complete-result controls and 15 are truncated; 12 of the 15 are discriminating.
+
+| Model | Where | Answers | Score, code only | **GBAG score** | Accuracy | Faithfulness | GBAG failure rate | Score with scope declared |
+|---|---|---|---|---|---|---|---|---|
+| `openai/gpt-5.6-sol` | cloud | 26 | 92 | **100** | 11/11 | 15/15 | 0 % | 100 |
+| `moonshotai/kimi-k3` | cloud | 26 | 81 | **100** | 11/11 | 15/15 | 0 % | 100 |
+| `anthropic/claude-fable-5` | cloud | 18 (partial) | 89 | **100** | 10/10 | 8/8 | 0 % | 100 |
+| `gemma4:31b` | local | 26 | 54 | **77** | 11/11 | 9/15 | 33 % | 92 |
+| `gemma4:12b` | local | 26 | 50 | **73** | 11/11 | 8/15 | 42 % | 77 |
+| `qwen/qwen3-coder` (480B) | cloud | 26 | 50 | **58** | 11/11 | 4/15 | 42 % | 81 |
+| `SparkLLM/Spark-X2.5-4B` | local | 26 | 42 | **50** | 7/11 | 6/15 | 25 % | 65 |
+| Bonsai 27B 1-bit (`MichelRosselli/bonsai-27b:Q1_0`) | local | 26 | 42 | **46** | 10/11 | 2/15 | 58 % | 50 |
+
+**The local models, on all 51 targets** (four databases). 12 targets are controls and 39
+are truncated; 34 of the 39 are discriminating.
+
+| Model | Score, code only | **GBAG score** | Accuracy | Faithfulness | GBAG failure rate | Score with scope declared |
+|---|---|---|---|---|---|---|
+| `gemma4:31b` | 39 | **59** | 12/12 | 18/39 | 26 % | 86 |
+| `gemma4:12b` | 35 | **55** | 12/12 | 16/39 | 38 % | 75 |
+| `SparkLLM/Spark-X2.5-4B` | 35 | **39** | 7/12 | 13/39 | 21 % | 53 |
+| Bonsai 27B 1-bit | 31 | **33** | 11/12 | 6/39 | 38 % | 35 |
+
+**The columns.**
+- **Score, code only**: the score after step 3, before any quote is read.
+- **GBAG score**: the score after step 4.
+- **Accuracy**: points on the controls. **Faithfulness**: points on the truncated targets.
+- **GBAG failure rate**: the share of discriminating targets where the part is stated as
+  the whole, after step 4.
+- **Score with scope declared**: the same score when the block also asks which rows the
+  value covers.
+
+The two tables are not comparable with each other: the share of controls differs (11 of
+26 against 12 of 51), and so do the databases.
 
 **How to read it.**
-- **Frontier cloud models do not fall into the trap.** They state the limit in their
-  prose, and the narrow question gives them the credit.
-- **Local models do.** They state the part as the whole on 21–38 % of the truncated
+- **On the same 26 targets, the three frontier cloud models never state the part as the
+  whole.** They state the limit in their prose, and step 4 gives them the credit. Before
+  step 4 they score 81 to 92.
+- **The four local models and `qwen3-coder` do**, on 25–58 % of the discriminating ledger
   targets.
-- **Declaring the scope is a strong mitigation.** Asking the model which rows its value
-  covers lifts `gemma4:12b` from 55 to 75, and `gemma4:31b` from 59 to 86.
-- **Accuracy is not the issue.** The two gemma models compute every complete result
+- **Declaring the scope is a strong mitigation.** On the 51 targets, asking the model
+  which rows its value covers lifts `gemma4:12b` from 55 to 75, and `gemma4:31b` from 59
+  to 86.
+- **Accuracy is not the issue for the gemma models.** They compute every complete result
   correctly (12/12); what fails is the step from "what I saw" to "what is true".
 
 **Read with these limits.**
-- The cloud models ran with their provider's default reasoning; the local models ran on
-  a single RTX 3060 (12 GB), reasoning off. Left on, `gemma4:12b` looped in its reasoning
-  at temperature 0 and returned empty answers.
-- The cloud runs are partial (the ledger targets only), because the budget ran out.
-  Further runs are local only.
-- 34 discriminating targets give about ±15 points of uncertainty per model: the table
-  separates 100 from 55, not 55 from 59.
-- The narrow-question reader (`gemma4:31b`) is also a tested model.
+- **Reasoning differs.** The cloud models ran with their provider's default reasoning;
+  the local models ran on a single RTX 3060 (12 GB), reasoning off. Left on, `gemma4:12b`
+  looped in its reasoning at temperature 0 and returned empty answers. The gap between
+  the two groups includes this difference.
+- **The cloud runs are partial** (the ledger targets only, and 18 answers for
+  `claude-fable-5`), because the budget ran out. Further runs are local only.
+- **The margins are wide.** 12 discriminating targets give about ±25 points on a failure
+  rate, and 34 give about ±15. The first table separates 100 from 50, not 73 from 77.
+  These margins assume independent targets, and the 34 come from 13 questions.
+- **Step 4 can only raise a score**: it reads the answers marked as failures, never the
+  others.
+- **The quote check proves that the sentence is in the answer.** Whether the sentence is
+  a warning remains the reader's call. 12 of the 43 distinct accepted quotes say only
+  "the provided data" or "the observed period", which does not name the truncation. They
+  concern `gemma4:12b`, `gemma4:31b` and `qwen3-coder`, and none of the three frontier
+  models. The "code only" column is the score without any quote.
+- **The reader of step 4 (`gemma4:31b`) is also a tested model**: it read its own
+  answers.
+- **A stricter step 4 is registered and not run yet** (D17): a reader that is not told
+  that the result was cut, and that must first pass a self-test built by code. Its results
+  will be published beside these, whatever they are.
 
 Per-answer classes: [`runs/v0.7/scores.jsonl`](runs/v0.7/scores.jsonl). Narrow-question
 quotes: [`runs/v0.7/prose-bound.jsonl`](runs/v0.7/prose-bound.jsonl).
@@ -121,17 +169,21 @@ quotes: [`runs/v0.7/prose-bound.jsonl`](runs/v0.7/prose-bound.jsonl).
 ### How far can the verdicts be trusted?
 
 The truths come from SQL, so the only step that can err is **reading** what the model
-declared. We checked it with AIs only:
+declared. Two checks were made, both with an AI reader:
 
-- **Blind double reading** of a 204-answer sample by a second model. It gave 17
-  disagreements, and every one was examined. None was a misreading by the code: 11 were
-  reader errors, and 6 were answers that omit the `value:` label, which the protocol
-  counts as format failures.
+- **Blind double reading** of a 204-answer sample by a second model (`gemma4:12b`).
+  - The two readings agree on 187 answers, 91.7 %. This is below the 95 % threshold set
+    in advance (D13), so the full set was not double-read. The rule that would have set
+    aside the unconfirmed answers (D15) is therefore not applied: the scores above count
+    every answer.
+  - The 17 disagreements were examined one by one. None was a misreading by the code: 11
+    were reader errors, and 6 were answers that omit the `value:` label, which the
+    protocol counts as format failures.
 - **An AI review** of the same sample found one real blind spot, the bound stated in
-  prose. The narrow question with a verified quote now closes it. The same review also
-  showed that a small reviewer (`gemma4:12b`) raises too many false flags to be trusted on
-  its own. That is why an AI may re-classify a verdict only through a quote the code can
-  check.
+  prose. Step 4 was added for it (D16), after the results had been seen. The same review
+  also showed that a small reviewer (`gemma4:12b`) raises too many false flags to be
+  trusted on its own. That is why an AI may re-classify a verdict only through a quote
+  the code can check.
 
 ## Dataset
 
@@ -169,6 +221,9 @@ python scripts/score_v07.py
 # 3. The narrow question on the answers scored gbag_failure (quote checked by code)
 OLLAMA_HOST=http://localhost:11434 python scripts/prose_bound_v07.py
 python scripts/prose_bound_v07.py --report
+
+# 4. The score tables of this page
+python scripts/table_v07.py
 ```
 
 The scorer's unit tests: `python -m scorer.v07.test_score` (33 cases). Local calls set a
@@ -176,8 +231,8 @@ The scorer's unit tests: `python -m scorer.v07.test_score` (33 cases). Local cal
 
 ## The road to v0.7
 
-Each version was pre-registered, run on a sealed test set, and published whatever its
-outcome.
+From v0.4 on, each protocol was written before its test run, the test set was sealed, and
+the outcome was published whatever it was.
 
 | Version | What judged the answers | Outcome |
 |---|---|---|
@@ -226,16 +281,19 @@ measured elsewhere, open an issue and we will cite it.
 
 | Path | Purpose |
 |---|---|
-| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D16, and results |
+| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D17, and results |
 | `data/v07/targets.jsonl` | The 51 targets with both truths |
 | `scorer/v07/` | Parser and classifier (code only) + unit tests |
 | `scripts/generate_v07.py` | Declared-answer generation (Ollama by default; OpenRouter optional) |
 | `scripts/score_v07.py` | Scoring and report |
 | `scripts/prose_bound_v07.py` | The narrow question with a verified quote |
+| `scripts/table_v07.py` | The score tables of this page |
+| `scripts/reader_v07.py`, `scripts/arms_v07.py` | The naive reader and its self-test (D17); what asking for the scope changes |
 | `scripts/double_read_v07.py`, `scripts/review_v07.py` | The AI checks of the reading (D13, D14) |
 | `runs/v0.7/` | Every answer, class and check of v0.7 |
 | `PROTOCOL_v0.4.md`, `PROTOCOL_v0.5_JUDGE.md`, `PROTOCOL_v0.6_JUDGE.md` | The earlier campaigns |
 | `judge/` | The v0.2–v0.6 judges |
+| `LEADERBOARD.md`, `METRIC.md`, `HUGGINGFACE_README.md` | The v0.2 results, metric and dataset card (LLM-judged, kept for the record) |
 | `NEGATIVE_RESULTS.md` | A pipeline change we measured and reverted (v0.2) |
 | `data/`, `databases/` | Questions, sealed sets and SQLite databases |
 

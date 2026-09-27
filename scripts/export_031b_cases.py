@@ -1,5 +1,5 @@
-"""DIRECTIVE_032 (DeskInsightCS, first numbered 031) session B (DeskInsightCS) — the measurement set: every arbitrated GBAG
-answer whose verdict counts (faithful / unfaithful_material), with its question and gold
+"""The measurement set of experiment "031-B" (the judge of DeskInsight's benchmark runner,
+see scripts/eval_031b.py): every arbitrated GBAG answer whose verdict counts (faithful / unfaithful_material), with its question and gold
 SQL. Minor and disputed verdicts are excluded, as in every GBAG evaluation.
 
 Writes runs/031b/cases.jsonl: {id, set, database, level, question, gold_sql, answer, truth}.

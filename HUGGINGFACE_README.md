@@ -38,8 +38,15 @@ configs:
 
 > NL2SQL measures half the problem. GBAG measures the other half.
 
-- 📂 **GitHub (harness, judge, leaderboard)**: [softisight/gbag-bench](https://github.com/softisight/gbag-bench)
-- 📊 **Live leaderboard**: [LEADERBOARD.md](https://github.com/softisight/gbag-bench/blob/main/LEADERBOARD.md)
+> **This card describes v0.2** (35 questions, answers scored by an LLM judge). The
+> benchmark has since moved to **v0.7**: the model declares its answer, code compares it
+> with two truths computed by SQL, and the question measured is what a model says about
+> rows it was never shown. The current protocol and results are on
+> [GitHub](https://github.com/softisight/gbag-bench). The v0.2 scores below are kept for
+> the record and should be read as indicative.
+
+- 📂 **GitHub (harness, judge, results)**: [softisight/gbag-bench](https://github.com/softisight/gbag-bench)
+- 📊 **v0.2 leaderboard (historical)**: [LEADERBOARD.md](https://github.com/softisight/gbag-bench/blob/main/LEADERBOARD.md)
 - 📐 **Metric & rubric**: [METRIC.md](https://github.com/softisight/gbag-bench/blob/main/METRIC.md)
 - 🪪 **License**: MIT (questions & harness) — bundled SQLite samples retain their original licenses
 
@@ -56,7 +63,7 @@ A correct SQL query followed by a hallucinated number, an inverted trend, or a m
 Inputs:
 - a natural-language **question**
 - the executed **SQL** (gold reference, so the SQL axis is held constant)
-- the full **result set** (rows + columns)
+- the **result set** (rows + columns), cut to its first 200 rows when it is larger
 
 Output:
 - a **faithful**, **complete**, **insightful** natural-language answer

@@ -1,6 +1,7 @@
-"""DIRECTIVE_032 (DeskInsightCS, first numbered 031) session B — evaluate the judge BEFORE (no facts) vs AFTER (verified facts)
-on arbitrated GBAG answers. Metrics fixed before the run (DIRECTIVE_032, "Session B —
-protocole de mesure"):
+"""Evaluate the judge of DeskInsight's benchmark runner BEFORE (no facts) vs AFTER (verified
+facts) on arbitrated GBAG answers. "031-B" is the name of that experiment in DeskInsight's
+own work plan (the C# port of DeskInsight, a separate repository). Metrics fixed before the
+run:
 
   * judge verdict of one call: ACQUIT if "No Hallucination" = 20 (no claim contradicted),
     CONDEMN if <= 10 (at least one claim contradicted); no score -> FAILED call;

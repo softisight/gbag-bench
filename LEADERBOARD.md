@@ -1,4 +1,10 @@
-# GBAG Leaderboard
+# GBAG Leaderboard (v0.1–v0.3, historical)
+
+> **Historical page.** Every score below was given by an LLM judge. Those judges were later
+> measured as not self-consistent ([JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)), so read
+> these tables as indicative. The current results are those of v0.7, scored by code: see
+> the [README](README.md#results-v07). The page is kept unchanged for the record, apart
+> from the corrections dated 2026-09-27.
 
 > First public results for the **Grounded BI Answer Generation** benchmark.
 
@@ -36,7 +42,7 @@ Before reading a rank difference as real, keep three things in mind:
 
 - **Parameter counts in model names mislead — mind the MoE `-aXb` suffix.** `qwen/qwen3-next-80b-a3b` is a Mixture-of-Experts: `80b` is the *total* parameter count, but `a3b` means only ~3B are *activated* per token. Its per-token compute is closer to a 3B model than to an 80B one. So the apparent "9B beats 80B" upset (`qwen3.5:9b` 59.6 vs `qwen3-next-80b-a3b-instruct` 58.9) is really **dense-9B-active vs ~3B-active** — the 9B is not the underdog its name suggests. Likewise `qwen3-coder-480b-a35b` activates ~35B of its 480B.
 
-- **Small gaps are noise.** Inter-judge variance on GBAG is ~11 points (see Finding #3 in the README). Differences below ~10 points are not meaningful rankings — treat clustered scores as ties. That figure covers disagreement *between* judges. A judge also disagrees with **itself**: re-run on identical input at temperature 0, the hosted judges tested changed their verdict on 2 to 5 of 7 validation cases, because a hosted seed cannot be pinned. Any single-run score on this board carries that on top. See [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md).
+- **Small gaps are noise.** Inter-judge variance on GBAG is ~11 points (see [Inter-judge variance](#inter-judge-variance) below). Differences below ~10 points are not meaningful rankings — treat clustered scores as ties. That figure covers disagreement *between* judges. A judge also disagrees with **itself**: re-run on identical input at temperature 0, the hosted judges tested changed their verdict on 2 to 5 of 7 validation cases, because a hosted seed cannot be pinned. Any single-run score on this board carries that on top. See [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md).
 
 The one gap that **is** large is **DeskInsight pipeline vs neutral prompt on the same model** (`qwen3.5:9b` 76.8 vs 59.6): identical weights, hardware, questions, and judge, only the context engineering differs (data dictionary, domain detection, PACI, profile adaptation). It is the benchmark's central finding and it is free of the coverage and MoE caveats above. It is **not** free of the judge caveat, which we measured directly. See below.
 
@@ -101,7 +107,7 @@ The DeskInsight commercial product is **not open-source**, so external reproduct
 ```
 1. Open DeskInsight, connect to one of the bundled SQLite DBs
 2. Open Benchmark Runner
-3. Charger JSON → scripts/export_to_deskinsight_suites.py output
+3. Load JSON → scripts/export_to_deskinsight_suites.py output
    (the script converts GBAG questions.jsonl into 3 DeskInsight suites,
     one per database)
 4. Configure: model = qwen3.5:9b (Ollama), profile = Production
@@ -117,17 +123,17 @@ The conversion scripts are open-source (this repo). The model, judge, and questi
 
 ### Headline findings (v0.2)
 
-**1. Context engineering > model scale.** The same `qwen3.5:9b` running on a consumer RTX 3060 scores **59.6** with a neutral Spider/BIRD-style prompt, but **76.8** when wrapped in DeskInsight's context engineering pipeline (data dictionary, domain detection, Pre-Aggregated Context Injection, profile adaptation). **The +17.2 gain places a 9B local model 12 points above the 480B cloud baseline.** Under a second judge (Gemini-2.5-Pro) the same paired gain is +7.1 — direction holds, magnitude is judge-dependent; see the robustness check below. The dominant lever for grounded BI quality is the context fed to the model, not the model's parameter count.
+**1. Context engineering > model scale.** The same `qwen3.5:9b` running on a consumer RTX 3060 scores **59.6** with a neutral Spider/BIRD-style prompt, but **76.8** when wrapped in DeskInsight's context engineering pipeline (data dictionary, domain detection, Pre-Aggregated Context Injection, profile adaptation). **The +17.2 gain places a 9B local model 12 points above the 480B cloud baseline.** Under a second judge (Gemini-2.5-Pro) the same paired gain is +7.1 — direction holds, magnitude is judge-dependent; see the robustness check above. The dominant lever for grounded BI quality is the context fed to the model, not the model's parameter count.
 
-**2. Bigger is not (much) better, with a uniform judge.** Compared with a uniform strong judge (Grok-4.3), the 9B local model (59.6) is **3.2 points below** the 480B cloud MoE (62.8 on 32 common questions). The previous v0.1 result that suggested near-parity was partly inflated by the lenient `deepseek-chat` judge used for the 9B run; under Grok-4.3 the gap reopens — but to single digits, on a model with **~50× fewer parameters**.
+**2. Bigger is not (much) better, with a uniform judge.** Compared with a uniform strong judge (Grok-4.3), the 9B local model (59.6) is **3.2 points below** the 480B cloud MoE (62.8 on 32 common questions). The previous v0.1 result that suggested near-parity was partly inflated by the lenient `deepseek-chat` judge used for the 9B run; under Grok-4.3 the gap reopens — but to single digits, on a model with ~50× fewer parameters in total. *(Corrected 2026-09-27: the 480B model is a Mixture-of-Experts that activates about 35B parameters per token, so the 9B model is about 4× smaller in active size, not 50×. See the MoE caveat above.)*
 
 **3. Judge selection matters as much as model selection.** Re-judging `qwen3.5:9b` with Grok-4.3 dropped the score from **72.7** (deepseek-chat) to **59.6** — a 13-point gap on the same answers. `deepseek-v3.2` produces evaluation failures (`-1` return code) on ~10 % of questions, biasing scores low. **Single-judge benchmarks are unreliable**: 37.5 % of `qwen3.5:9b` questions show ≥ 15-point disagreement between deepseek-chat and grok-4.3.
 
-**4. Thinking was a non-result (corrected 2026-07-28).** An earlier version of this finding claimed thinking modes hurt grounded tasks, based on comparing different models — a confounded comparison, since withdrawn (see the README findings). The clean same-family ablation (`qwen3-next-80b` thinking vs instruct, restricted to the 28 questions both variants answered) gives 60.6 vs 58.9, inside the judge noise floor: no measurable effect either way.
+**4. Thinking was a non-result (corrected 2026-07-28).** An earlier version of this finding claimed thinking modes hurt grounded tasks, based on comparing different models — a confounded comparison, since withdrawn. The clean same-family ablation (`qwen3-next-80b` thinking vs instruct, restricted to the 28 questions both variants answered) gives 60.6 vs 58.9, inside the judge noise floor: no measurable effect either way.
 
 **5. PSAD (Post-SQL Aggregation Deficit) is real but narrowly scoped.** Local models occasionally fabricate aggregates from a row sample — particularly when the SQL returns ≤ 5 rows but underlying tables are large (top-N queries). The DeskInsight pipeline mitigates most cases via Pre-Aggregated Context Injection; one Sakila case (`sakila-l5-01`) remains a partial regression (cross-DB knowledge contamination). The phenomenon is concentrated, not universal.
 
-**6. Pipeline value generalizes to mid-scale cloud (added 2026-05-26).** Adding `google/gemma-4-31b-it` via OpenRouter through the same DeskInsight pipeline reaches **83.2 GBAG** with Faithfulness **90.6** — the highest F on the v0.2 board. Compared to the neutral-prompt baselines (49B → 67.7, 80B-thinking → 61.4, 480B → 64.6), the +15 to +22 gain confirms that context engineering remains the dominant lever even at flagship scale, not just on the smallest local model. The Insight axis (49.1) lags the larger thinking-class models (75-79), consistent with gemma4's known "data-faithful, narratively terse" behavior — a profile DeskInsight users explicitly want for privacy-first BI (less unsolicited speculation).
+**6. Pipeline value generalizes to mid-scale cloud (added 2026-05-26).** Adding `google/gemma-4-31b-it` via OpenRouter through the same DeskInsight pipeline reaches **83.2 GBAG** with Faithfulness **90.6** — the highest F on the v0.2 board. Compared to the neutral-prompt baselines (49B → 67.7, 80B-thinking → 61.4, 480B → 64.6), the +15 to +22 gain confirms that context engineering remains the dominant lever even at flagship scale, not just on the smallest local model. The Insight axis (49.1) lags the larger thinking-class models (75-79), consistent with gemma4's known "data-faithful, narratively terse" behavior — a profile DeskInsight users explicitly want for privacy-first BI (less unsolicited speculation). *(Corrected 2026-09-27: no neutral-prompt run of `gemma-4-31b-it` exists. The +15 to +22 compares this model with other models, which is the confounded comparison withdrawn in finding 4. It is an observation, not a measured gain, and a 31B model is mid-scale, not flagship scale. The only same-model comparison on this page is `qwen3.5:9b`.)*
 
 ---
 

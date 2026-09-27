@@ -6,14 +6,36 @@ Fill in the section that matches your PR type and delete the others.
 
 ## PR type
 
-- [ ] New model result (leaderboard entry)
+- [ ] New model result, v0.7 (scored by code)
+- [ ] New model result, v0.2 leaderboard (historical, LLM-judged)
 - [ ] Dataset fix or addition
 - [ ] Metric / judge change (must reference a prior discussion Issue)
 - [ ] Documentation / tooling
 
 ---
 
-## New model result
+## New model result, v0.7
+
+**Model**: `<exact-model-id>`, quantization `<e.g. Q4_K_M>`
+
+**Hardware**: <e.g. RTX 3060 12GB local>
+
+**Reasoning**: <on / off>
+
+**Answers**: <X> / 51 targets answered, per prompt variant
+
+**Score, code only** (`python scripts/table_v07.py`): <number>
+
+**Run files committed**:
+- [ ] the files written in `runs/v0.7/answers/`, unchanged
+
+**Verification statement**:
+- [ ] I ran the official `generate_v07.py` and `score_v07.py` without modifications
+- [ ] Failed calls are left as failed
+
+---
+
+## New model result, v0.2 leaderboard
 
 **Model**: `<exact-model-id>` (e.g. `claude-sonnet-4-6`, `qwen3.5:9b`)
 
