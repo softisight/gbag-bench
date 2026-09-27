@@ -621,6 +621,75 @@ header becomes a control (owner's decision). Decided after the results were seen
   truth was not in the prompt. When the pipeline gives the model the aggregates of the
   full result, the truth is in the prompt, and a decline is a miss.
 
+**D19 — 2026-09-27 — what a systematic decline would hide (owner's decision). Decided
+after the results were seen. No model call: the published answers are counted again.**
+- **Why.** On a target whose truth is not known from what was shown, a decline is a safe
+  answer. A model could therefore decline whenever the header says that the result is
+  cut. Its figures, simulated by code on the 51 targets (`scripts/table_v07.py`,
+  `decliner`):
+
+| figure | the model that declines whenever a result is cut | `gemma4:31b`, D17 reading |
+|---|---|---|
+| D15 score | **86** | 53 |
+| trap rate | 0 % (0/34) | 58 % |
+| broken | 0 | 10/34 |
+| accuracy, complete results | 10/10 | 10/10 |
+| accuracy, results cut while their truth was shown | **0/7** | 7/7 |
+
+  - The D15 score puts this model above every local model, and the trap rate calls it
+    perfect. Only the accuracy shows it, and only on 7 targets (3 on the ledger): the
+    results that are cut while their truth was shown.
+  - **No tested model does this.** The declines come mostly from the frontier cloud
+    models, and their text nearly always gives the shown-rows value with its bound.
+- **What changes.**
+  1. **Accuracy is published in two parts:** on the complete results (10 targets), and on
+     the results that are cut while their truth was shown (7 targets: the 5 header targets
+     of D18, and the 2 first rows of a sorted result of D6). A model that declines
+     whenever a result is cut gives none of the second part.
+  2. **What "safe" is made of is published:** the declines, the bounded values, and the
+     declines whose text gives the shown-rows value (found by code, with the number
+     reader of the scorer). It describes the answers. It is never scored.
+  3. **The figures of the model that declines are printed under each table**, so that a
+     score can be read against them.
+- **Figures, arm B, run 1, D17 reading.**
+
+| model | targets | accuracy, complete | accuracy, cut | safe | declined | bounded value | declines whose text gives the shown-rows value |
+|---|---|---|---|---|---|---|---|
+| `openai/gpt-5.6-sol` | 26 | 10/10 | 3/3 | 12 | 10 | 2 | 7/10 |
+| `moonshotai/kimi-k3` | 26 | 10/10 | 3/3 | 12 | 6 | 6 | 6/6 |
+| `anthropic/claude-fable-5` | 18 | 10/10 | — | 7 | 4 | 3 | 3/4 |
+| `qwen/qwen3-coder` | 26 | 10/10 | 3/3 | 1 | 0 | 1 | — |
+| `gemma4:31b` | 51 | 10/10 | 7/7 | 10 | 3 | 7 | 1/3 |
+| `gemma4:12b` | 51 | 10/10 | 7/7 | 9 | 1 | 8 | 0/1 |
+| `Spark-X2.5-4B` | 51 | 6/10 | 5/7 | 8 | 6 | 2 | 1/6 |
+| Bonsai 27B 1-bit | 51 | 9/10 | 5/7 | 0 | 0 | 0 | — |
+
+- **A finding on the way: asking for the scope has a cost.** On the 7 results that are cut
+  while their truth was shown, arm A against arm B:
+
+| model | value only (arm B) | scope asked (arm A) |
+|---|---|---|
+| `gemma4:12b` | 7/7 | 4/7 |
+| `gemma4:31b` | 7/7 | 6/7 |
+| `Spark-X2.5-4B` | 5/7 | 6/7 |
+| Bonsai 27B 1-bit | 5/7 | 5/7 |
+
+  - Asked for the scope, `gemma4:12b` falls from a trap rate of 65 % to 15 %, and gives 3
+    values less where it could read them: it declines, or gives 200 as "the rows shown".
+  - The scope field lowers the trap and raises the caution. Both are to be measured
+    before a scope is asked in a product.
+- **Unchanged:** the answers, the truths, the classes, the trap rate and the D15 score.
+- **Known limits.**
+  - 7 targets, of which 3 on the ledger, carry the second part of the accuracy. More such
+    targets need new answers, generated on the GPU box.
+  - "The text gives the shown-rows value" is a match of figures, not a reading: the value
+    may stand in the text as a row of the table.
+- **Intended for DeskInsight's benchmark runner.**
+  - Whether the truth was in the prompt is decided by code: the result is complete, or the
+    target is an aggregate that the pipeline wrote in the prompt. There a decline is a
+    miss.
+  - The accuracy in two parts and the number of declines are shown with the score.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of

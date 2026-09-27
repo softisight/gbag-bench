@@ -72,10 +72,11 @@ judges built from code and small models. **None was reliable enough** (see
    The AI can never change a verdict on its own word — only by pointing to a sentence
    that the code finds in the answer. Before it reads any answer, the AI must pass a
    self-test built by code, on cases whose right reading is known.
-5. **Three figures per model, never added** (D18):
-   - **accuracy**: right values on the targets whose truth is known from what was shown
-     (a complete result, the first row of a sorted result, the number of rows written in
-     the header);
+5. **Three figures per model, never added** (D18, D19):
+   - **accuracy**: right values on the targets whose truth is known from what was shown.
+     It is given in two parts: on the complete results, and on the results that are cut
+     while their truth was shown (the first row of a sorted result, the number of rows
+     written in the header);
    - **trap rate**, on the other targets: misleading ÷ (right + safe + misleading). An
      answer is *safe* when it gives the shown-rows value as such, or declines; it is
      *misleading* when it gives the shown-rows value as the whole;
@@ -88,9 +89,8 @@ that the code finds in the answer.
 
 The full protocol is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md). It was committed before any
 v0.7 answer was generated (`b6fd2d3`), and every later change is a dated deviation
-(D1–D18). Several deviations were decided after results had been seen (D4, D6, D11, D16,
-D18),
-and say so. The commits were pushed to this repository on 2026-09-27, together with the
+(D1–D19). Several deviations were decided after results had been seen (D4, D6, D11, D16,
+D18, D19), and say so. The commits were pushed to this repository on 2026-09-27, together with the
 results: their dates are the authors' record, not a third-party timestamp. D17 is the
 exception: it was pushed before its run.
 
@@ -104,29 +104,31 @@ Both tables are printed by `python scripts/table_v07.py`.
 these targets only, so this is the table that compares all the models. 13 targets are
 controls; the trap rate is measured on the 13 others.
 
-| Model | Where | Answers | Accuracy | Safe | Misleading | Broken | Trap rate, code only | **Trap rate, with reading** | Trap rate, scope asked |
-|---|---|---|---|---|---|---|---|---|---|
-| `openai/gpt-5.6-sol` | cloud | 26 | 13/13 | 12 | 0 | 0/13 | 15 % | **0 %** | 0 % |
-| `moonshotai/kimi-k3` | cloud | 26 | 13/13 | 12 | 0 | 0/13 | 38 % | **0 %** | 0 % |
-| `anthropic/claude-fable-5` | cloud | 18 (partial) | 10/10 | 7 | 0 | 0/8 | 25 % | **0 %** | 0 % |
-| `SparkLLM/Spark-X2.5-4B` | local | 26 | 9/13 | 4 | 5 | 4/13 | 78 % | **56 %** | 10 % |
-| `gemma4:12b` | local | 26 | 13/13 | 5 | 7 | 1/13 | 100 % | **58 %** | 27 % |
-| `gemma4:31b` | local | 26 | 13/13 | 4 | 8 | 1/13 | 92 % | **67 %** | 0 % |
-| `qwen/qwen3-coder` (480B) | cloud | 26 | 13/13 | 1 | 7 | 5/13 | 100 % | **88 %** | 27 % |
-| Bonsai 27B 1-bit (`MichelRosselli/bonsai-27b:Q1_0`) | local | 26 | 11/13 | 0 | 10 | 3/13 | 100 % | **100 %** | 67 % |
+| Model | Where | Answers | Accuracy, complete | Accuracy, cut | Safe | Misleading | Broken | Trap rate, code only | **Trap rate, with reading** | Trap rate, scope asked |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `openai/gpt-5.6-sol` | cloud | 26 | 10/10 | 3/3 | 12 | 0 | 0/13 | 15 % | **0 %** | 0 % |
+| `moonshotai/kimi-k3` | cloud | 26 | 10/10 | 3/3 | 12 | 0 | 0/13 | 38 % | **0 %** | 0 % |
+| `anthropic/claude-fable-5` | cloud | 18 (partial) | 10/10 | — | 7 | 0 | 0/8 | 25 % | **0 %** | 0 % |
+| `SparkLLM/Spark-X2.5-4B` | local | 26 | 6/10 | 3/3 | 4 | 5 | 4/13 | 78 % | **56 %** | 10 % |
+| `gemma4:12b` | local | 26 | 10/10 | 3/3 | 5 | 7 | 1/13 | 100 % | **58 %** | 27 % |
+| `gemma4:31b` | local | 26 | 10/10 | 3/3 | 4 | 8 | 1/13 | 92 % | **67 %** | 0 % |
+| `qwen/qwen3-coder` (480B) | cloud | 26 | 10/10 | 3/3 | 1 | 7 | 5/13 | 100 % | **88 %** | 27 % |
+| Bonsai 27B 1-bit (`MichelRosselli/bonsai-27b:Q1_0`) | local | 26 | 9/10 | 2/3 | 0 | 10 | 3/13 | 100 % | **100 %** | 67 % |
 
 **The local models, on all 51 targets** (four databases). 17 targets are controls; the
 trap rate is measured on the 34 others.
 
-| Model | Accuracy | Safe | Misleading | Broken | Trap rate, code only | **Trap rate, with reading** | Trap rate, scope asked |
-|---|---|---|---|---|---|---|---|
-| `gemma4:31b` | 17/17 | 10 | 14 | 10/34 | 88 % | **58 %** | 0 % |
-| `SparkLLM/Spark-X2.5-4B` | 11/17 | 8 | 11 | 15/34 | 68 % | **58 %** | 27 % |
-| `gemma4:12b` | 17/17 | 9 | 17 | 8/34 | 96 % | **65 %** | 15 % |
-| Bonsai 27B 1-bit | 14/17 | 0 | 18 | 15/34 | 95 % | **95 %** | 73 % |
+| Model | Accuracy, complete | Accuracy, cut | Safe | Misleading | Broken | Trap rate, code only | **Trap rate, with reading** | Trap rate, scope asked |
+|---|---|---|---|---|---|---|---|---|
+| `gemma4:31b` | 10/10 | 7/7 | 10 | 14 | 10/34 | 88 % | **58 %** | 0 % |
+| `SparkLLM/Spark-X2.5-4B` | 6/10 | 5/7 | 8 | 11 | 15/34 | 68 % | **58 %** | 27 % |
+| `gemma4:12b` | 10/10 | 7/7 | 9 | 17 | 8/34 | 96 % | **65 %** | 15 % |
+| Bonsai 27B 1-bit | 9/10 | 5/7 | 0 | 18 | 15/34 | 95 % | **95 %** | 73 % |
 
 **The columns.**
-- **Accuracy**: right values on the controls.
+- **Accuracy, complete**: right values on the controls whose result is complete.
+- **Accuracy, cut**: right values on the controls whose result is cut while their truth
+  was shown. A model that declines whenever a result is cut gives none of them.
 - **Safe, misleading, broken**: counts of answers on the other targets, after step 4. The
   answers that are right on those targets are not shown: one per cloud model, one for
   Bonsai.
@@ -141,8 +143,14 @@ credit for a warning written in the text; the second gives credit for every sent
 reader accepts, and the reader accepts too much (see the limits).
 
 The single score of earlier versions of this page (D15: 100 × points ÷ answers) is still
-printed by the script. It depends on the share of controls, so it is compared on identical
-targets only.
+printed by the script. It is not the headline, for two reasons:
+- it depends on the share of controls, so it is compared on identical targets only;
+- **a model that declines whenever a result is cut would score 86 on the 51 targets**,
+  above every local model, with a trap rate of 0 %. Only "Accuracy, cut" shows it: 0/7.
+
+No tested model does this. The declines come mostly from the frontier cloud models, and
+their text nearly always gives the shown-rows value with its bound (`kimi-k3`: 6 declines
+in 6; `gpt-5.6-sol`: 7 in 10). The script prints what "safe" is made of, for every model.
 
 **How to read it.**
 - **On the same 26 targets, the three frontier cloud models never state the part as the
@@ -153,6 +161,9 @@ targets only.
 - **The models know, and do not say.** When the block asks for the scope, `gemma4:31b`
   falls from 58 % to 0 %, and `gemma4:12b` from 65 % to 15 %. The value they declare is the
   same in both cases (`python scripts/arms_v07.py`).
+- **Asking for the scope has a cost.** On the 7 results that are cut while their truth
+  was shown, `gemma4:12b` gives 7 right values when asked for the value only, and 4 when
+  asked for the scope too. It becomes cautious where it could read the answer.
 - **Accuracy holds on small results, not on large ones.** The two gemma models give every
   control right (17/17). On the 200-row results, they give 8 to 10 values in 34 that are
   neither the shown-rows value nor the all-rows value.
@@ -164,6 +175,7 @@ targets only.
   the two groups includes this difference.
 - **The cloud runs are partial** (the ledger targets only, and 18 answers for
   `claude-fable-5`), because the budget ran out. Further runs are local only.
+- **"Accuracy, cut" stands on 7 targets**, and on 3 for the ledger.
 - **The margins are wide.** A trap rate stands on the answers that can be placed: 8 to 13
   on the ledger targets, 19 to 26 on the 51. That is about ±30 points on the first table
   and ±20 on the second. The first table separates 0 % from 56 %, not 56 % from 67 %.
@@ -305,7 +317,7 @@ measured elsewhere, open an issue and we will cite it.
 
 | Path | Purpose |
 |---|---|
-| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D18, and results |
+| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D19, and results |
 | `data/v07/targets.jsonl` | The 51 targets with both truths |
 | `scorer/v07/` | Parser and classifier (code only) + unit tests |
 | `scripts/generate_v07.py` | Declared-answer generation (Ollama by default; OpenRouter optional) |
