@@ -785,6 +785,92 @@ and pushed before any answer of the trial is generated.**
     seeds therefore comes from the numbers, not from the run.
   - "The same outcome" can cover two different texts.
 
+**D22 — 2026-09-27 — the reasoning that the models actually used (owner's decision).
+Decided after the results were seen. No model call.**
+- **Why.** D10 reported that the cloud models ran with their provider's default
+  reasoning, and the local models with reasoning off. How much the cloud models reasoned,
+  and on which targets, had not been counted.
+- **Counted on the answer files** (`python scripts/reasoning_v07.py`), arm B, run 1:
+
+| model | answers | tokens of reasoning per answer, mean | controls without reasoning | trap targets without reasoning | trap rate, D17 reading |
+|---|---|---|---|---|---|
+| `moonshotai/kimi-k3` | 26 | 642 | 0/13 | **0/13** | 0 % |
+| `anthropic/claude-fable-5` | 18 | 239 | 9/10 | **0/8** | 0 % |
+| `openai/gpt-5.6-sol` | 26 | 199 | 7/13 | **0/13** | 0 % |
+| `qwen/qwen3-coder` | 26 | 0 | 13/13 | **13/13** | 88 % |
+| the four local models | 51 each | 0 | 17/17 | **34/34** | 58 to 95 % |
+
+- **Readings.**
+  - **On every target of the trap rate, the three frontier cloud models reasoned, and the
+    other models did not.** The answers that `claude-fable-5` and `gpt-5.6-sol` gave
+    without reasoning are all on controls.
+  - **The only cloud model that did not reason, `qwen3-coder`, states the part as the
+    whole as often as the local models.**
+  - **The two groups differ by their size and by their reasoning at once.** These answers
+    cannot say which of the two makes the gap. What is measured is "frontier cloud models
+    that reason" against "models that do not reason", not "cloud" against "local".
+- **What changes:** the README states this contrast in these words.
+- **Unchanged:** every answer, class and figure.
+
+**D23 — 2026-09-27 — trial of the local models with reasoning on (owner's decision).
+Registered and pushed before any answer of the trial is generated.**
+- **The question.** Does a local model state the part as the whole less often when it
+  reasons?
+- **Two steps per model** (`scripts/reasoning_trial_v07.py`).
+  1. **Tuning, on the 10 complete-result controls only.** Left on at temperature 0,
+     `gemma4:12b` looped in its reasoning and returned empty answers (D10: 6 answers in
+     10). The settings below are tried in their order. The first one with which **at
+     least 9 answers in 10 end with a readable block** is kept.
+     - **No target of a cut result is asked during the tuning.**
+     - If no setting passes, the model is not run, and this is reported.
+  2. **The run**, with the setting kept: the 41 targets of the cut results (34 of the trap
+     rate, 7 controls), arm B, the prompt of v0.7 unchanged, 16,384-token window.
+
+| order | setting | what it changes |
+|---|---|---|
+| 1 | `cap` | reasoning on, temperature 0, at most 4,096 tokens written, reasoning included |
+| 2 | `cap+penalty` | the same, with a repeat penalty of 1.15 |
+| 3 | `cap+temperature` | the same as 1, at temperature 0.3, seed 7 |
+
+- **What is compared.** Each answer with reasoning on, against the answer of the same
+  model on the same target with reasoning off.
+  - With settings 1 and 2, reasoning off is the published answer.
+  - Setting 3 changes the sampling. If it is the one kept, the 41 answers with reasoning
+    off are generated again with the same options, and the comparison uses them.
+  - The answers marked `gbag_failure` or `lucky` are read by the naive reader of record
+    (D17).
+- **The reading, fixed before the run**, per model, with the D17 reading and the questions
+  drawn again for both conditions at once (D20):
+  - reasoning **lowers** the trap rate if it is lower in **95 % or more** of the draws;
+  - reasoning **raises** it if it is higher in 95 % or more;
+  - otherwise: **no established effect**, reported as such;
+  - a rate is called **unreliable** when more than 30 % of the answers with reasoning are
+    broken. An answer cut at the cap is a broken answer.
+- **Models and duration.** Speeds measured on the published answers.
+  - **Stage 1: `gemma4:12b`**, about 35 tokens written per second. An answer that reaches
+    the cap takes about 2 minutes. Tuning: at most 20 minutes per setting. The run: at
+    most 80 minutes.
+  - **Stage 2: `gemma4:31b`**, about 2.7 tokens written per second (the model runs partly
+    on the CPU). An answer that reaches the cap takes about 25 minutes. Tuning: up to 4
+    hours per setting. The run: up to 17 hours. **Stage 2 is launched only after a witness
+    call and a decision of the owner.**
+  - The first call of each model is a witness call: one tuning answer, from which the
+    durations are printed before anything else is launched.
+  - No cloud call.
+- **Frozen before the run:** the settings and their order, the two sets of targets, the
+  prompt, the scorer, the reader, the thresholds, and the script, tested offline against a
+  fake box (`python scripts/test_reasoning_trial_v07.py`).
+- **What the trial does not do.**
+  - It says nothing of a frontier model without reasoning: that needs cloud calls (D3).
+  - Its answers are published (`runs/v0.7/reasoning/`), tuning included, and they enter no
+    table of v0.7.
+- **Known limits.**
+  - The setting is part of the condition: the cap, the penalty or the temperature comes
+    with the reasoning. Only setting 3 is compared at equal sampling.
+  - 12 questions: a difference of less than about 25 points will not be established.
+  - The reasoning of a small local model is not that of a frontier model. A result here
+    does not say why the frontier models do not fall into the trap.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
