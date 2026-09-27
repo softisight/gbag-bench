@@ -1113,3 +1113,61 @@ declare the shown-rows value:
   real prose, which no code gives.
 - **Decision (owner, 2026-09-27): the range is published as it is, and no reading rule is
   added.** Every reading rule added since v0.4 gave way on real prose.
+
+## Second seed of the ledger — results (D21, 2026-09-27)
+
+Run on the GPU box from 16:36 to 17:47 UTC (70 minutes; 52 expected), after D21 was pushed
+(16:36 UTC, commit `57e4d03`). 64 answers and 35 readings, no failed call, no cloud call
+(`python scripts/seed_trial_v07.py --report`).
+
+**The same outcome on both seeds**, per (model, target):
+
+| | pairs | same outcome |
+|---|---|---|
+| **targets of the trap rate, D17 reading (the reading registered)** | 44 | **31 = 70 %** |
+| targets of the trap rate, code only | 44 | 36 = 82 % |
+| controls | 12 | 11 |
+
+- **By the rule fixed before the run (75 % or less): the behaviour follows the numbers
+  too, and a new seed adds information.**
+- **The verdict holds with the reading, and not with the code alone.** With the code only,
+  82 % lies between the two thresholds: undecided.
+
+**Where the 13 changes come from.**
+- **8 come from the block**: the model declares something else.
+  - Bonsai, 3 targets: the shown-rows value on the published seed, no readable block on
+    the new one.
+  - `Spark-X2.5-4B`, 3 targets: a decline becomes a value, twice; a wrong value becomes
+    the shown-rows value, once.
+  - `gemma4:12b`, 1 target: the shown-rows value becomes another value.
+  - `gemma4:31b`, 1 target: a decline becomes another value.
+- **5 come from the reading only**: the block declares the shown-rows value on both seeds,
+  and the reader finds a bound in the text on one seed only (`Spark-X2.5-4B` 2,
+  `gemma4:31b` 2, `gemma4:12b` 1). Whether the two texts differ or the reader does is not
+  known: no code reads the texts.
+
+**Trap rate on the 11 targets, D17 reading.**
+
+| model | published seed | new seed | broken, published → new |
+|---|---|---|---|
+| `gemma4:31b` | 70 % (7/10) | 78 % (7/9) | 1 → 2 |
+| `gemma4:12b` | 70 % (7/10) | 78 % (7/9) | 1 → 2 |
+| `Spark-X2.5-4B` | 43 % (3/7) | 100 % (7/7) | 4 → 4 |
+| Bonsai 27B 1-bit | 100 % (9/9) | 100 % (6/6) | 2 → 5 |
+
+**Readings.**
+- **A new seed is not a repeat of the published one.** About 1 outcome in 5 changes with
+  the code only, and about 1 in 3 with the reading.
+- **The rate of a model moves less than its answers.** The two gemma models change on 2
+  and 3 targets in 11, and their rate goes from 70 % to 78 %. `Spark-X2.5-4B` goes from
+  43 % to 100 %: on 7 answers, its rate is not a measure.
+- **What seeds give, and what they do not.** They add answers at the cost of GPU time
+  only, with no question to write. They draw the numbers again, not the questions: they
+  tighten a rate on these five kinds of question, and say nothing of other questions.
+- **Limits.**
+  - One seed, five questions, 44 pairs: the share of 70 % has itself a wide margin.
+  - The part of the reader in the changes is not separated from the part of the models.
+  - Two targets changed kind with the new numbers and were left out, as registered.
+- **The duration was underestimated**: the answers were slower than the published means
+  (`gemma4:12b`: 58 s against 23 s), and the reading took 35 answers where 38 were
+  expected.
