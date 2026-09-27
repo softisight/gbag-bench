@@ -344,6 +344,12 @@ answer.**
   answer is affected. The earlier file is kept (`runs/v0.7/scores-before-D11.jsonl`).
   Unit tests: 33/33.
 
+**D12 — 2026-09-27 — `gemma4:31b` added as a local model, 1 run (owner's decision).**
+- A single run, both arms, reasoning off (D10). A test call measured about 1.5 min per
+  answer: the 19.9 GB model runs partly on the CPU of the 12 GB box.
+- One run is enough to place it. The runs of the other local models were reproducible
+  (run 1 = run 2 on 101–102 of 102 targets).
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
