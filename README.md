@@ -201,6 +201,11 @@ in 6; `gpt-5.6-sol`: 7 in 10). The script prints what "safe" is made of, for eve
   between the local models is not established. The gap between the frontier cloud models
   and the local ones holds in 99 % of the draws. More power needs more questions, not
   more targets: about 33 questions for ±15 points, about 75 for ±10.
+- **The same questions on other numbers do not give the same answers** (D21). The five
+  truncated ledger questions were asked again on a second seed of the ledger. The outcome
+  is the same on 82 % of the 44 pairs (model, target) with the code only, and on 70 % with
+  the reading. The rate of the two gemma models moves from 70 % to 78 %; the rate of
+  `Spark-X2.5-4B`, on 7 answers, from 43 % to 100 %.
 - **Step 4 can only lower a trap rate**: it reads the answers marked as failures. The
   other answers were read once, as a check (D17): none states the shown-rows value as the
   whole in its text.
