@@ -32,6 +32,11 @@ def main() -> int:
             rec = {"tid": f"{qid}#{seen[qid]}", "qid": qid, "database": qs[qid]["database"], "ask": ask,
                    "type": typ, "op": list(op), "n_rows": len(rows), "truth_all": t_all,
                    "truth_shown": t_shown, "kind": kind}
+            # D18: the number of rows of a truncated result is written in the header the model
+            # reads ("first 200 of N rows shown"). It is known from what was shown: a control.
+            if op[0] == "count" and len(rows) > ROW_CAP:
+                rec.update(kind="control", known_from="header", before_d18=kind)
+                kind = "control"
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             print(f"{rec['tid']:18} {kind:15} all={t_all!s:>14}  shown={t_shown!s:>14}  {ask}")
     return 0

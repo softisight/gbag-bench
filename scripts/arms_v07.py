@@ -36,7 +36,7 @@ def value_class(parsed: dict | None, t: dict) -> str:
 
 
 def main() -> int:
-    targets = rv.load_targets()
+    targets = rv.targets_d17()      # the figures cited in D17: the kinds of that day
     d16 = {d["key"]: d["quote_verified"] for d in rv.jsonl(pb.OUT)}
     reader, d17 = rv.reading_of_record()
     pairs = collections.defaultdict(dict)

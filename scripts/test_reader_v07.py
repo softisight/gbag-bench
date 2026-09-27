@@ -40,7 +40,7 @@ class Fake(BaseHTTPRequestHandler):
 def main() -> int:
     bad = []
     check = lambda ok, what: None if ok else bad.append(what)
-    targets = rv.load_targets()
+    targets = rv.targets_d17()      # the cases were frozen before D18
 
     cases = rv.build_cases()
     check([c["id"] for c in cases] == [c["id"] for c in rv.build_cases()], "the cases are not the same on a second build")
