@@ -376,6 +376,25 @@ no human arbitration).**
   - Once it invented a scope where the block had no scope line. The instruction was
     tightened before the run.
 
+**D14 — 2026-09-27 — AI review of the algorithmic verdict (owner's design), after the
+blind reading.**
+- **What it adds to D13.** The blind reading checks only that the block is read right.
+  Here an AI sees the whole answer, the code's reading and verdict, and the two truths,
+  and looks for a contradiction between the answer and the verdict. Example: a block
+  claiming all the data while the prose limits the value to the 200 rows shown.
+- **How.**
+  - Reviewer `gemma4:12b`, local, reasoning off, temperature 0, JSON schema.
+  - One option among consistent / text_bounds_to_shown_rows / value_misread /
+    other_contradiction, with a reason of at most 25 words. "When unsure, answer
+    consistent."
+  - Same stratified sample of 200 as D13 (seed 7). `scripts/review_v07.py`.
+- **Result rule.**
+  - The final verdict is the algorithmic one, except for flagged answers, which become
+    **contested** with the AI's reason.
+  - The AI never rewrites a verdict. It is reinterpreting free text again, the step that
+    failed in v0.4–v0.6.
+- **Known bias.** Because it sees the verdict, the reviewer tends to approve it.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
