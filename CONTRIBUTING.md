@@ -39,6 +39,13 @@ A frontier judge is required for fair scoring. **Do not judge a model with itsel
 
 For v0.2 leaderboard comparability, score with the uniform reference judge (Grok-4.3 via OpenRouter — see the README Quick start). Dual-judge submissions are strongly preferred: run a second judge from a different vendor and report both (inter-judge variance is a known factor, see Finding #3 in the README).
 
+**Two additions, from measurements taken after v0.2 was published** — see [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md):
+
+- **Run each judge at least three times and report all runs.** A single run samples a judge, it does not measure one. Grok-4.3 graded the same answer 40, 40, 100, 10 across four runs at temperature 0.
+- **Use `judge/prompt-v041.md`, not `judge/prompt.md`.** Under the older prompt every judge tested scored 2 to 4 out of 7 on the validation cases; the newer one takes the best of them to 7 out of 7 and is the best-scoring prompt for every judge measured.
+
+If you can run a judge locally, prefer it: its seed can be pinned, and every local judge tested was perfectly self-consistent. Pin the batch and its order too — position inside a run can flip a boundary verdict.
+
 ### Step 4 — Open a Pull Request
 
 Fork the repo, create a branch, commit your two new files (`runs/*.jsonl` + `runs/*.scored.jsonl`), and edit `LEADERBOARD.md` to add your row.

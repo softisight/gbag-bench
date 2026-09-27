@@ -1,0 +1,1 @@
+[[{"span": "no spikes, duplicates, or off-cycle postings visible", "scope": "rows_shown", "type": "universal", "column": "total_amount", "value": "", "op": "!=", "filter_column": "total_amount", "filter_op": "startswith", "filter_value": "spike", "answers_question": true}], {"in": 1064, "out": 116, "cost": 0.0002889, "provider": "DeepInfra"}]

@@ -1,0 +1,1 @@
+[[{"span": "A total of 476 journal entries were posted in fiscal year 2024", "scope": "all_data", "type": "count", "column": "nb_entries", "value": "476", "filter_column": "fiscal_year", "filter_op": "eq", "filter_value": "2024", "answers_question": true}], {"in": 863, "out": 120, "cost": 0.00035445, "provider": "DeepInfra"}]

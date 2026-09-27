@@ -138,36 +138,73 @@ def call_nvidia(system: str, user: str, model: str) -> tuple[str, int | None, in
     return resp.choices[0].message.content, in_tok, out_tok
 
 
+# Generation condition, set from the command line. None = not sent, which is how every
+# answer set published before v0.4 was produced (PROTOCOL_v0.4.md, deviation D6).
+GEN_SEED: int | None = None
+GEN_PROVIDER: str | None = None     # OpenRouter endpoint tag, pinned, no fallback
+GEN_THINK: bool | None = None       # None = runtime default
+
+# What actually served the last call, and how much it reasoned.
+LAST_CALL: dict = {}
+
+
 def call_openrouter(system: str, user: str, model: str) -> tuple[str, int | None, int | None]:
-    """OpenRouter API — OpenAI-compatible. Set OPENROUTER_API_KEY."""
-    from openai import OpenAI
-    client = OpenAI(
-        api_key=os.environ["OPENROUTER_API_KEY"],
-        base_url="https://openrouter.ai/api/v1",
-    )
-    resp = client.chat.completions.create(
-        model=model,
-        temperature=0,
-        messages=[
+    """OpenRouter API. Set OPENROUTER_API_KEY.
+
+    Plain HTTP: the endpoint that served the call and the reasoning it produced live
+    outside the OpenAI schema, and they are part of the condition.
+    """
+    import requests
+    body: dict = {
+        "model": model,
+        "temperature": 0,
+        "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": user},
         ],
-    )
-    usage = resp.usage
-    in_tok = usage.prompt_tokens if usage else None
-    out_tok = usage.completion_tokens if usage else None
-    return resp.choices[0].message.content, in_tok, out_tok
+        "usage": {"include": True},
+    }
+    if GEN_SEED is not None:
+        body["seed"] = GEN_SEED
+    if GEN_PROVIDER is not None:
+        body["provider"] = {"order": [GEN_PROVIDER], "allow_fallbacks": False}
+    if GEN_THINK is not None:
+        body["reasoning"] = {"enabled": GEN_THINK}
+    r = requests.post("https://openrouter.ai/api/v1/chat/completions",
+                      headers={"Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}"},
+                      json=body, timeout=900)
+    data = r.json()
+    if "error" in data:
+        raise RuntimeError(f"OpenRouter: {data['error'].get('message', data['error'])}")
+    usage = data.get("usage") or {}
+    LAST_CALL.clear()
+    LAST_CALL.update({
+        "provider": data.get("provider"),
+        "model": data.get("model"),
+        "reasoning_tokens": (usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),
+        "cost_usd": usage.get("cost"),
+    })
+    msg = data["choices"][0]["message"]
+    return msg.get("content") or "", usage.get("prompt_tokens"), usage.get("completion_tokens")
 
 
 def call_ollama(system: str, user: str, model: str, host: str = "http://localhost:11434") -> tuple[str, int | None, int | None]:
     import urllib.request
-    body = json.dumps({
+    # `think` is a top-level field for Ollama. Until v0.4 it sat inside `options`, where
+    # Ollama ignores it: every published local answer was generated with reasoning at
+    # the runtime default (on). Measured 2026-09-25, PROTOCOL_v0.4.md deviation D6.
+    payload: dict = {
         "model": model,
         "prompt": user,
         "system": system,
         "stream": False,
-        "options": {"temperature": 0, "think": False},
-    }).encode("utf-8")
+        "options": {"temperature": 0},
+    }
+    if GEN_THINK is not None:
+        payload["think"] = GEN_THINK
+    if GEN_SEED is not None:
+        payload["options"]["seed"] = GEN_SEED
+    body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         f"{host.rstrip('/')}/api/generate",
         data=body,
@@ -177,7 +214,23 @@ def call_ollama(system: str, user: str, model: str, host: str = "http://localhos
         data = json.loads(r.read().decode("utf-8"))
     in_tok = data.get("prompt_eval_count")
     out_tok = data.get("eval_count")
+    LAST_CALL.clear()
+    LAST_CALL["thinking_chars"] = len(data.get("thinking") or "")
     return data.get("response", "").strip(), in_tok, out_tok
+
+
+def ollama_model_info(model: str, host: str) -> dict:
+    """Server version, quantization and digest of the local model, read from the host."""
+    import urllib.request
+    def get(path):
+        with urllib.request.urlopen(f"{host.rstrip('/')}{path}", timeout=30) as r:
+            return json.loads(r.read().decode("utf-8"))
+    info: dict = {"ollama_version": get("/api/version").get("version")}
+    for m in get("/api/tags").get("models", []):
+        if m["name"] == model:
+            info.update({"quantization": m["details"].get("quantization_level"),
+                         "digest": m.get("digest", "")[:16]})
+    return info
 
 
 CALLERS = {
@@ -206,7 +259,36 @@ def main() -> int:
                     help="Skip questions already answered in the output file (retry errors only)")
     ap.add_argument("--ollama-host", default="http://localhost:11434",
                     help="Ollama server URL (default: http://localhost:11434)")
+    ap.add_argument("--seed", type=int, default=None,
+                    help="ollama/openrouter: send this seed (default: none sent)")
+    ap.add_argument("--pin", default=None,
+                    help="openrouter: pin this endpoint tag, no fallback (e.g. deepinfra/fp8)")
+    ap.add_argument("--think", choices=["default", "on", "off"], default="default",
+                    help="reasoning: 'default' sends nothing (the runtime decides)")
     args = ap.parse_args()
+    global GEN_SEED, GEN_PROVIDER, GEN_THINK
+    if args.provider not in ("ollama", "openrouter") and (args.seed is not None or args.pin or args.think != "default"):
+        ap.error("--seed, --pin and --think apply to ollama and openrouter only")
+    if args.pin and args.provider != "openrouter":
+        ap.error("--pin applies to openrouter only")
+    GEN_SEED = args.seed
+    GEN_PROVIDER = args.pin
+    GEN_THINK = None if args.think == "default" else args.think == "on"
+
+    # Stamped on every answer line: an answer whose condition cannot be read back
+    # cannot be compared with another one (PROTOCOL_v0.4.md, Stage 0).
+    generation_config: dict = {
+        "provider": args.provider,
+        "model": args.model,
+        "system_prompt_sha256": __import__("hashlib").sha256(SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:16],
+        "row_cap": 200,
+        "temperature": 0,
+        "seed": GEN_SEED,
+        "think": args.think,
+        "provider_requested": GEN_PROVIDER,
+    }
+    if args.provider == "ollama":
+        generation_config.update({"host": args.ollama_host, **ollama_model_info(args.model, args.ollama_host)})
 
     dataset = [json.loads(l) for l in Path(args.dataset).open(encoding="utf-8") if l.strip()]
     if args.limit:
@@ -245,6 +327,7 @@ def main() -> int:
         try:
             cols, rows = execute_sql(db_path, q["gold_sql"])
             user = build_user_prompt(q["question"], q["gold_sql"], cols, rows)
+            LAST_CALL.clear()
             t0 = time.time()
             if args.provider == "ollama":
                 answer, in_tok, out_tok = caller(SYSTEM_PROMPT, user, args.model, host=args.ollama_host)
@@ -257,7 +340,9 @@ def main() -> int:
                 tokens_known = True
                 total_in += in_tok
                 total_out += out_tok
-                cost = estimate_cost(args.provider, args.model, in_tok, out_tok)
+                cost = LAST_CALL.get("cost_usd")
+                if cost is None:
+                    cost = estimate_cost(args.provider, args.model, in_tok, out_tok)
                 if cost is not None:
                     total_cost += cost
 
@@ -273,6 +358,8 @@ def main() -> int:
                 "input_tokens": in_tok,
                 "output_tokens": out_tok,
                 "cost_usd": cost,
+                "generation_config": {**generation_config, "batch_position": i},
+                "generation_served": dict(LAST_CALL),
             }, ensure_ascii=False) + "\n")
             out.flush()
             n_ok += 1

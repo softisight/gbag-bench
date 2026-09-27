@@ -36,10 +36,11 @@ A BI user acts on the answer. A hallucinated number causes real-world damage (wr
 
 ## Judging protocol
 
-- LLM-as-judge using a frontier model; the v0.2 leaderboard uses a single uniform reference judge (Grok-4.3 via OpenRouter)
+- LLM-as-judge using a frontier model; the v0.2 leaderboard uses a single uniform reference judge (Grok-4.3 via OpenRouter). **This choice is no longer recommended** — a single reference judge does not remove judge error, it hides it, and the judge in question was later measured changing its own verdict on 3 of 7 validation cases. See [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)
 - Dual-judge for inter-rater agreement. GBAG scores are continuous (0-100), so **ICC(A,1)** (absolute-agreement intraclass correlation) and **Spearman** are reported, not Cohen's kappa, which applies to categorical ratings
-- Temperature = 0
-- Prompt and rubric published in [`judge/prompt.md`](judge/prompt.md)
+- **Several runs per judge.** A single run does not measure a judge, it samples one. Judges whose seed cannot be pinned require this; judges whose seed can be pinned require the batch and its order to be fixed as well
+- Temperature = 0. Necessary, and **not sufficient**: it constrains the sampler, not the runtime
+- Prompt and rubric published in [`judge/prompt-v041.md`](judge/prompt-v041.md), which replaces the earlier [`judge/prompt.md`](judge/prompt.md); the difference is measured in [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)
 
 ## Versioning
 

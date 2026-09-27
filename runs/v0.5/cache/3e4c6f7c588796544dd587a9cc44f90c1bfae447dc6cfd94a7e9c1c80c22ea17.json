@@ -1,0 +1,1 @@
+[[{"span": "Typical sales invoices (SA, account 411): ~1,000\u20135,700", "scope": "all_data", "type": "share", "column": "debit", "value": "", "low": "1,000", "high": "5,700", "quantifier": "most", "filter_column": "journal_code", "filter_op": "eq", "filter_value": "SA", "answers_question": false}], {"in": 1040, "out": 150, "cost": 0.00034905, "provider": "DeepInfra"}]

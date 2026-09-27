@@ -1,0 +1,1 @@
+[[{"span": "The entry OB-2023 with a total amount of 45000", "scope": "all_data", "type": "point", "column": "total_amount", "value": "45000", "answers_question": true}, {"span": "much larger than the next highest entry (19264.82)", "scope": "all_data", "type": "extreme", "column": "total_amount", "value": "19264.82", "answers_question": true}], {"in": 1013, "out": 126}]

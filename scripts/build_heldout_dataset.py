@@ -201,4 +201,14 @@ def main():
 
 
 if __name__ == "__main__":
+    # Paths are parameters so that a re-rolled ledger (PROTOCOL_v0.4.md, suite HO-B)
+    # builds its own question files without overwriting the frozen ones. Defaults
+    # reproduce the published build.
+    import argparse
+    ap = argparse.ArgumentParser(description="Build the GBAG held-out question files.")
+    ap.add_argument("--db", type=Path, default=DB)
+    ap.add_argument("--out", type=Path, default=OUT)
+    ap.add_argument("--out-l1", type=Path, default=OUT_L1)
+    args = ap.parse_args()
+    DB, OUT, OUT_L1 = args.db, args.out, args.out_l1
     main()

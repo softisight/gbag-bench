@@ -1,0 +1,1 @@
+[[{"span": "OB \u2014 Opening balances: 1 entry", "scope": "all_data", "type": "count", "column": "nb_entries", "value": "1", "filter_column": "journal_code", "filter_op": "eq", "filter_value": "OB", "answers_question": true}], {"in": 800, "out": 103, "cost": 0.000313125, "provider": "DeepInfra"}]

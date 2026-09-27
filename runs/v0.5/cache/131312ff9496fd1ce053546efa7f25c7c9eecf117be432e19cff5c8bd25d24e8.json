@@ -1,0 +1,1 @@
+[[{"span": "The vast majority of entries cluster tightly between roughly \u20ac5,250 and \u20ac7,400", "scope": "all_data", "type": "share", "column": "total_amount", "value": "", "low": "\u20ac5,250", "high": "\u20ac7,400", "quantifier": "majority", "answers_question": false}], {"in": 920, "out": 123, "cost": 0.000280425, "provider": "DeepInfra"}]

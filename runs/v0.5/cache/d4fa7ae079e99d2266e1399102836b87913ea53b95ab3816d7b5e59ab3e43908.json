@@ -1,0 +1,1 @@
+[[{"span": "SA \u2014 Sales: 357 entries", "scope": "all_data", "type": "count", "column": "nb_entries", "value": "357", "filter_column": "journal_code", "filter_op": "eq", "filter_value": "SA", "answers_question": true}], {"in": 801, "out": 106, "cost": 0.0003189, "provider": "DeepInfra"}]

@@ -1,0 +1,1 @@
+[[{"span": "CS \u2014 Petty cash: 56 entries", "scope": "all_data", "type": "count", "column": "nb_entries", "value": "56", "filter_column": "journal_code", "filter_op": "eq", "filter_value": "CS", "answers_question": true}], {"in": 801, "out": 105, "cost": 0.000317025, "provider": "DeepInfra"}]

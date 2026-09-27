@@ -11,6 +11,14 @@
 
 ---
 
+> **Can the judge be trusted?** GBAG is scored by an LLM judge, so that question decides
+> whether any number here means anything. It is answered in
+> **[JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)** — seven cases whose correct verdict is
+> settled by a SQL query rather than by an opinion, seven judges measured against them,
+> several runs each, and the resolution of the instrument stated in points.
+
+---
+
 ## Why GBAG
 
 Existing benchmarks (Spider, BIRD, WikiSQL) measure whether a model generates correct SQL. They stop there. But in a real BI product, what the user reads is the **natural-language answer** the model writes after the SQL is executed — and that step is where most failures actually happen.
@@ -117,7 +125,7 @@ Each finding below survived our own verification process, including two correcti
 
 2. **Bigger is barely better.** Judged uniformly, the 9B sits about 3 points below a 480B MoE that activates 35B parameters per token. Three points is well inside the judge's own noise, so read it as a tie, not a ranking.
 
-3. **The judge moves scores as much as the model does.** Identical answers scored 72.7 under a lenient judge and 59.6 under a strict one: 13 points apart on the same text. Single-judge benchmarks are unreliable, which is why the board uses one uniform reference judge and publishes judge disagreement as data: [Inter-judge variance](LEADERBOARD.md#inter-judge-variance).
+3. **The judge moves scores as much as the model does.** Identical answers scored 72.7 under a lenient judge and 59.6 under a strict one: 13 points apart on the same text. Single-judge benchmarks are unreliable: [Inter-judge variance](LEADERBOARD.md#inter-judge-variance). The v0.2 board answered this by scoring everything with one uniform reference judge (Grok-4.3). That answer is now known to be insufficient — the same judge, re-run on the same answer, does not always return the same score. See [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md).
 
 4. **Thinking: no measurable effect (a corrected claim).** We first wrote that thinking modes hurt grounded tasks; that compared different models, which is confounded, and the claim is withdrawn. The clean same-family ablation reads 60.6 vs 58.9 on the 28 questions both variants answered — inside the noise floor. Non-result, either way, until matched re-runs settle it.
 
@@ -131,10 +139,12 @@ The benchmark's scoring rests on LLM-as-judge, so the question deserves a direct
 
 1. **Verifying is easier than producing.** The judge never answers the BI question itself. It checks the candidate answer against material it is handed: the executed SQL, a human-written gold answer, and a checklist of expected insights. Reading-and-matching is a strictly easier task than the open-ended generation being graded.
 2. **The judge grades with an answer key, not from its own knowledge.** Every question ships a `gold_answer` and atomic `expected_insights`, both human-curated. Completeness is near-mechanical (insights matched / insights expected). The judge acts as a grader with a rubric, not as an oracle.
-3. **The rubric leaves little room for taste.** Anchored score bands per axis, a ±2% numeric tolerance, temperature 0, strict JSON output, and explicit rules against rewarding style or verbosity. The full prompt is published in [judge/prompt.md](judge/prompt.md); challenge it there if you disagree with a band.
-4. **Judge error is measured, not assumed away.** Finding #3 above quantifies it: re-judging identical answers moved the score by 13 points between two judges. That is exactly why v0.2 scores the whole leaderboard with one uniform reference judge (Grok-4.3) and why dual-judge submissions with ICC(A,1) and Spearman correlation are strongly preferred. Judge disagreement is published as data, not hidden.
+3. **The rubric leaves little room for taste — but the rubric alone was not enough.** Anchored score bands, a ±2% numeric tolerance, strict JSON output and explicit rules against rewarding style did not stop judges from approving answers that were false. Under the original prompt every judge tested scored between 2 and 4 out of 7 on the validation set. What repaired them was not a stricter band but a **procedure**: extract every quantitative claim, state its scope, name the fact relied on, and only then score. That prompt is [judge/prompt-v041.md](judge/prompt-v041.md); the earlier one is kept at [judge/prompt.md](judge/prompt.md) for comparison.
+4. **Judge error is measured, not assumed away — and it is larger than inter-judge disagreement suggests.** Finding #3 above reports 13 points between two judges on identical answers. The sharper number is *intra*-judge: asked to grade the same answer four times, with the answer key in front of it and temperature 0, grok-4.3 returned **40, 40, 100, 10**. Three of the seven validation cases move like that for it. Temperature 0 does not make a hosted judge reproducible, because its seed cannot be pinned.
 
-The honest residual: even a uniform strong judge carries ~11 points of judge-induced variance (see [Limitations](#limitations)). LLM-as-judge remains the only scalable way to grade free-form BI prose today; GBAG's stance is to treat the judge as part of the measured system, with its error bars published.
+This changes the earlier remedy. Scoring everything with one uniform reference judge does not remove judge error; it hides it, and it is worse when that judge disagrees with itself. The current stance instead is: validate the judge against cases whose correct verdict is settled by a **SQL query**, measure its self-consistency over several runs, and prefer a judge whose runtime you control. Locally the seed can be pinned, and the four local judges tested produced **zero self-contradictions across 28 case-runs**; the three hosted ones produced ten across twenty.
+
+Full method, the seven cases with their proof queries, the seven judges measured against them, and the resolution of the instrument in points: **[JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)**. That page replaces this section's argument with a measurement — which is the only thing that should settle it.
 
 ## Quick start
 
@@ -197,7 +207,7 @@ GBAG-Bench v0.2 has known limitations we document openly:
 
 - **Small dataset** — 35 questions. Statistically informative for spot-checks; not enough for definitive claims. v0.3 will expand.
 - **3 public databases** — Sakila / Chinook / Northwind are well-known public samples that may appear in some models' training data. v0.3 addresses this with a first-party synthetic held-out database (`ledger`); see the [held-out suite](#held-out-suite-v03) section.
-- **LLM-as-judge limitations** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain. The dual-judge protocol with ICC(A,1) and Spearman correlation is the recommended path.
+- **LLM-as-judge limitations** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain *between* judges. A hosted judge is also not reproducible against itself: its seed cannot be pinned, and re-running it on identical input returns different scores on boundary cases. Measured per judge, with the cases and the queries that settle them, in [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md). The dual-judge protocol with ICC(A,1) and Spearman correlation remains recommended, but several runs of each judge are now required for the numbers to mean anything.
 - **Single-language** — questions and gold answers are in English. Multilingual extension planned.
 - **Faithfulness over Insight** — the 50/30/20 metric weighting reflects our judgment that hallucinated numbers are worse than missing insights. Alternative weightings are documented in [METRIC.md](METRIC.md).
 

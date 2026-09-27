@@ -1,0 +1,1 @@
+[[{"span": "a single entry at 45,000", "scope": "all_data", "type": "count", "column": "total_amount", "value": "1", "filter_column": "total_amount", "filter_op": "eq", "filter_value": "45,000", "answers_question": false}], {"in": 991, "out": 111, "cost": 0.000268575, "provider": "DeepInfra"}]

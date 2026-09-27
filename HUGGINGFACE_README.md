@@ -122,6 +122,49 @@ print(ds[0]["question"])
 
 To execute a question's `gold_sql`, download the corresponding SQLite file from the `databases/` folder of this dataset (or from the [GitHub repo](https://github.com/softisight/gbag-bench/tree/main/databases)) and run it locally — no external service required.
 
+## Can the judge be trusted?
+
+Every score below comes from an LLM judge, so this question decides whether any of them
+mean anything. It is answered with measurement, not argument.
+
+Seven cases were built whose correct verdict is settled by a **SQL query** rather than by
+an opinion. Six are answers that must be marked unfaithful; one is correct and must be
+acquitted, otherwise a judge that condemns everything would score well. Each ships the
+query that proves it, and all seven run as written.
+
+They probe one failure. A model shown the first 200 rows of a larger result writes a
+sentence that is true about those rows and false about the data — *every*, *the highest*,
+*the majority*, *ends at*. The figures are right; the reach of the sentence is not. A judge
+that checks figures against the visible rows approves all of them.
+
+| judge | where | score | runs where it contradicted itself |
+|---|---|---|---|
+| **gemma4-31b** | local, 31B | **7/7** | 0 of 7 |
+| **qwen3.6** | local, 36B | **6/7** | 0 of 7 |
+| grok-4.3 | hosted | 5.5/7 | **3 of 7** |
+| phi4 | local, 15B | 5/7 | 0 of 7 |
+| deepseek-v4-pro | hosted | 5/7 | **5 of 7** |
+| gemma4-12b | local, 12B | 4/7 | 0 of 7 |
+| gemini-2.5-pro | hosted | 3.3/6 | **2 of 6** |
+
+Same prompt, three runs each. Four local judges produced **zero self-contradictions across
+28 case-runs**; three hosted judges produced **ten across twenty**. Not a quality gap — a
+hosted seed cannot be pinned, so a hosted judge cannot be asked the same question twice.
+
+Under the earlier prompt every judge scored 2 to 4 out of 7, flagships included. What
+repaired them was not a larger judge but a procedure: list every quantitative claim, state
+its scope, name the fact relied on, and only then score. That is ~150 words longer and took
+the best judge from **2/7 to 7/7**.
+
+Two things this does **not** settle, stated in full on the method page: these seven cases
+are the ones the rule was written against, so 7/7 shows conformity rather than
+generalisation; and batch position flips boundary verdicts, which puts the resolution of
+the instrument at about **2 points** — two models closer than that are tied, and the
+decimals should not be read.
+
+Full method, the seven cases with their proof queries, and the judge prompts:
+**[JUDGE_VALIDATION.md](https://github.com/softisight/gbag-bench/blob/main/JUDGE_VALIDATION.md)**.
+
 ## v0.2 leaderboard — uniform Grok-4.3 judge
 
 All models re-judged with the same judge to enable apples-to-apples comparison.
@@ -144,7 +187,7 @@ F = Faithfulness · C = Completeness · I = Insight. Full table, v0.1 archive an
 
 **2. Bigger is not (much) better.** Under a uniform strong judge, `qwen3.5:9b` (59.6) sits about 3 points below `qwen3-coder-480b-a35b` (62.8 on the common questions), i.e. **single digits**. Mind the MoE caveat: that model activates roughly 35B parameters per token, not 480B, so this is a dense 9B within single digits of a **35B-active** model, about 4× its active size. A 3-point gap is inside the 11-point inter-judge variance, so read it as a tie.
 
-**3. Judge selection matters as much as model selection.** Re-judging the same `qwen3.5:9b` answers with Grok-4.3 instead of deepseek-chat dropped the score from **72.7** to **59.6** — a 13-point gap on byte-identical answers. **Single-judge benchmarks are unreliable.** GBAG ships a dual-judge protocol with ICC(A,1) and Spearman correlation.
+**3. Judge selection matters as much as model selection.** Re-judging the same `qwen3.5:9b` answers with Grok-4.3 instead of deepseek-chat dropped the score from **72.7** to **59.6** — a 13-point gap on byte-identical answers. **Single-judge benchmarks are unreliable.** GBAG ships a dual-judge protocol with ICC(A,1) and Spearman correlation. A later result sharpens this: a judge does not only disagree with other judges, it disagrees with **itself**. Asked to grade one answer four times, with the answer key in front of it and temperature 0, Grok-4.3 returned **40, 40, 100, 10**. A single run of any judge is a sample, not a measurement — see [JUDGE_VALIDATION.md](https://github.com/softisight/gbag-bench/blob/main/JUDGE_VALIDATION.md).
 
 **4. Thinking mode: no measurable effect (non-result).** The clean ablation is `qwen3-next-80b-a3b-thinking` against its non-thinking sibling `qwen3-next-80b-a3b-instruct`: same family, same size, same judge. On the **28 questions both answered**, thinking scores **60.6** against **58.9**, a +1.7 gap in thinking's favour, far inside the 11-point inter-judge variance. **No conclusion either way.** An earlier version claimed thinking "can hurt grounded tasks" by comparing against *different* models; that comparison was confounded and the claim is **withdrawn**.
 
@@ -167,16 +210,36 @@ python examples/baseline_runner.py \
     --provider <anthropic|openai|ollama|nvidia|openrouter> \
     --model <model-id>
 
-# 2. Score with the v0.2 reference judge (Grok-4.3 via OpenRouter)
+# 2a. Score with the v0.2 reference judge, for comparability with the table above
 export OPENROUTER_API_KEY=sk-or-...
 python judge/run_judge.py \
     --dataset data/questions.jsonl \
     --answers runs/<your-model>.jsonl \
     --output runs/<your-model>.scored-grok43.jsonl \
-    --judge openrouter --model x-ai/grok-4.3
+    --judge openrouter --model x-ai/grok-4.3 \
+    --prompt judge/prompt-v041.md
+
+# 2b. And score it again with a local judge, which is free and reproducible
+OLLAMA_HOST=http://your-box:11434 python judge/run_judge.py \
+    --dataset data/questions.jsonl \
+    --answers runs/<your-model>.jsonl \
+    --output runs/<your-model>.scored-gemma31.jsonl \
+    --judge ollama --model gemma4:31b \
+    --prompt judge/prompt-v041.md
 ```
 
-Reproducing one model costs roughly **$0.40** in judge fees. **Dual-judge submissions (Grok-4.3 + one second judge from a different vendor) are strongly preferred.**
+Reproducing one model costs roughly **$0.40** in judge fees for step 2a, and nothing for
+2b. Three points, from the judge validation above:
+
+- **Use `judge/prompt-v041.md`.** Under the older `judge/prompt.md` every judge tested
+  scored 2 to 4 out of 7 on cases a SQL query settles.
+- **Run each judge at least three times and report all runs.** A single run samples a
+  judge; it does not measure one. Grok-4.3 graded one answer 40, 40, 100, 10.
+- **A local judge is free, and it is the only kind that can repeat itself** — its seed can
+  be pinned. Pin the batch and its order too.
+
+**Dual-judge submissions remain strongly preferred**, one hosted and one local rather than
+two hosted, so that at least one side of the comparison is reproducible.
 
 ## Limitations
 
@@ -184,7 +247,7 @@ We document them openly:
 
 - **Small dataset** — 35 questions. Statistically informative for spot-checks, not enough for definitive claims. v0.3 will expand.
 - **3 databases only** — Sakila / Chinook / Northwind are well-known public samples that may appear in some models' training data. Held-out databases are under evaluation for v0.3.
-- **LLM-as-judge variance** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain. The dual-judge protocol with ICC(A,1) and Spearman correlation is the recommended path.
+- **LLM-as-judge variance** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain *between* judges, and a hosted judge is not reproducible against itself either: its seed cannot be pinned. The dual-judge protocol with ICC(A,1) and Spearman correlation is the recommended path, now with several runs per judge. Method, cases and measurements: [JUDGE_VALIDATION.md](https://github.com/softisight/gbag-bench/blob/main/JUDGE_VALIDATION.md).
 - **English only** — multilingual extension planned.
 - **Faithfulness over Insight** — the 50/30/20 weighting reflects our judgment that hallucinated numbers are worse than missing insights. Alternative weightings are documented in [METRIC.md](https://github.com/softisight/gbag-bench/blob/main/METRIC.md).
 

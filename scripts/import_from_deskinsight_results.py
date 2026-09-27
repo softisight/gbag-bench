@@ -3,8 +3,8 @@ Convert DeskInsight Runner benchmark_raw.json output(s) back to GBAG
 model_answers.jsonl format, ready for judge/run_judge.py.
 
 Convention (post-cleanup):
-- DeskInsight suites live in Z:\\SampleDB\\<db>_gbag.json (loaded via "Load JSON")
-- Raw benchmark outputs are saved into Z:\\gbag-bench\\runs\\raw_<db>_<model>.json
+- DeskInsight suites live in <local-path>\\SampleDB\\<db>_gbag.json (loaded via "Load JSON")
+- Raw benchmark outputs are saved into <local-path>\\gbag-bench\\runs\\raw_<db>_<model>.json
 - This script converts those into runs/<model>_gbag.jsonl for the judge
 
 Usage:

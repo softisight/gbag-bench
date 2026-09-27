@@ -1,0 +1,17 @@
+{
+  "cas-01": "claude-fable-5__ledger-l10-01",
+  "cas-02": "gpt-5.6-sol__ledger-l10-02",
+  "cas-03": "gpt-5.6-sol__ledger-l9-01",
+  "cas-04": "kimi-k3__ledger-l9-02",
+  "cas-05": "nemotron-3-nano-30b__ledger-l9-03",
+  "cas-06": "gemma4-12b__ledger-l10-01",
+  "cas-07": "kimi-k3__ledger-l10-02",
+  "cas-08": "kimi-k3__ledger-l9-01",
+  "cas-09": "claude-fable-5__ledger-l8-01",
+  "cas-10": "gemma4-12b__ledger-l8-02",
+  "cas-11": "gemma4-12b__ledger-l8-01",
+  "cas-12": "gpt-5.6-sol__ledger-l8-02",
+  "cas-13": "claude-fable-5__ledger-l1-01",
+  "cas-14": "gemma4-12b__ledger-l2-01",
+  "cas-15": "gpt-5.6-sol__ledger-l3-01"
+}

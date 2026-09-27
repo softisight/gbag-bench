@@ -828,5 +828,16 @@ def verify(conn):
 
 
 if __name__ == "__main__":
+    # --seed re-rolls every number with the same schema and the same questions
+    # (PROTOCOL_v0.4.md, suite HO-B). --out keeps a re-roll from overwriting the
+    # frozen held-out database. Both default to the published build.
+    import argparse
+    ap = argparse.ArgumentParser(description="Generate the GBAG ledger database.")
+    ap.add_argument("--seed", type=int, default=SEED)
+    ap.add_argument("--out", default=DB_FILE)
+    args = ap.parse_args()
+    SEED = args.seed
+    DB_FILE = args.out
+    random.seed(SEED)
     build()
     print("\nDatabase generated: %s" % os.path.abspath(DB_FILE))

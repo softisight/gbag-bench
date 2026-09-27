@@ -1,0 +1,1 @@
+[[{"span": "The account closed at a running balance of $54,883.50", "scope": "all_data", "type": "end_value", "column": "running_balance", "value": "$54,883.50", "at": "2025-12", "answers_question": true}], {"in": 972, "out": 108, "cost": 0.0002601, "provider": "DeepInfra"}]

@@ -1,0 +1,1 @@
+[[{"span": "The account never went negative", "scope": "all_data", "type": "universal", "column": "running_balance", "value": "0", "answers_question": false}, {"span": "the running balance stayed above 26,700 throughout the period", "scope": "all_data", "type": "universal", "column": "running_balance", "value": "26,700", "answers_question": false}], {"in": 1046, "out": 104}]

@@ -1,0 +1,2 @@
+# Sealed test set: bytes are fingerprinted in PROTOCOL_v0.4.md (D12); never convert line endings.
+data/sealed/** -text

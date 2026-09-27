@@ -1,0 +1,1 @@
+[[{"span": "OB-2023 at \u20ac45,000 is the only statistical outlier", "scope": "all_data", "type": "count", "column": "total_amount", "value": "1", "filter_column": "document_number", "filter_op": "eq", "filter_value": "OB-2023", "answers_question": true}], {"in": 922, "out": 119, "cost": 0.000361425, "provider": "DeepInfra"}]
