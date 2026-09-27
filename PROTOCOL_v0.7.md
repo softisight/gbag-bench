@@ -486,3 +486,46 @@ The cloud models ran with their provider's default reasoning, the local ones wit
 - Bonsai's many `wrong` answers are miscounts and misreadings (for example 1,245 or
   1,817 given for a total of 16,044).
 
+## Double reading and AI review — sample results (2026-09-27)
+
+**gemma4:31b** (D12, one run):
+- arm B: GBAG failure 47 %, score 39;
+- arm A: GBAG failure 0 %, honest 68 %, score 86;
+- controls 12/12.
+
+For comparison, `gemma4:12b`: arm B 59 %, score 35; arm A score 75.
+
+**Blind reading (D13), 204 answers, reader `gemma4:12b`.**
+- **Class agreement: 187/204 = 91.7 %, below the 95 % threshold.** Per D13, the full set
+  is NOT run.
+- Every one of the 17 disagreements was read by hand. **None is a misreading by the
+  code.**
+  - **11 are reader errors.**
+    - 9 times the AI reported a scope line that the arm-B block does not have, against
+      its instruction.
+    - 2 times it reported a block where the answer has none: it took a figure from the
+      prose.
+  - **6 come from the strict format rule.** Blocks without the `value:` label ("2024-07-04:
+    475982.19", "TELEGRAPH VOYAGE: 231.73") are format failures for the code and are read
+    leniently by the AI.
+- **Reading.** The weak link of the double reading is the AI reader, not the parser.
+
+**AI review (D14), 204 answers, reviewer `gemma4:12b`.**
+- 72 flags (35 %). Hand classification:
+  - 25 are self-contradictory: the reason restates that the verdict is right;
+  - 15 misread control targets (a complete result bounded to "rows shown" is correct);
+  - 4 concern the format rule;
+  - 6 are other cases;
+  - **22 are plausible "the text bounds the value" flags. About 10 of them are genuine:
+    arm-B answers whose prose explicitly limits the value** ("based strictly on the
+    provided data", "cannot confirm it is the largest in the entire ledger"). Arm B's
+    value-only block cannot carry that bound, so the algorithm counts them as
+    `lucky` / GBAG failure.
+- **Reading.**
+  - The review finds a real blind spot of arm B: a bound stated in the prose is
+    ignored.
+  - `gemma4:12b` is too weak a reviewer: about two thirds of its flags are noise.
+  - Excluding every flagged answer, as D15 would, would remove 35 % of the sample on
+    mostly wrong grounds. **D15's "confirmed" rule is therefore not applied with this
+    reviewer.**
+
