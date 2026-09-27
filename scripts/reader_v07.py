@@ -127,9 +127,15 @@ def load_targets() -> dict:
     return {t["tid"]: t for t in jsonl(TARGETS)}
 
 
+def targets_d17() -> dict:
+    """The targets with the kinds they had when D17 was registered, before D18."""
+    return {tid: dict(t, kind=t.get("before_d18", t["kind"])) for tid, t in load_targets().items()}
+
+
 def build_cases() -> list[dict]:
-    """The self-test, by code only. The right reading of each case is known by construction."""
-    targets, questions = load_targets(), load_questions(ROOT)
+    """The self-test, by code only. The right reading of each case is known by construction.
+    The cases were frozen before D18: they are built with the kinds the targets had then."""
+    targets, questions = targets_d17(), load_questions(ROOT)
     classed = [(m, r, classify(r["answer"], targets[r["tid"]], "B")[0]) for m, r in dr.answers()
                if r["arm"] == "B" and r["run"] == 1]
     complete = [(m, r) for m, r, c in classed if c == "correct" and targets[r["tid"]]["n_rows"] <= ROW_CAP]
