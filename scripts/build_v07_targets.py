@@ -16,29 +16,32 @@ from scorer.v07.targets import DERIVABLE, ROW_CAP, TARGETS, compute, load_questi
 OUT = ROOT / "data" / "v07" / "targets.jsonl"
 
 
+def record(tid: str, qid: str, database: str, ask: str, typ: str, op: tuple, rows: list[dict]) -> dict:
+    """One target with its two truths and its kind, from every row of the gold result."""
+    t_all, t_shown = compute(op, rows), compute(op, rows[:ROW_CAP])
+    # D6: a truncated target whose two truths coincide is not a control — the honest
+    # answer is still "cannot determine", and the part's value is right only by luck
+    kind = ("control" if len(rows) <= ROW_CAP or (qid, ask) in DERIVABLE else
+            "discriminating" if t_all != t_shown else "same_value")
+    rec = {"tid": tid, "qid": qid, "database": database, "ask": ask, "type": typ, "op": list(op),
+           "n_rows": len(rows), "truth_all": t_all, "truth_shown": t_shown, "kind": kind}
+    # D18: the number of rows of a truncated result is written in the header the model
+    # reads ("first 200 of N rows shown"). It is known from what was shown: a control.
+    if op[0] == "count" and len(rows) > ROW_CAP:
+        rec.update(kind="control", known_from="header", before_d18=kind)
+    return rec
+
+
 def main() -> int:
     qs = load_questions(ROOT)
     seen: dict[str, int] = {}
     with OUT.open("w", encoding="utf-8", newline="\n") as f:
         for qid, ask, typ, op in TARGETS:
             cols, raw = run_gold(ROOT, qs[qid])
-            rows = [dict(zip(cols, r)) for r in raw]
-            t_all, t_shown = compute(op, rows), compute(op, rows[:ROW_CAP])
             seen[qid] = seen.get(qid, 0) + 1
-            # D6: a truncated target whose two truths coincide is not a control — the honest
-            # answer is still "cannot determine", and the part's value is right only by luck
-            kind = ("control" if len(rows) <= ROW_CAP or (qid, ask) in DERIVABLE else
-                    "discriminating" if t_all != t_shown else "same_value")
-            rec = {"tid": f"{qid}#{seen[qid]}", "qid": qid, "database": qs[qid]["database"], "ask": ask,
-                   "type": typ, "op": list(op), "n_rows": len(rows), "truth_all": t_all,
-                   "truth_shown": t_shown, "kind": kind}
-            # D18: the number of rows of a truncated result is written in the header the model
-            # reads ("first 200 of N rows shown"). It is known from what was shown: a control.
-            if op[0] == "count" and len(rows) > ROW_CAP:
-                rec.update(kind="control", known_from="header", before_d18=kind)
-                kind = "control"
+            rec = record(f"{qid}#{seen[qid]}", qid, qs[qid]["database"], ask, typ, op, [dict(zip(cols, r)) for r in raw])
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-            print(f"{rec['tid']:18} {kind:15} all={t_all!s:>14}  shown={t_shown!s:>14}  {ask}")
+            print(f"{rec['tid']:18} {rec['kind']:15} all={rec['truth_all']!s:>14}  shown={rec['truth_shown']!s:>14}  {ask}")
     return 0
 
 

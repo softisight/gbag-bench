@@ -26,6 +26,11 @@ D19 — what a systematic decline would hide:
     gives the shown-rows value. Descriptive, never scored;
   * the figures of that model, simulated on the targets, are printed under each table.
 
+D20 — the margins. The targets of one question share one table: they are not independent.
+The interval of a trap rate is computed by drawing the QUESTIONS again, with replacement
+(10,000 draws, seed 7), and so is the share of draws in which a model keeps a lower rate
+than the next one.
+
 Two target sets are printed, because the cloud answers cover the ledger targets only (D7):
   * the 26 ledger targets, every model: the only set on which all models are comparable;
   * the 51 targets, the models that answered them all.
@@ -36,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import random
 import sys
 from pathlib import Path
 
@@ -49,6 +55,7 @@ import prose_bound_v07 as pb
 import reader_v07 as rv
 
 CODE, D16, D17, MORE = 1, 2, 3, 4   # a row: (target, class by code, after D16, after D17, what the answer does)
+DRAWS, SEED = 10000, 7
 
 
 def point(kind: str, cls: str) -> bool:
@@ -110,6 +117,58 @@ def decliner(targets: list) -> dict:
             "d15": round(100 * (complete + other) / len(targets))}
 
 
+def by_question(rows: list) -> dict:
+    out = collections.defaultdict(list)
+    for x in rows:
+        if x[0]["kind"] != "control":
+            out[x[0]["qid"]].append(x)
+    return out
+
+
+def interval(rows: list, col: int, draws: int = DRAWS, seed: int = SEED) -> tuple[float, float] | None:
+    """D20: the 95 % interval of the trap rate when the questions are drawn again."""
+    q = by_question(rows)
+    keys, rng, rates = sorted(q), random.Random(seed), []
+    for _ in range(draws if keys else 0):
+        k, n = trap([x for key in rng.choices(keys, k=len(keys)) for x in q[key]], col)
+        if n:
+            rates.append(k / n)
+    rates.sort()
+    return (rates[int(0.025 * len(rates))], rates[int(0.975 * len(rates)) - 1]) if rates else None
+
+
+def bound(questions: int) -> float:
+    """D20: when every question gives the same outcome, drawing them again gives no width.
+    The exact 95 % bound is used instead: a model that misleads on a share p of the
+    questions shows none in `questions` questions with probability (1 - p) ** questions."""
+    return 1 - 0.05 ** (1 / questions)
+
+
+def margin(rows: list, col: int) -> str:
+    iv, q = interval(rows, col), len(by_question(rows))
+    if iv is None:
+        return "—"
+    if iv[0] == iv[1] and iv[0] in (0.0, 1.0):
+        b = 100 * bound(q)
+        return (f"0 % to {b:.0f} % (exact bound, {q} questions)" if iv[0] == 0.0
+                else f"{100 - b:.0f} % to 100 % (exact bound, {q} questions)")
+    return f"{100 * iv[0]:.0f} % to {100 * iv[1]:.0f} %"
+
+
+def lower(a: list, b: list, col: int, draws: int = DRAWS, seed: int = SEED) -> float | None:
+    """D20: the share of draws in which model `a` has a lower trap rate than model `b`, the
+    same questions being drawn for both."""
+    qa, qb = by_question(a), by_question(b)
+    keys, rng, wins, of = sorted(set(qa) & set(qb)), random.Random(seed), 0, 0
+    for _ in range(draws if keys else 0):
+        pick = rng.choices(keys, k=len(keys))
+        (ka, na), (kb, nb) = (trap([x for key in pick for x in q[key]], col) for q in (qa, qb))
+        if na and nb:
+            of += 1
+            wins += ka / na < kb / nb
+    return wins / of if of else None
+
+
 def load(run: int) -> tuple[dict, str | None]:
     """{model: {arm: [rows]}} for one run, and the reader of record of D17 (None before it
     has run)."""
@@ -148,7 +207,7 @@ def table(data: dict, reader: str | None, title: str, keep, complete: int | None
     print(f"\n=== {title} ===")
     print(f"{'model':32} {'n':>3} | {'acc. complete':>13} {'acc. cut':>8} | {'right':>5} {'safe':>5} {'misl.':>5} {'broken':>6} | "
           f"{'trap: code':>10} {'D16':>5} {'D17':>5} {'scope asked':>11}")
-    lines, second = [], []
+    lines, second, kept = [], [], []
     for model, arms in data.items():
         b = [x for x in arms["B"] if keep(x[0])]
         a = [x for x in arms["A"] if keep(x[0])]
@@ -157,6 +216,7 @@ def table(data: dict, reader: str | None, title: str, keep, complete: int | None
         s, n = shares(b, last), sum(x[0]["kind"] != "control" for x in b)
         k, of = trap(b, last)
         key = (k / of if of else 1.0, s["broken"], model)
+        kept.append((*key, b))
         lines.append((*key, f"{model:32} {len(b):>3} | {frac(accuracy(b, last, False)):>13} {frac(accuracy(b, last, True)):>8} | "
                             f"{s['right']:>5} {s['safe']:>5} {s['misleading']:>5} {s['broken']:>3}/{n:<2} | "
                             f"{pct(trap(b, CODE)):>10} {pct(trap(b, D16)):>5} {pct(trap(b, D17)) if reader else '—':>5} "
@@ -171,6 +231,12 @@ def table(data: dict, reader: str | None, title: str, keep, complete: int | None
           f"{'scope: acc. c.':>13} {'acc. cut':>8} | {'D15: code':>9} {'D16':>4} {'D17':>4} {'scope':>5}")
     for *_, line in sorted(second):
         print(line)
+    kept.sort(key=lambda x: x[:3])
+    print(f"\n{'':32}     | {'questions':>9} {'trap rate':>14} | {'95 % when the questions are drawn again':>42} | lower than the next model")
+    for i, (_, _, model, b) in enumerate(kept):
+        nxt = lower(b, kept[i + 1][3], last) if i + 1 < len(kept) else None
+        print(f"{model:32}     | {len(by_question(b)):>9} {pct(trap(b, last)) + ' (' + frac(trap(b, last)) + ')':>14} | "
+              f"{margin(b, last):>42} | " + (f"in {100 * nxt:.0f} % of the draws" if nxt is not None else "—"))
     d = decliner([t for t in rv.load_targets().values() if keep(t)])
     print(f"a model that declines whenever a result is cut (simulated): accuracy {frac(d['complete'])} and {frac(d['cut'])}, "
           f"trap rate {pct(d['trap'])} (0/{d['trap'][1]}), broken {d['broken']}, D15 score {d['d15']}")

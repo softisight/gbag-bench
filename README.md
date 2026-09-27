@@ -89,10 +89,10 @@ that the code finds in the answer.
 
 The full protocol is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md). It was committed before any
 v0.7 answer was generated (`b6fd2d3`), and every later change is a dated deviation
-(D1–D19). Several deviations were decided after results had been seen (D4, D6, D11, D16,
-D18, D19), and say so. The commits were pushed to this repository on 2026-09-27, together with the
-results: their dates are the authors' record, not a third-party timestamp. D17 is the
-exception: it was pushed before its run.
+(D1–D21). Several deviations were decided after results had been seen (D4, D6, D11, D16,
+D18, D19, D20), and say so. The commits were pushed to this repository on 2026-09-27, together with the
+results: their dates are the authors' record, not a third-party timestamp. D17 and D21
+are the exceptions: they were pushed before their runs.
 
 ## Results (v0.7)
 
@@ -155,7 +155,8 @@ in 6; `gpt-5.6-sol`: 7 in 10). The script prints what "safe" is made of, for eve
 **How to read it.**
 - **On the same 26 targets, the three frontier cloud models never state the part as the
   whole.** They state the limit in their prose, and step 4 gives them the credit. Before
-  step 4 their trap rate is 15 to 38 %.
+  step 4 their trap rate is 15 to 38 %. This stands on 5 questions: it does not exclude
+  that they would on others.
 - **The four local models and `qwen3-coder` do**: on 56 to 100 % of the answers that can
   be placed on the ledger targets, and on 58 to 95 % on the 51 targets.
 - **The models know, and do not say.** When the block asks for the scope, `gemma4:31b`
@@ -176,10 +177,24 @@ in 6; `gpt-5.6-sol`: 7 in 10). The script prints what "safe" is made of, for eve
 - **The cloud runs are partial** (the ledger targets only, and 18 answers for
   `claude-fable-5`), because the budget ran out. Further runs are local only.
 - **"Accuracy, cut" stands on 7 targets**, and on 3 for the ledger.
-- **The margins are wide.** A trap rate stands on the answers that can be placed: 8 to 13
-  on the ledger targets, 19 to 26 on the 51. That is about ±30 points on the first table
-  and ±20 on the second. The first table separates 0 % from 56 %, not 56 % from 67 %.
-  These margins assume independent targets, and the 34 targets come from 13 questions.
+- **The margins are wide, and the tables separate groups, not neighbours** (D20). The
+  targets of one question share one table, so the margins are computed by drawing the
+  questions again: 5 questions on the ledger targets, 12 on the 51.
+
+  | Model | Targets | Trap rate | 95 % interval |
+  |---|---|---|---|
+  | `gpt-5.6-sol`, `kimi-k3` | 26 | 0 % | 0 % to 45 % |
+  | `claude-fable-5` | 18 | 0 % | 0 % to 63 % |
+  | `qwen3-coder` | 26 | 88 % | 73 % to 100 % |
+  | `gemma4:31b` | 51 | 58 % | 35 % to 81 % |
+  | `Spark-X2.5-4B` | 51 | 58 % | 30 % to 87 % |
+  | `gemma4:12b` | 51 | 65 % | 48 % to 82 % |
+  | Bonsai 27B 1-bit | 51 | 95 % | 81 % to 100 % |
+
+  `gemma4:31b` keeps a lower rate than `gemma4:12b` in 75 % of the draws only: the order
+  between the local models is not established. The gap between the frontier cloud models
+  and the local ones holds in 99 % of the draws. More power needs more questions, not
+  more targets: about 33 questions for ±15 points, about 75 for ±10.
 - **Step 4 can only lower a trap rate**: it reads the answers marked as failures. The
   other answers were read once, as a check (D17): none states the shown-rows value as the
   whole in its text.
@@ -317,7 +332,7 @@ measured elsewhere, open an issue and we will cite it.
 
 | Path | Purpose |
 |---|---|
-| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D19, and results |
+| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D21, and results |
 | `data/v07/targets.jsonl` | The 51 targets with both truths |
 | `scorer/v07/` | Parser and classifier (code only) + unit tests |
 | `scripts/generate_v07.py` | Declared-answer generation (Ollama by default; OpenRouter optional) |
