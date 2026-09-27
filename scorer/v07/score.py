@@ -69,7 +69,12 @@ def same(value: str, truth, typ: str) -> bool:
 
 
 def classify(answer: str, target: dict, arm: str) -> tuple[str, dict | None]:
-    p = parse(answer)
+    return classify_parsed(parse(answer), target, arm)
+
+
+def classify_parsed(p: dict | None, target: dict, arm: str) -> tuple[str, dict | None]:
+    """The class of a declaration already read — by the parser, or by the independent AI
+    reader of the double reading (D13): both go through the SAME rules."""
     if p is None or (arm == "A" and p["scope"] is None and not _is_none(p["value"])):
         return "format", p
     val, scope, typ = p["value"], p["scope"], target["type"]

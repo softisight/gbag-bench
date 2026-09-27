@@ -350,6 +350,32 @@ answer.**
 - One run is enough to place it. The runs of the other local models were reproducible
   (run 1 = run 2 on 101–102 of 102 targets).
 
+**D13 — 2026-09-27 — double reading of the declared answers by an AI (owner's decision:
+no human arbitration).**
+- **Why.** The truths are computed by SQL. The only step that can go wrong is reading
+  what the model declared, and that step is checked by a second, independent reader
+  instead of a human.
+- **How.**
+  - A local AI (`gemma4:12b`, reasoning off, temperature 0, JSON schema imposed) reads
+    the last 2,000 characters of each answer. It never sees the code's reading.
+  - It fills fixed fields: block found, value as written, and scope among
+    all_data / rows_shown / cannot_determine / not_stated. It must never infer a scope.
+  - Both readings go through the same classification rules (`classify_parsed`).
+  - **agree** → the verdict stands; **disagree** → the answer is **contested**, set
+    apart, counted and never corrected in our favour.
+- **Order.**
+  1. First a stratified sample of 200 answers (the same share of every model and arm,
+     seed 7, `scripts/double_read_v07.py --sample 200`).
+  2. The full set only if the sample works, that is, class agreement ≥ 95 %.
+- **Published figure.** The class agreement rate between the two readings.
+- **Known limit.** If both readers err the same way, nobody sees it; on a reading task
+  this simple, the risk is small.
+- **Test before the run** (3 difficult answers).
+  - The reader copied a value with its words, a value that bounds itself to the shown
+    rows, and `cannot_determine` in `value`.
+  - Once it invented a scope where the block had no scope line. The instruction was
+    tightened before the run.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
