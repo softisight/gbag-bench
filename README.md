@@ -1,259 +1,225 @@
 # GBAG-Bench
 
-**Grounded BI Answer Generation** — a public benchmark for the step after the SQL: how faithfully an LLM interprets a query result into a natural-language answer.
+**Grounded BI Answer Generation** — a public benchmark for the step after the SQL: what an
+LLM says about a query result, and in particular about the rows it was **never shown**.
 
 > NL2SQL measures half the problem. GBAG measures the other half.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Status: v0.2](https://img.shields.io/badge/status-v0.2-blue)
-![Questions: 35](https://img.shields.io/badge/questions-35-green)
-![Databases: 3](https://img.shields.io/badge/databases-3-green)
+![Status: v0.7](https://img.shields.io/badge/status-v0.7-blue)
+![Targets: 51](https://img.shields.io/badge/targets-51-green)
+![Databases: 4](https://img.shields.io/badge/databases-4-green)
+![Judge: code + verified quote](https://img.shields.io/badge/judge-code%20%2B%20verified%20quote-orange)
 
 ---
 
-> **Can the judge be trusted?** GBAG is scored by an LLM judge, so that question decides
-> whether any number here means anything. It is answered in
-> **[JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)** — seven cases whose correct verdict is
-> settled by a SQL query rather than by an opinion, seven judges measured against them,
-> several runs each, and the resolution of the instrument stated in points.
+## The question GBAG asks
 
----
+A BI assistant runs a query, gets 3,616 rows back, and — like every real product — shows
+the model only the first 200. Asked "what is the total debit turnover of the ledger?", the
+model can:
 
-## Why GBAG
+- give the true total (4,634,633.34) if it was given the aggregates;
+- say that it only saw 200 rows, and give their total **as such** (289,822.36), or decline;
+- or state **289,822.36 as the total of the ledger** — a fact about the part presented as
+  a fact about the whole.
 
-Existing benchmarks (Spider, BIRD, WikiSQL) measure whether a model generates correct SQL. They stop there. But in a real BI product, what the user reads is the **natural-language answer** the model writes after the SQL is executed — and that step is where most failures actually happen.
+The third answer reads perfectly and is wrong. GBAG measures how often models give it.
 
-A correct SQL query followed by a hallucinated number, an inverted trend, or a missing key insight is **still a failed product experience**. GBAG isolates and measures that second half.
+## How v0.7 judges — without trusting a judge
 
-### Related work
+Earlier versions (v0.2–v0.6) scored free-text answers with LLM judges, then with verifying
+judges built from code and small models. **None was reliable enough** (see
+[the road to v0.7](#the-road-to-v07)). v0.7 changes what is judged:
 
-Grading free-form text generated over tabular data is not new, and GBAG does not claim to be first at it:
+1. **The model declares its answer** in a fixed block at the end of its reply:
+   ```
+   FINAL_ANSWER
+   value: 289822.36
+   ```
+2. **Code computes two truths** with SQL, for every target: the value over **all** the
+   rows, and over the **rows shown** to the model.
+3. **Code classifies the declaration** — `correct` (the all-rows value), `honest` (the
+   shown-rows value declared as such, or a decline), **`gbag_failure`** (the shown-rows
+   value stated as the whole), `wrong`, or `format` (no readable block).
+4. **One narrow AI question, with a proof checked by code.** A value-only block cannot
+   carry a bound the model wrote in its prose ("based strictly on the provided data").
+   For every answer scored `gbag_failure`, a local model is asked one yes/no question —
+   *does the text say the value holds only for the rows shown?* — and must **quote the
+   words**. The quote is accepted only if code finds it verbatim in the answer. Only then
+   is the answer re-classified `honest`.
+5. **Score = 100 × points / answers**:
+   - on a complete result, 1 point for the correct value;
+   - on a truncated result, 1 point for a correct or honest answer.
 
-- **[FeTaQA](https://github.com/Yale-LILY/FeTaQA)** (TACL 2022) — 10K Wikipedia tables with free-form answers, evaluated on faithfulness and comprehensiveness.
-- **[QTSumm](https://github.com/yale-nlp/QTSumm)** (EMNLP 2023) — 7,111 query-summary pairs over 2,934 tables; query-focused table summarization.
-- **[ToTTo](https://github.com/google-research-datasets/ToTTo)** (Google) — controlled table-to-text, built around faithfulness to highlighted cells.
-- **[RAGTruth](https://github.com/ParticleMedia/RAGTruth)** — word-level hallucination corpus, including a data-to-text task over structured JSON.
-- **[FaithJudge](https://github.com/vectara/FaithJudge)** (Vectara) — LLM-as-judge for faithfulness, with a public leaderboard.
-- **[AbstentionBench](https://github.com/facebookresearch/AbstentionBench)** (NeurIPS 2025) — 20 datasets on when a model should decline to answer, underspecified context included. Its headline result, that abstention is unsolved and scale barely helps, is the same family of failure GBAG's held-out cliff exposes in a BI setting.
-- **[DataBench](https://aclanthology.org/2025.semeval-1.324/)** (SemEval 2025 Task 8) — QA over real tabular datasets, with a "Lite" split capped at 20 sampled rows. Closest published setup to the held-out cliff, and instructive by contrast: Lite carries a separate `sample_answer`, so the model is graded on the sample against the sample's own answer. GBAG grades a 200-row slice against the **population's** answer, which is what turns an unbounded claim into a detectable error rather than a mere omission.
+   The score is reported with its two parts: **accuracy** (complete results) and
+   **faithfulness** (truncated results).
 
-What GBAG adds is the setting rather than the task. The table is a **SQL result from a relational database**, not a curated Wikipedia table, so its shape is whatever the query returns. The **SQL is given**, which isolates interpretation from query generation. And the held-out suite grades answers written over a result the model **only partly received** — what it asserts about the rows it was never shown. We could not find that regime measured elsewhere; if it has been, open an issue and we will cite it.
+Every verdict is reproducible: same answer, same verdict. No human arbitration, no free-
+text judgment. The full protocol, pre-registered and with every deviation dated (D1–D16),
+is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md).
 
-## What it evaluates
+## Results (v0.7)
 
-Given:
-- a natural-language **question**
-- the executed **SQL**
-- the full **result set** (rows + columns)
+Headline condition: the model is told the result is truncated (`RESULT (first 200 of N rows
+shown)`), and asked only for the value — no hint about scope.
 
-…can the model produce a **faithful**, **complete**, and **insightful** natural-language answer?
+| Model | Where | Targets | **GBAG score** | GBAG failure rate | Score with scope declared |
+|---|---|---|---|---|---|
+| `openai/gpt-5.6-sol` | cloud | 26 | **100** | 0 % | 100 |
+| `anthropic/claude-fable-5` | cloud | 18 (partial) | **100** | 0 % | 100 |
+| `moonshotai/kimi-k3` | cloud | 26 | **100** | 0 % | 100 |
+| `gemma4:31b` | local | 51 | **59** | 26 % | 86 |
+| `qwen/qwen3-coder` (480B) | cloud | 26 | **58** | 42 % | 81 |
+| `gemma4:12b` | local | 51 | **55** | 38 % | 75 |
+| `SparkLLM/Spark-X2.5-4B` | local | 51 | **39** | 21 % | 53 |
+| Bonsai 27B 1-bit (`MichelRosselli/bonsai-27b:Q1_0`) | local | 51 | **33** | 38 % | 35 |
 
-Scoring is performed by an LLM judge against a hand-crafted gold answer and a list of expected atomic insights. The single number reported is the **GBAG Score**:
+**How to read it.**
+- **Frontier cloud models do not fall into the trap.** They state the limit in their
+  prose, and the narrow question gives them the credit.
+- **Local models do.** They state the part as the whole on 21–38 % of the truncated
+  targets.
+- **Declaring the scope is a strong mitigation.** Asking the model which rows its value
+  covers lifts `gemma4:12b` from 55 to 75, and `gemma4:31b` from 59 to 86.
+- **Accuracy is not the issue.** The two gemma models compute every complete result
+  correctly (12/12); what fails is the step from "what I saw" to "what is true".
 
-```
-GBAG Score = 0.50 × Faithfulness + 0.30 × Completeness + 0.20 × Insight
-```
+**Read with these limits.**
+- The cloud models ran with their provider's default reasoning; the local models ran on
+  a single RTX 3060 (12 GB), reasoning off. Left on, `gemma4:12b` looped in its reasoning
+  at temperature 0 and returned empty answers.
+- The cloud runs are partial (the ledger targets only), because the budget ran out.
+  Further runs are local only.
+- 34 discriminating targets give about ±15 points of uncertainty per model: the table
+  separates 100 from 55, not 55 from 59.
+- The narrow-question reader (`gemma4:31b`) is also a tested model.
 
-Faithfulness dominates because in BI, a hallucinated number causes a wrong real-world decision.
+Per-answer classes: [`runs/v0.7/scores.jsonl`](runs/v0.7/scores.jsonl). Narrow-question
+quotes: [`runs/v0.7/prose-bound.jsonl`](runs/v0.7/prose-bound.jsonl).
 
-See [METRIC.md](METRIC.md) for the full rubric and [SCHEMA.md](SCHEMA.md) for the question format.
+### How far can the verdicts be trusted?
 
-## Dataset composition
+The truths come from SQL, so the only step that can err is **reading** what the model
+declared. We checked it with AIs only:
 
-35 questions across 3 public SQLite databases:
+- **Blind double reading** of a 204-answer sample by a second model. It gave 17
+  disagreements, and every one was examined. None was a misreading by the code: 11 were
+  reader errors, and 6 were answers that omit the `value:` label, which the protocol
+  counts as format failures.
+- **An AI review** of the same sample found one real blind spot, the bound stated in
+  prose. The narrow question with a verified quote now closes it. The same review also
+  showed that a small reviewer (`gemma4:12b`) raises too many false flags to be trusted on
+  its own. That is why an AI may re-classify a verdict only through a quote the code can
+  check.
 
-| Database | Domain | Questions | Difficulty range |
-|---|---|---|---|
-| Sakila | DVD rental | 15 | 1–10 |
-| Chinook | Digital music store | 10 | 1–8 |
-| Northwind | Trading / order management | 10 | 1–8 |
+## Dataset
 
-Each database contributes the same 10-question core ladder: one question per level 1–5, two at level 6, one at level 7, two at level 8. Sakila adds 5 extreme questions (three at level 9, two at level 10) whose result sets reach 16,049 rows.
-
-By category: `aggregation` (11), `trend` (11), `derived` (7), `join` (3), `ranking` (3).
-
-Question ids encode the database and level (`sakila-l6-02` = Sakila, difficulty 6, second question at that level). See [SCHEMA.md](SCHEMA.md) for the per-question format.
-
-### Held-out suite (v0.3)
-
-| Database | Domain | Level 1 (core) | Level 2 (full) | Difficulty |
-|---|---|---|---|---|
-| Ledger | Double-entry bookkeeping (synthetic, first-party) | 10 questions | 15 questions | 1–10 |
-
-The held-out suite ships in **two levels** so it is fair across model sizes:
-
-- **Level 1** ([`data/questions-heldout-level1.jsonl`](data/questions-heldout-level1.jsonl), 10 questions, difficulty 1-8) is the core ladder. Small local models can show real competence here without being buried by the extreme tier.
-- **Level 2** ([`data/questions-heldout.jsonl`](data/questions-heldout.jsonl), 15 questions, difficulty 1-10) adds the 5-question extreme tier (`ledger-l9/l10`) to separate frontier models. Each question in the file carries a `level` field.
-
-`databases/ledger.sqlite` is a fully synthetic double-entry accounting database (a fictional UK trading company: chart of accounts, 7 journals, 3 fiscal years of balanced entries, VAT returns, payroll, and a handful of deliberate unmarked audit anomalies), generated by [`scripts/generate_ledger.py`](scripts/generate_ledger.py). Unlike Sakila/Chinook/Northwind, it had **never been published anywhere** before this repository (first publication: July 2026), so it cannot appear in the training data of any model released before that date. Its 15 questions live in [`data/questions-heldout.jsonl`](data/questions-heldout.jsonl) (same schema and id convention, `ledger-l1-01`, ...), built reproducibly by [`scripts/build_heldout_dataset.py`](scripts/build_heldout_dataset.py). They replicate the public suite's structure, including an **extreme l9/l10 tier** whose gold SQL returns large result sets (up to ~3,600 rows) that exceed the 200-row prompt cap, testing whether a model faithfully reports the result shape or fabricates the requested full-set analysis.
-
-Why a held-out suite:
-
-- **Contamination probe.** The public sample databases (and many of their aggregates) circulate in training corpora. A model whose score drops sharply from the public suite to the held-out suite is likely reciting memorized facts rather than reading the result set.
-- **Regenerable.** The generator is seed-deterministic: future benchmark versions can re-roll every number (new seed, same schema), so memorizing a published snapshot has a short shelf life.
-
-The held-out suite is scored separately and does not affect the main 35-question GBAG score (v0.2 comparability preserved). **Status:** eight baseline runs (seven full 15-question runs — claude-fable-5, gpt-5.6-sol, kimi-k3, nemotron-3-nano-30b-a3b, qwen3-coder-480b, qwen3.6, gemma4-12b — plus one partial pipeline run) are published in [`runs/`](runs/) as `*-heldout.jsonl` with their `.scored-grok43.jsonl` judgments, scored under [judge prompt v0.2](judge/prompt.md); per-question scores are recomputable from those files alone. The summary table lives in [LEADERBOARD.md](LEADERBOARD.md); the cliff chart lands with the v0.3 README update. Regenerate the DeskInsight Runner suite for this database with [`scripts/export_heldout_to_deskinsight.py`](scripts/export_heldout_to_deskinsight.py).
-
-## v0.2 leaderboard — uniform Grok-4.3 judge
-
-> Bare models, neutral Spider/BIRD-style prompt, one uniform judge. Every row reproduces for about a dollar (see [Quick start](#quick-start)). Full table, archived v0.1 results and inter-judge variance: [LEADERBOARD.md](LEADERBOARD.md).
-
-| Model | Provider | Coverage | **GBAG** |
-|---|---|---|---|
-| `nvidia/llama-3.3-nemotron-super-49b-v1` | NVIDIA NIM | 35/35 | **67.7** |
-| `qwen/qwen3-coder-480b-a35b-instruct` | NVIDIA NIM | 35/35 | **64.6** |
-| `qwen/qwen3-next-80b-a3b-thinking` | NVIDIA NIM | 35/35 | **61.4** |
-| `qwen3.5:9b` | Ollama (local, RTX 3060) | 32/35 | **59.6** |
-| `qwen/qwen3-next-80b-a3b-instruct` | NVIDIA NIM | 28/35 | **58.9** |
-
-### What context engineering changes (same model, same judge)
-
-The pipeline row is kept out of the ranking above on purpose: it measures a model wrapped in a commercial system, not a bare model.
-
-| Configuration | Coverage | **GBAG** |
+| Database | Domain | Truncated questions used by v0.7 |
 |---|---|---|
-| `qwen3.5:9b`, neutral prompt | 32/35 | 59.6 |
-| `qwen3.5:9b` + DeskInsight pipeline | 35/35 | **76.8** |
+| Ledger | Double-entry bookkeeping — synthetic, first-party, never published before July 2026 | l9-01, l9-02, l9-03, l10-01, l10-02 (+ 10 complete-result controls) |
+| Sakila | DVD rental | l7-01, l8-01, l9-03, l10-01, l10-02 |
+| Chinook | Digital music store | l3-01, l8-01 |
+| Northwind | Trading / orders | l8-01 |
 
-Same weights, same GPU, same questions, same judge; only the context changes. Worth +17 points under Grok-4.3 and +7 under a second judge (a range, see finding 1). This pair is the one thing in this repository that needs a commercial tool to reproduce; everything else runs without it.
+The **51 targets** are in [`data/v07/targets.jsonl`](data/v07/targets.jsonl), and each
+carries its operation and both truths:
+- **34 discriminating**: truncated result, and the shown-rows value differs from the
+  all-rows value;
+- **12 control**: complete result, or a value certain from what was shown;
+- **5 same-value**: truncated, but the two values happen to coincide.
 
-## Five findings
+`databases/ledger.sqlite` is generated by
+[`scripts/generate_ledger.py`](scripts/generate_ledger.py). It is seed-deterministic, so
+every number can be re-rolled if it ever leaks into training data.
 
-Each finding below survived our own verification process, including two corrections we publish rather than hide. The paragraphs give you the shape; the links hold the full numbers.
-
-1. **Context beats scale.** The same 9B model, on the same consumer GPU and the same questions, scores 59.6 with a bare prompt and 76.8 wrapped in a context-engineering pipeline. A second judge shrinks the gain from +17 to +7 but keeps its direction, so the honest claim is a range: +7 to +17 points on identical weights. Full dual-judge tables: [Robustness check](LEADERBOARD.md#robustness-check-second-judge-on-the-headline-comparison). Reproduction recipe: [Methodology](LEADERBOARD.md#methodology--how-the-deskinsight-pipeline-line-was-obtained).
-
-2. **Bigger is barely better.** Judged uniformly, the 9B sits about 3 points below a 480B MoE that activates 35B parameters per token. Three points is well inside the judge's own noise, so read it as a tie, not a ranking.
-
-3. **The judge moves scores as much as the model does.** Identical answers scored 72.7 under a lenient judge and 59.6 under a strict one: 13 points apart on the same text. Single-judge benchmarks are unreliable: [Inter-judge variance](LEADERBOARD.md#inter-judge-variance). The v0.2 board answered this by scoring everything with one uniform reference judge (Grok-4.3). That answer is now known to be insufficient — the same judge, re-run on the same answer, does not always return the same score. See [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md).
-
-4. **Thinking: no measurable effect (a corrected claim).** We first wrote that thinking modes hurt grounded tasks; that compared different models, which is confounded, and the claim is withdrawn. The clean same-family ablation reads 60.6 vs 58.9 on the 28 questions both variants answered — inside the noise floor. Non-result, either way, until matched re-runs settle it.
-
-5. **Fabrication is concentrated, not universal.** When a query returns a few rows drawn from a large table, small local models sometimes invent the aggregates (we call it the Post-SQL Aggregation Deficit). Injecting pre-computed aggregates removes most of it; the rest of the benchmark barely shows the pattern.
-
-What we would not claim from this table: any ranking inside 3 points, any effect only one judge saw, and any number you cannot recompute yourself — the pipeline row is the single exception, and it is labeled as such.
-
-## Why can an LLM judge another LLM?
-
-The benchmark's scoring rests on LLM-as-judge, so the question deserves a direct answer.
-
-1. **Verifying is easier than producing.** The judge never answers the BI question itself. It checks the candidate answer against material it is handed: the executed SQL, a human-written gold answer, and a checklist of expected insights. Reading-and-matching is a strictly easier task than the open-ended generation being graded.
-2. **The judge grades with an answer key, not from its own knowledge.** Every question ships a `gold_answer` and atomic `expected_insights`, both human-curated. Completeness is near-mechanical (insights matched / insights expected). The judge acts as a grader with a rubric, not as an oracle.
-3. **The rubric leaves little room for taste — but the rubric alone was not enough.** Anchored score bands, a ±2% numeric tolerance, strict JSON output and explicit rules against rewarding style did not stop judges from approving answers that were false. Under the original prompt every judge tested scored between 2 and 4 out of 7 on the validation set. What repaired them was not a stricter band but a **procedure**: extract every quantitative claim, state its scope, name the fact relied on, and only then score. That prompt is [judge/prompt-v041.md](judge/prompt-v041.md); the earlier one is kept at [judge/prompt.md](judge/prompt.md) for comparison.
-4. **Judge error is measured, not assumed away — and it is larger than inter-judge disagreement suggests.** Finding #3 above reports 13 points between two judges on identical answers. The sharper number is *intra*-judge: asked to grade the same answer four times, with the answer key in front of it and temperature 0, grok-4.3 returned **40, 40, 100, 10**. Three of the seven validation cases move like that for it. Temperature 0 does not make a hosted judge reproducible, because its seed cannot be pinned.
-
-This changes the earlier remedy. Scoring everything with one uniform reference judge does not remove judge error; it hides it, and it is worse when that judge disagrees with itself. The current stance instead is: validate the judge against cases whose correct verdict is settled by a **SQL query**, measure its self-consistency over several runs, and prefer a judge whose runtime you control. Locally the seed can be pinned, and the four local judges tested produced **zero self-contradictions across 28 case-runs**; the three hosted ones produced ten across twenty.
-
-Full method, the seven cases with their proof queries, the seven judges measured against them, and the resolution of the instrument in points: **[JUDGE_VALIDATION.md](JUDGE_VALIDATION.md)**. That page replaces this section's argument with a measurement — which is the only thing that should settle it.
-
-## Quick start
+## Quick start (local, free)
 
 ```bash
 git clone https://github.com/softisight/gbag-bench
 cd gbag-bench
 pip install -r requirements.txt
 
-# 1. Run a model on the 35 questions (gold-SQL mode — interpretation only)
-python examples/baseline_runner.py \
-    --dataset data/questions.jsonl \
-    --db-dir databases/ \
-    --output runs/<your-model>.jsonl \
-    --provider <anthropic|openai|ollama|nvidia|openrouter> \
-    --model <model-id>
+# 1. Generate declared answers with a local model (Ollama), both prompt variants
+OLLAMA_HOST=http://localhost:11434 python scripts/generate_v07.py --models <ollama-model> --runs 1
 
-# 2. Score the answers with the v0.2 reference judge (Grok-4.3 via OpenRouter)
-export OPENROUTER_API_KEY=sk-or-...
-python judge/run_judge.py \
-    --dataset data/questions.jsonl \
-    --answers runs/<your-model>.jsonl \
-    --output runs/<your-model>.scored-grok43.jsonl \
-    --judge openrouter --model x-ai/grok-4.3
+# 2. Score them (code only)
+python scripts/score_v07.py
 
-# 3. Refresh the leaderboard table
-python scripts/update_leaderboard.py
+# 3. The narrow question on the answers scored gbag_failure (quote checked by code)
+OLLAMA_HOST=http://localhost:11434 python scripts/prose_bound_v07.py
+python scripts/prose_bound_v07.py --report
 ```
 
-Reproducing the v0.2 numbers for one model costs roughly **$0.40** in OpenRouter judge fees. The full dataset, databases, prompts, and judge rubric are in this repo — no external resources required. **Dual-judge submissions (Grok-4.3 + one second judge from a different vendor) are strongly preferred.**
+The scorer's unit tests: `python -m scorer.v07.test_score` (33 cases). Local calls set a
+16,384-token context window explicitly: Ollama truncates a longer prompt silently.
 
-## Contributing
+## The road to v0.7
 
-We welcome submissions of new model results. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full PR flow.
+Each version was pre-registered, run on a sealed test set, and published whatever its
+outcome.
 
-In short: fork → run baseline + judge → open a PR with your `runs/*.jsonl` files. The leaderboard regenerates automatically from the scored files.
+| Version | What judged the answers | Outcome |
+|---|---|---|
+| v0.2 | one LLM judge (Grok-4.3) | the same judge re-scored an identical answer 40, 40, 100, 10 — [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md) |
+| v0.4 | seven LLM judges, local and hosted, 5 passes each | best `gemma4:31b`; hosted judges contradicted themselves — [PROTOCOL_v0.4.md](PROTOCOL_v0.4.md) |
+| v0.5 | an LLM translates each claim, code verifies it | not accepted: 3 of 7 correct answers condemned, each time on a translation choice — [PROTOCOL_v0.5_JUDGE.md](PROTOCOL_v0.5_JUDGE.md) |
+| v0.6 | code extracts, a decision model (Jev) scores fixed options, code verifies | not accepted: 42 % undecided on the sealed set — [PROTOCOL_v0.6_JUDGE.md](PROTOCOL_v0.6_JUDGE.md) |
+| **v0.7** | **the model declares, code compares, an AI corrects only on a verified quote** | [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md) |
 
-Dataset improvements, metric discussions, and judge protocol experiments are also welcome — open an Issue first to align on direction.
+The lesson: deciding **what a free-text sentence asserts** — a local peak or the maximum?
+the rows shown or the whole ledger? — needs language understanding, and every rule written
+for one phrasing met another on the next sealed set. v0.7 stops judging free text, and
+lets an AI intervene only where code can check its answer.
+
+The arbitrated answer sets of v0.4–v0.6 remain available: 51 answers, each condemnation
+proved by a SQL query. They are a resource for anyone who wants to build a better
+free-text judge.
+
+## Earlier results (v0.2, LLM-judged)
+
+The v0.2 leaderboard (35 questions, Grok-4.3 judge) and its analyses remain in
+[LEADERBOARD.md](LEADERBOARD.md), and the scoring formula is in [METRIC.md](METRIC.md).
+They were produced with an LLM judge that v0.4 later measured as not self-consistent, so
+read them as indicative. The negative result on meta-aggregate suppression (a change that
+improved the average while collapsing three questions) is in [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md).
+
+### Related work
+
+Free-text generation over tables has been graded before:
+- [FeTaQA](https://github.com/Yale-LILY/FeTaQA), [QTSumm](https://github.com/yale-nlp/QTSumm),
+  [ToTTo](https://github.com/google-research-datasets/ToTTo);
+- [RAGTruth](https://github.com/ParticleMedia/RAGTruth), [FaithJudge](https://github.com/vectara/FaithJudge);
+- [AbstentionBench](https://github.com/facebookresearch/AbstentionBench), and
+  [DataBench](https://aclanthology.org/2025.semeval-1.324/) with its 20-row "Lite" split.
+
+GBAG differs in the setting:
+- the table is a **SQL result**;
+- the SQL is given;
+- the answer is graded against the **population's** truth while the model saw only part
+  of it.
+
+That is what turns an unbounded claim into a detectable error. If this regime has been
+measured elsewhere, open an issue and we will cite it.
 
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
-| `data/questions.jsonl` | 35 annotated questions (question + gold SQL + gold answer + expected insights) |
-| `databases/` | Sakila, Chinook, Northwind as SQLite (public samples, ~30 MB) |
-| `examples/baseline_runner.py` | Neutral reference runner — gold-SQL mode |
-| `judge/prompt.md` | The full judge rubric (read this first if you want to challenge the scoring) |
-| `judge/run_judge.py` | Judge runner (Anthropic / OpenAI / DeepSeek / NVIDIA / OpenRouter) |
-| `scripts/update_leaderboard.py` | Regenerates the LEADERBOARD table from runs |
-| `scripts/export_to_deskinsight_suites.py` | Optional — converts `data/questions.jsonl` into the DeskInsight Runner suite format (3 files, one per database) for users who want to evaluate the DeskInsight commercial pipeline on GBAG |
-| `scripts/import_from_deskinsight_results.py` | Optional — converts DeskInsight Runner `benchmark_raw.json` outputs back into GBAG `runs/*.jsonl` format ready for `judge/run_judge.py` |
-| `runs/` | All published model answers and judge scores |
-| `METRIC.md` | Formula, rubric, judging protocol |
-| `SCHEMA.md` | Dataset schema |
-| `LEADERBOARD.md` | Full leaderboard + analyses |
-| `CONTRIBUTING.md` | How to submit a new model result |
-
-## Limitations
-
-GBAG-Bench v0.2 has known limitations we document openly:
-
-- **Small dataset** — 35 questions. Statistically informative for spot-checks; not enough for definitive claims. v0.3 will expand.
-- **3 public databases** — Sakila / Chinook / Northwind are well-known public samples that may appear in some models' training data. v0.3 addresses this with a first-party synthetic held-out database (`ledger`); see the [held-out suite](#held-out-suite-v03) section.
-- **LLM-as-judge limitations** — see Finding #3. Even with a uniform strong judge, ~11 points of judge-induced variance remain *between* judges. A hosted judge is also not reproducible against itself: its seed cannot be pinned, and re-running it on identical input returns different scores on boundary cases. Measured per judge, with the cases and the queries that settle them, in [JUDGE_VALIDATION.md](JUDGE_VALIDATION.md). The dual-judge protocol with ICC(A,1) and Spearman correlation remains recommended, but several runs of each judge are now required for the numbers to mean anything.
-- **Single-language** — questions and gold answers are in English. Multilingual extension planned.
-- **Faithfulness over Insight** — the 50/30/20 metric weighting reflects our judgment that hallucinated numbers are worse than missing insights. Alternative weightings are documented in [METRIC.md](METRIC.md).
-
-## Negative results — a pipeline change we measured and reverted
-
-We publish the changes that did **not** work, with their run artifacts, because a benchmark is only useful if it can also tell you that your idea was wrong.
-
-**The change.** DeskInsight injects deterministic pre-computed aggregates (PACI) into the interpretation prompt. On `GROUP BY` queries, PACI also emits *meta-aggregates* over an already-aggregated column (a sum of sums, an average of averages). These are mathematically well-defined but off-topic for a "per group" question, and models were reciting them. We tried suppressing them (`groupbypaci`, then `groupbypaci_v2` which also drops the top-K distribution block).
-
-**What the averages said** — Gold-SQL runs, 35 questions, judged by Grok-4.3:
-
-| Run | GBAG | Faithfulness |
-|---|---|---|
-| `gemma4-31b-it_deskinsight_goldsql` (baseline) | 83.2 | 90.6 |
-| `..._groupbypaci` | 84.6 | 92.6 |
-| `..._groupbypaci_v2` | **85.6** | **93.7** |
-| `qwen35-9b_deskinsight_goldsql` (baseline) | 74.4 | 72.9 |
-| `qwen35-9b_deskinsight_goldsql_postfix` | **75.7** | **80.3** |
-
-*Baseline note.* The 9B baseline here is `qwen35-9b_deskinsight_goldsql` (74.4), **not** the `qwen3.5:9b + DeskInsight pipeline` row on the [leaderboard](LEADERBOARD.md) (76.8, run `qwen35-9b_deskinsight_final`). Our three full 35-question 9B pipeline runs sit at 74.0, 74.4 and 76.8. Every delta below compares a run against the baseline it was derived from, never across runs.
-
-*File-naming note.* The 9B variant file is named `qwen35-9b_deskinsight_goldsql_postfix`; its embedded model tag is `qwen3.5:9b+deskinsight+goldsql+groupbypaci` — the same meta-aggregate suppression change as the gemma `_groupbypaci` run, only the filename differs. The separate `gemma4-31b-it_deskinsight_goldsql_postfix` run (tag `...+postfix`) is unrelated to this ablation and not part of the table above.
-
-Both models improved on average. On that evidence alone, the change ships.
-
-**What the per-question data said.** On the 9B, the +1.3 average is the net of **14 questions gaining a cumulative +417 and 13 questions losing a cumulative −373**. Three of those regressions are near-total collapses:
-
-| Question | Type | Before → After |
-|---|---|---|
-| `sakila-l6-02` | avg rentals per customer, per store | 86 → **11** |
-| `chinook-l6-02` | avg invoice total per employee | 86 → **11** |
-| `northwind-l6-02` | avg freight per order, per shipper | 92 → **17** |
-
-All three are *average-per-group* questions — exactly the shape the change was meant to help. The 31B absorbed the same change (12 gains / 6 regressions, worst `sakila-l10-02` 92 → 62); the 9B did not.
-
-**Interpretation.** The suppressed aggregates serve two roles at once: a *recitation source* the model copies from (what we wanted to remove) and a *magnitude anchor* the model calibrates against (what we did not). They are the same bytes in the prompt, so no surgical fix separates them. Larger models compose without the anchor; smaller ones fabricate plausibly-shaped numbers instead.
-
-**What we did.** Reverted, and kept the legacy PACI as the production default. A +1.3 average that conceals three near-total failures on a whole question class is not a safe basis for shipping — the mean was hiding the regression, not summarizing it. Note also that +1.3 is smaller than the spread between our own full 9B pipeline runs (74.0 / 74.4 / 76.8), so the gain never clearly cleared run-to-run variation to begin with.
-
-**Reproduce it.** All runs above are in [`runs/`](runs/) with their `.scored-grok43.jsonl` judgments; per-question deltas are recomputable from those files alone. Two partial `qwen35-9b_deskinsight_patched*` runs (3 questions each) are exploratory probes, not a full ablation — do not read averages from them.
-
-**The transferable lesson:** validate any anti-fabrication change on at least two model sizes, and read the per-question distribution, not the mean. A change validated on one model class is not yet validated.
+| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D16, and results |
+| `data/v07/targets.jsonl` | The 51 targets with both truths |
+| `scorer/v07/` | Parser and classifier (code only) + unit tests |
+| `scripts/generate_v07.py` | Declared-answer generation (Ollama by default; OpenRouter optional) |
+| `scripts/score_v07.py` | Scoring and report |
+| `scripts/prose_bound_v07.py` | The narrow question with a verified quote |
+| `scripts/double_read_v07.py`, `scripts/review_v07.py` | The AI checks of the reading (D13, D14) |
+| `runs/v0.7/` | Every answer, class and check of v0.7 |
+| `PROTOCOL_v0.4.md`, `PROTOCOL_v0.5_JUDGE.md`, `PROTOCOL_v0.6_JUDGE.md` | The earlier campaigns |
+| `judge/` | The v0.2–v0.6 judges |
+| `NEGATIVE_RESULTS.md` | A pipeline change we measured and reverted (v0.2) |
+| `data/`, `databases/` | Questions, sealed sets and SQLite databases |
 
 ## Citation
-
-If you use GBAG-Bench in your work, please cite:
 
 ```bibtex
 @misc{gbag-bench-2026,
@@ -266,8 +232,13 @@ If you use GBAG-Bench in your work, please cite:
 
 ## AI assistance disclosure
 
-Portions of the harness code, documentation, and tooling in this repository were drafted with the assistance of an AI coding assistant (Claude, by Anthropic). All experimental design, benchmark question authoring, gold-SQL curation, result validation, and scientific conclusions are the work of the human authors, who take full responsibility for the contents of this repository and any associated publication. The AI was used as a productivity tool, not as a contributor or author — consistent with the authorship policies of major venues (Nature, Science, ACL, NeurIPS), which hold that an AI system cannot assume accountability for research.
+Portions of the harness code, documentation, and tooling in this repository were drafted
+with the assistance of an AI coding assistant (Claude, by Anthropic). All experimental
+design decisions, benchmark question authoring, gold-SQL curation, result validation, and
+scientific conclusions are the work of the human authors, who take full responsibility for
+the contents of this repository and any associated publication.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The bundled sample databases retain their original licenses; see [`databases/NOTICE.md`](databases/NOTICE.md).
+MIT — see [LICENSE](LICENSE). The bundled sample databases retain their original licenses;
+see [`databases/NOTICE.md`](databases/NOTICE.md).
