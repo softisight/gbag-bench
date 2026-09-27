@@ -548,3 +548,40 @@ For comparison, `gemma4:12b`: arm B 59 %, score 35; arm A score 75.
     mostly wrong grounds. **D15's "confirmed" rule is therefore not applied with this
     reviewer.**
 
+## Narrow question — results (D16, 2026-09-27)
+
+- **Coverage.** 166 arm-B answers scored `gbag_failure` or `lucky` (110 distinct), read by
+  `gemma4:31b` in about 20 minutes.
+- **56 "yes" with a quote verified by code**, 110 "no"; no "yes" had a quote that could not
+  be found.
+- The quotes are the models' own words, for example:
+  - "the minimum and maximum reported here are based on the visible portion; later
+    transactions could contain more extreme values" (kimi-k3);
+  - "The largest single debit posting in the displayed rows" (kimi-k3);
+  - "Within the first 200 rows of the result…" (gemma4:31b).
+
+**Score (D15 points, arm B, run 1) before → after the narrow question:**
+
+| model | score before | score after | GBAG failure before → after |
+|---|---|---|---|
+| `openai/gpt-5.6-sol` | 92 | **100** | 0 % → 0 % |
+| `anthropic/claude-fable-5` (18 answers) | 89 | **100** | 14 % → 0 % |
+| `moonshotai/kimi-k3` | 81 | **100** | 17 % → 0 % |
+| `gemma4:31b` | 39 | **59** | 47 % → 26 % |
+| `qwen/qwen3-coder` | 50 | **58** | 58 % → 42 % |
+| `gemma4:12b` | 35 | **55** | 59 % → 38 % |
+| Spark-X2.5-4B | 35 | **39** | 24 % → 21 % |
+| Bonsai 27B 1-bit | 31 | **33** | 41 % → 38 % |
+
+**Readings.**
+- Without a scope field, the strong models state the bound in their prose, and the
+  value-only algorithm had counted them as failures.
+- With the narrow question, the three frontier cloud models reach 100. The local models
+  still misstate the part as the whole in 21–38 % of discriminating targets.
+- **Limits.**
+  - The criterion counts "in the provided data / the visible rows" as a bound, as its
+    wording says.
+  - The reader `gemma4:31b` is also a tested model.
+  - A human-free check of the reader itself (a second strong reader, or a stronger model)
+    has not been run.
+
