@@ -690,6 +690,101 @@ after the results were seen. No model call: the published answers are counted ag
     miss.
   - The accuracy in two parts and the number of declines are shown with the score.
 
+**D20 — 2026-09-27 — the margins are computed by question (owner's decision). Decided
+after the results were seen. No model call.**
+- **Why.** The margins published so far took the targets as independent. They are not:
+  the 34 targets that carry the trap rate come from 12 questions, and the targets of one
+  question share one table.
+- **What changes** (`scripts/table_v07.py`).
+  - The 95 % interval of a trap rate is computed by drawing the **questions** again, with
+    replacement: 10,000 draws, seed 7.
+  - When every question gives the same outcome, drawing them again gives no width. The
+    exact bound is used: a model that misleads on a share p of the questions shows none
+    in q questions with probability (1 − p)^q. With 5 questions, a rate of 0 % excludes
+    nothing below 45 %.
+  - Beside each model: the share of draws in which it keeps a lower rate than the next
+    one, the same questions being drawn for both.
+- **Figures, arm B, run 1, D17 reading.**
+
+| model | targets | questions | trap rate | margin published before | 95 % interval, by question |
+|---|---|---|---|---|---|
+| `openai/gpt-5.6-sol` | 26 | 5 | 0 % (0/13) | — | 0 % to 45 % |
+| `moonshotai/kimi-k3` | 26 | 5 | 0 % (0/13) | — | 0 % to 45 % |
+| `anthropic/claude-fable-5` | 18 | 3 | 0 % (0/8) | — | 0 % to 63 % |
+| `qwen/qwen3-coder` | 26 | 5 | 88 % (7/8) | ±30 | 73 % to 100 % |
+| `gemma4:31b` | 51 | 12 | 58 % (14/24) | ±20 | 35 % to 81 % |
+| `Spark-X2.5-4B` | 51 | 12 | 58 % (11/19) | ±20 | 30 % to 87 % |
+| `gemma4:12b` | 51 | 12 | 65 % (17/26) | ±20 | 48 % to 82 % |
+| Bonsai 27B 1-bit | 51 | 12 | 95 % (18/19) | ±20 | 81 % to 100 % |
+
+- **Readings.**
+  - **v0.7 separates groups, not neighbours.** `gemma4:31b` keeps a lower rate than
+    `gemma4:12b` in 75 % of the draws, and `Spark-X2.5-4B` than `gemma4:31b` in 50 %. The
+    order between them is not established.
+  - **The groups hold.** On the ledger targets, `gpt-5.6-sol` keeps a lower rate than the
+    first local model in 99 % of the draws; on the 51 targets, `gemma4:12b` than Bonsai in
+    99 %.
+  - **"0 %" for the frontier cloud models stands on 5 questions** (3 for
+    `claude-fable-5`). It says that they did not mislead on these questions. It does not
+    exclude that they would on others.
+- **What more power needs: questions, not targets.** A margin falls with the square root
+  of the number of questions. From about ±25 points with 12 questions: about 33 questions
+  for ±15, about 75 for ±10. The time of the GPU box is not the limit (about 5 and 11
+  hours, arm B, four local models); writing the questions and their gold SQL is.
+- **The extension is left to v0.8**, where the number of questions is fixed in advance
+  from the margin wanted. D21 first tests a cheaper way.
+- **Known limits.** Drawing 5 or 12 questions again is itself rough: with so few
+  questions, such intervals tend to be too narrow.
+- **Intended for DeskInsight's benchmark runner.** A suite has 10 to 30 questions. The
+  counts are shown beside every rate, and two models whose rates lie within the margin
+  are not ranked.
+
+**D21 — 2026-09-27 — trial of a second seed of the ledger (owner's decision). Registered
+and pushed before any answer of the trial is generated.**
+- **The question.** The generator of the ledger takes a seed: the same schema and the same
+  questions, every number drawn again. Does a model behave the same way on the same
+  question when the numbers change?
+  - If it does, more seeds add no information, and more power needs more questions.
+  - If it does not, seeds add information at the cost of GPU time only.
+- **Design** (`scripts/seed_trial_v07.py`).
+  - **Seed 20260927**, database `databases/ledger-s20260927.sqlite`, built by
+    `scripts/generate_ledger.py --seed 20260927`.
+  - The five truncated ledger questions, with their 16 targets. The two truths and the
+    kinds are computed by the same code (`data/v07/targets-s20260927.jsonl`).
+  - Arm B (value only), the prompt of v0.7 unchanged. The four local models, one run,
+    reasoning off, temperature 0, 16,384-token window.
+  - The answers are scored by the same code. The answers marked `gbag_failure` or `lucky`
+    are read by the naive reader of record, `gemma4:31b`, which passed the self-test of
+    D17. The self-test is not run again.
+- **What is compared.** For each (model, target): the outcome (right, safe, misleading,
+  broken; D18) on the new seed and on the published seed.
+  - **Two targets are left out**: with the new numbers their kind changes
+    (`ledger-l9-02#2` becomes same-value, `ledger-l9-03#3` becomes discriminating). 14
+    targets remain, 11 of which carry the trap rate: **44 pairs**.
+- **The reading, fixed before the run.** On the 44 pairs, with the D17 reading:
+  - same outcome in **90 % or more**: the behaviour follows the question, and a new seed
+    adds little;
+  - same outcome in **75 % or less**: the behaviour follows the numbers too, and a new
+    seed adds information;
+  - between the two: undecided, and reported as such.
+
+  The same share is reported with the code only, on all the targets, and per model, with
+  the trap rates of both seeds.
+- **Frozen before the run:** the seed, the database, the targets, the prompt, the scorer,
+  the reader and its instruction, the thresholds, and the script, tested offline against a
+  fake box (`python scripts/test_seed_trial_v07.py`).
+- **Expected duration:** about 52 minutes on the GPU box (means measured on the published
+  runs: 115 s for `gemma4:31b`, 16 to 23 s for the three others). No cloud call.
+- **What the trial does not do.** Its answers are published
+  (`runs/v0.7/seed-20260927/`), and they enter no table of v0.7.
+- **Known limits.**
+  - One seed, one database, five questions: the trial says whether seeds are worth a
+    larger run, not how a model behaves in general.
+  - The runs are deterministic: the published seed was run twice with the same outcomes
+    on 101 or 102 targets in 102 (local result, above). A change of outcome between the
+    seeds therefore comes from the numbers, not from the run.
+  - "The same outcome" can cover two different texts.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
