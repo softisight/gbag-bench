@@ -871,6 +871,44 @@ Registered and pushed before any answer of the trial is generated.**
   - The reasoning of a small local model is not that of a frontier model. A result here
     does not say why the frontier models do not fall into the trap.
 
+**D24 — 2026-09-27 — the trial of D23 is stopped at 22 answers in 41 (owner's decision).
+No trap rate is computed.**
+- **What happened**, stage 1, `gemma4:12b`, from 17:47 to 18:41 UTC, after D23 was pushed
+  (17:09 UTC, commit `1a26d14`).
+
+| step | setting | answers | end with a readable block | empty | cut at the cap |
+|---|---|---|---|---|---|
+| tuning | `cap` | 10 | 4 | 6 | 6 |
+| tuning | `cap+penalty` | 10 | **9** | 1 | 1 |
+| the run, stopped | `cap+penalty` | 22 of 41 | **9** | 12 | 13 |
+
+  - The tuning kept `cap+penalty`, as registered: 9 readable blocks in 10.
+  - In the run, 12 of the first 22 answers came back empty: the model reasoned up to the
+    cap of 4,096 tokens and wrote no answer.
+- **Why it was stopped.** A trap rate would have stood on the answers that end, that is on
+  the targets where the reasoning converges. That is a chosen part of the targets, not the
+  targets. The rule of D23 would have called the rate unreliable (more than 30 % of broken
+  answers); the owner judged that it would be biased, and stopped the run.
+- **What was looked at before the stop:** the number of empty answers and of answers cut
+  at the cap, and the durations. **No outcome of an answer was read, and no answer was
+  given to the reader.**
+- **The defect is in the design of the tuning, not in the model.** The tuning was made on
+  the complete-result controls, whose prompts are short (at most 1,653 tokens). The run
+  asks the cut results, whose prompts hold 200 rows (3,545 to 9,229 tokens). A setting
+  that holds on a small table does not hold on a large one. The tuning should have been
+  made on targets of the same size as those of the run.
+- **What is published:** the 20 tuning answers and the 22 answers of the run
+  (`runs/v0.7/reasoning/`), as they are. They enter no table.
+- **What is not done.**
+  - Stage 2 (`gemma4:31b`) is not launched.
+  - The question of D23 stays open: these answers do not say whether a local model states
+    the part as the whole less often when it reasons.
+  - A new trial needs a tuning on large tables and a larger cap, which needs a larger
+    window than the 16,384 tokens of v0.7. It is left to v0.8.
+- **What it says all the same.** On this GPU box, with reasoning on, `gemma4:12b` gives no
+  answer more than half of the time on a 200-row result. For a product, reasoning on a
+  local model of this size is not a setting that can be switched on without a guard.
+
 ## Partial result (377 answers, 2026-09-26)
 
 Discriminating targets (12 per complete run); "control" is out of 14. Percentages are of
