@@ -2,7 +2,7 @@
 
 > **This is the metric of v0.1–v0.3**, given by an LLM judge on three axes. The score of
 > v0.7 carries the same name and is a different quantity: points counted by code on
-> declared answers. It is defined in the [README](README.md#how-v07-judges--without-trusting-a-judge)
+> declared answers. It is defined in the [README](README.md#how-v07-judges--by-code-with-one-reading-checked-by-code)
 > and in [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md) (D15, D16). The two scores cannot be compared.
 
 The **GBAG Score** is a single number from 0 to 100 measuring how well a model interprets a SQL result into a faithful natural-language answer.

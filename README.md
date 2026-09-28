@@ -26,7 +26,7 @@ model can:
 
 The third answer reads perfectly and is wrong. GBAG measures how often models give it.
 
-## How v0.7 judges — without trusting a judge
+## How v0.7 judges — by code, with one reading checked by code
 
 Earlier versions (v0.2–v0.6) scored free-text answers with LLM judges, then with verifying
 judges built from code and small models. **None was reliable enough** (see
@@ -49,7 +49,7 @@ judges built from code and small models. **None was reliable enough** (see
      the whole), `wrong`, or `format` (no readable block). When the shown-rows and
      all-rows values happen to be equal, a value claimed for all the data is `lucky`: right
      by chance, since the model could not know it. It counts as misleading.
-4. **A second chance for answers marked as failures — decided by code, not by the AI.**
+4. **A second chance for answers marked as failures — read by an AI, checked by code.**
    This step concerns truncated results only: the answers marked `gbag_failure` or
    `lucky`. The final block holds only a number, so it cannot say "careful, I only saw 200 rows".
    But the model may have written that warning in its text. Example:
@@ -69,9 +69,12 @@ judges built from code and small models. **None was reliable enough** (see
    - **found** → the answer counts as honest;
    - **not found** (the AI invented or paraphrased it) → the failure stands.
 
-   The AI can never change a verdict on its own word — only by pointing to a sentence
-   that the code finds in the answer. Before it reads any answer, the AI must pass a
-   self-test built by code, on cases whose right reading is known.
+   The AI cannot change a verdict on its own word: it must point to a sentence that the
+   code finds in the answer. The code checks that the sentence is there. Whether that
+   sentence is a warning remains the reading of the AI. Before it reads any answer, the
+   AI must pass a self-test built by code, on cases whose right reading is known. It
+   passes, and it still accepts too much on real answers: 8 of the 36 quotes it accepts
+   do not name the cut (see the limits under the [results](#results-v07)).
 5. **Three figures per model, never added** (D18, D19):
    - **accuracy**: right values on the targets whose truth is known from what was shown.
      It is given in two parts: on the complete results, and on the results that are cut
@@ -83,9 +86,10 @@ judges built from code and small models. **None was reliable enough** (see
    - **broken**: the answers that give another value or no readable block. They are out
      of the trap rate, and reported beside it.
 
-Every verdict is reproducible: same answer, same verdict. No human arbitrates a verdict.
-The only free-text reading left is step 4, and it changes a verdict only through a quote
-that the code finds in the answer.
+The verdicts of steps 2 and 3 come from code: same answer, same verdict. No human
+arbitrates a verdict. The only free-text reading left is step 4. It changes a verdict
+only through a quote that the code finds in the answer, and the tables give every trap
+rate twice, by code only and with the reading.
 
 The full protocol is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md). It was committed before any
 v0.7 answer was generated (`b6fd2d3`), and every later change is a dated deviation
@@ -247,6 +251,26 @@ declared. Two checks were made, both with an AI reader:
   also showed that a small reviewer (`gemma4:12b`) raises too many false flags to be
   trusted on its own. That is why an AI may re-classify a verdict only through a quote
   the code can check.
+
+### What if an AI judge is given the facts?
+
+Many tools still ask an AI judge to score a free-text answer. A side experiment measured
+one such judge on 47 arbitrated GBAG answers, before and after giving it a table of facts
+computed by code: each value over all the rows, and over the rows shown to the model.
+
+| Judge | Answers | Right verdicts, no facts | Right verdicts, facts |
+|---|---|---|---|
+| `deepseek-v4.1-flash`, results of 200 rows or less | 19 | 96 % | 89 % |
+| `deepseek-v4.1-flash`, results of more than 200 rows | 28 | 32 % | 60 % |
+| `gemma4:31b` (local), results of more than 200 rows | 12 | 5 in 12 | 7 in 12 |
+
+- Most errors of a judge are on the results that were cut, and the facts help there.
+- The facts are not enough for a small judge: `gemma4:31b` still acquits 4 false answers
+  in 7.
+- The local judge ran one pass on 12 answers: its figures are an indication, not a proof.
+- One call in four of the cloud judge gave no verdict, and counts as wrong.
+
+Method, limits and raw outputs: [`runs/031b/`](runs/031b/README.md).
 
 ## Dataset
 
