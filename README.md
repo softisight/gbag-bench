@@ -89,8 +89,8 @@ that the code finds in the answer.
 
 The full protocol is [PROTOCOL_v0.7.md](PROTOCOL_v0.7.md). It was committed before any
 v0.7 answer was generated (`b6fd2d3`), and every later change is a dated deviation
-(D1–D23). Several deviations were decided after results had been seen (D4, D6, D11, D16,
-D18, D19, D20, D22), and say so. The commits were pushed to this repository on 2026-09-27, together with the
+(D1–D24). Several deviations were decided after results had been seen (D4, D6, D11, D16,
+D18, D19, D20, D22, D24), and say so. The commits were pushed to this repository on 2026-09-27, together with the
 results: their dates are the authors' record, not a third-party timestamp. D17, D21 and
 D23 are the exceptions: they were pushed before their runs.
 
@@ -179,7 +179,9 @@ in 6; `gpt-5.6-sol`: 7 in 10). The script prints what "safe" is made of, for eve
   none for `qwen3-coder` (`python scripts/reasoning_v07.py`). The local models ran on a
   single RTX 3060 (12 GB), reasoning off. Left on, `gemma4:12b` looped in its reasoning at
   temperature 0 and returned empty answers. A trial of the local models with reasoning on
-  is registered (D23).
+  was registered (D23) and stopped (D24): on the 200-row results, `gemma4:12b` reasoned up
+  to the cap and gave no answer 12 times in 22. No trap rate was computed. Whether a local
+  model falls into the trap less often when it reasons stays open.
 - **The cloud runs are partial** (the ledger targets only, and 18 answers for
   `claude-fable-5`), because the budget ran out. Further runs are local only.
 - **"Accuracy, cut" stands on 7 targets**, and on 3 for the ledger.
@@ -343,7 +345,7 @@ measured elsewhere, open an issue and we will cite it.
 
 | Path | Purpose |
 |---|---|
-| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D23, and results |
+| `PROTOCOL_v0.7.md` | The v0.7 protocol, deviations D1–D24, and results |
 | `data/v07/targets.jsonl` | The 51 targets with both truths |
 | `scorer/v07/` | Parser and classifier (code only) + unit tests |
 | `scripts/generate_v07.py` | Declared-answer generation (Ollama by default; OpenRouter optional) |
@@ -352,7 +354,7 @@ measured elsewhere, open an issue and we will cite it.
 | `scripts/table_v07.py` | The score tables of this page |
 | `scripts/reader_v07.py`, `scripts/arms_v07.py` | The naive reader of step 4 and its self-test (D17); what asking for the scope changes |
 | `scripts/reasoning_v07.py` | The reasoning that each model used (D22) |
-| `scripts/seed_trial_v07.py`, `scripts/reasoning_trial_v07.py` | The two trials: a second seed of the ledger (D21), the local models with reasoning on (D23) |
+| `scripts/seed_trial_v07.py`, `scripts/reasoning_trial_v07.py` | The two trials: a second seed of the ledger (D21), the local models with reasoning on (D23, stopped: D24) |
 | `scripts/double_read_v07.py`, `scripts/review_v07.py` | The AI checks of the reading (D13, D14) |
 | `runs/v0.7/` | Every answer, class and check of v0.7 |
 | `PROTOCOL_v0.4.md`, `PROTOCOL_v0.5_JUDGE.md`, `PROTOCOL_v0.6_JUDGE.md` | The earlier campaigns |
