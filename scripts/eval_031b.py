@@ -10,7 +10,7 @@ run:
   * self-contradictions: answers whose verdict is not the same on every pass;
   * unverifiable share: claims marked `unverifiable` / all claims listed, from the raw output.
 
-Usage (repo root):  python scripts/eval_031b.py [runs/031b/measure.jsonl]
+Usage (repo root):  python scripts/eval_031b.py [runs/031b/measure.jsonl [replay.jsonl]]
 """
 from __future__ import annotations
 
@@ -40,6 +40,12 @@ def claims(raw: str) -> list[str]:
 def main() -> int:
     rows = [json.loads(l) for l in PATH.read_text(encoding="utf-8").splitlines() if l.strip()]
     print(f"{len(rows)} judge calls from {PATH.name}")
+    if len(sys.argv) > 2:       # a replay: a call played again takes the place of the first one
+        again = {(r["id"], r["condition"], r["pass"]): r
+                 for r in (json.loads(l) for l in Path(sys.argv[2]).read_text(encoding="utf-8").splitlines() if l.strip())}
+        rows = [again.get((r["id"], r["condition"], r["pass"]), r) for r in rows]
+        print(f"{len(again)} calls played again, from {Path(sys.argv[2]).name}: "
+              f"{sum(verdict(r) != 'failed' for r in again.values())} give a verdict")
     for cond in ("avant", "apres"):
         rs = [r for r in rows if r["condition"] == cond]
         if not rs:
@@ -65,7 +71,51 @@ def main() -> int:
         print(f"  self-contradictions: {contra} answer(s)")
         print(f"  unverifiable claims: {100 * unv:.1f} % of {len(cl)}")
         print(f"  failed calls: {failed}")
+        # by the size of the result (fixed before the cloud run of 2026-09-27): the rows
+        # carry `n_rows`, the number of rows of the gold result
+        if all("n_rows" in r for r in rs):
+            for label, big in (("200 rows or less ", False), ("more than 200 rows", True)):
+                g = [r for r in rs if (r["n_rows"] > 200) == big]
+                if not g:
+                    continue
+                ok = [right_call(r) for r in g]
+                gf = [r for r in g if r["truth"] == "faithful"]
+                gu = [r for r in g if r["truth"] != "faithful"]
+                print(f"  {label}: {len({r['id'] for r in g}):>2} answers | right verdicts {sum(ok)}/{len(ok)} = {100 * sum(ok) / len(ok):.0f} %"
+                      f" | correct acquitted {sum(right_call(r) for r in gf)}/{len(gf)} | false condemned {sum(right_call(r) for r in gu)}/{len(gu)}")
+
+    # what the facts change, answer by answer: the verdict of the majority of the passes
+    maj = {}
+    for cond in ("avant", "apres"):
+        by_case = collections.defaultdict(list)
+        for r in rows:
+            if r["condition"] == cond:
+                by_case[r["id"]].append(right_call(r))
+        maj[cond] = {k: sum(v) * 2 > len(v) for k, v in by_case.items()}
+    both = sorted(set(maj["avant"]) & set(maj["apres"]))
+    if both:
+        truth = {r["id"]: r["truth"] for r in rows}
+        size = {r["id"]: r.get("n_rows") for r in rows}
+        fixed = [k for k in both if not maj["avant"][k] and maj["apres"][k]]
+        broken = [k for k in both if maj["avant"][k] and not maj["apres"][k]]
+        print(f"\n[avant -> apres] {len(both)} answers, verdict of the majority of the passes")
+        print(f"  right in both: {sum(maj['avant'][k] and maj['apres'][k] for k in both)} | wrong in both: "
+              f"{sum(not maj['avant'][k] and not maj['apres'][k] for k in both)} | repaired by the facts: {len(fixed)} | broken by the facts: {len(broken)}")
+        for name, ks in (("repaired", fixed), ("broken", broken),
+                         ("wrong in both", [k for k in both if not maj["avant"][k] and not maj["apres"][k]])):
+            for k in ks:
+                print(f"    {name:14} {k:42} {truth[k]:20} {size[k]} rows")
+    if rows and "usd" in rows[0]:
+        # the price set in the bench was wrong for the cloud judge: see runs/031b/README.md
+        print(f"\ncost booked by the bench: {sum(r.get('usd') or 0 for r in rows):.4f} USD for {len(rows)} calls; "
+              f"mean {statistics.mean(r['seconds'] for r in rows):.0f} s per call; "
+              f"tokens written per call: {statistics.mean(r.get('output_tokens') or 0 for r in rows):.0f}")
     return 0
+
+
+def right_call(r: dict) -> bool:
+    v = verdict(r)
+    return (v == "acquit") if r["truth"] == "faithful" else (v == "condemn")
 
 
 if __name__ == "__main__":
